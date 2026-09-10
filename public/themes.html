@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Themes · Regenerative Atlas</title>
+<meta name="description" content="Search for keywords across the existing library of regenerative research.">
+<link rel="stylesheet" href="/styles/atlas.css">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+</head>
+<body class="page">
+
+<header class="topbar">
+  <a class="topbar__brand" href="/">Regenerative Atlas</a>
+  <nav>
+    <a class="label label--small" href="/map">Explore</a>
+    <a class="label label--small" href="/themes" aria-current="page">Themes</a>
+    <a class="label label--small" href="/add">Add</a>
+  </nav>
+  <span class="topbar__count" data-count></span>
+</header>
+
+<main class="sheet">
+  <div class="masthead masthead--left" style="padding-inline:0">
+    <h1 class="wordmark" style="font-size:clamp(2rem,4.5vw,3.2rem)">Themes</h1>
+    <p class="blurb">Search for keywords across the existing library of research, or pick your way
+      through the vocabulary the Atlas has grown. Every tag is a door into the map.</p>
+  </div>
+
+  <form id="search-form" role="search" style="margin:2rem 0 0">
+    <div class="pill-field">
+      <input id="search" type="search" placeholder="soil, embodied carbon, reuse…" aria-label="Search the library">
+      <button type="submit">Search</button>
+    </div>
+  </form>
+
+  <div id="facets"></div>
+
+  <div class="section-head">
+    <h2 id="results-heading">The library</h2>
+    <p id="results-count"></p>
+    <p style="margin-left:auto"><a href="/api/export.json">JSON</a> · <a href="/api/export.bib">BibTeX</a></p>
+  </div>
+
+  <ul class="records" id="results"></ul>
+</main>
+
+<script type="module" src="/js/themes.js"></script>
+</body>
+</html>

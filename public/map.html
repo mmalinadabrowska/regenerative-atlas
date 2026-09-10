@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Map · Regenerative Atlas</title>
+<meta name="description" content="A connection map of regenerative research, clustered by shared vocabulary.">
+<link rel="stylesheet" href="/styles/atlas.css">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+</head>
+<body class="page">
+
+<header class="topbar">
+  <a class="topbar__brand" href="/">Regenerative Atlas</a>
+  <nav>
+    <a class="label label--small" href="/map" aria-current="page">Explore</a>
+    <a class="label label--small" href="/themes">Themes</a>
+    <a class="label label--small" href="/add">Add</a>
+  </nav>
+  <span class="topbar__count" data-count></span>
+</header>
+
+<div class="map-shell">
+  <canvas id="constellation" aria-label="Connection map of the Atlas. A list of every source is available on the Themes page."></canvas>
+
+  <div class="map-controls">
+    <input id="map-search" class="map-search" type="search" placeholder="Search the library…" aria-label="Search the library">
+    <div id="map-filters" class="tag-cloud" aria-label="Filter by tag"></div>
+    <button class="chip" id="map-clear" type="button" hidden>Clear</button>
+    <button class="chip" id="map-reset" type="button">Recentre</button>
+  </div>
+
+  <div class="map-legend" id="map-legend"></div>
+
+  <aside class="panel" id="panel" aria-live="polite">
+    <button class="panel__close" id="panel-close" type="button" aria-label="Close">×</button>
+    <div id="panel-body"></div>
+  </aside>
+</div>
+
+<script type="module" src="/js/map.js"></script>
+</body>
+</html>

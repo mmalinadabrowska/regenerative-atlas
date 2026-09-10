@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Add · Regenerative Atlas</title>
+<meta name="description" content="Upload your regenerative design references, texts, papers.">
+<link rel="stylesheet" href="/styles/atlas.css">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+</head>
+<body class="page">
+
+<header class="topbar">
+  <a class="topbar__brand" href="/">Regenerative Atlas</a>
+  <nav>
+    <a class="label label--small" href="/map">Explore</a>
+    <a class="label label--small" href="/themes">Themes</a>
+    <a class="label label--small" href="/add" aria-current="page">Add</a>
+  </nav>
+  <span class="topbar__count" data-count></span>
+</header>
+
+<main class="sheet" style="max-width:58rem">
+  <div class="masthead masthead--left" style="padding-inline:0">
+    <h1 class="wordmark" style="font-size:clamp(2rem,4.5vw,3.2rem)">Add</h1>
+    <p class="blurb">Upload your regenerative design references, texts, papers. Paste a link and
+      the Atlas will go and read it — you only need to check what it found and say where it sits.</p>
+  </div>
+
+  <div id="notice"></div>
+
+  <form id="lookup-form" style="margin:2rem 0">
+    <div class="pill-field">
+      <input id="url" type="url" inputmode="url" required placeholder="My reference…"
+        aria-label="Link to the paper, report or text">
+      <button type="submit" id="lookup-button">Look it up</button>
+    </div>
+    <p class="field__hint" id="lookup-status">A link to a paper, report, book, project or talk. DOIs work best.</p>
+  </form>
+
+  <form id="record-form" hidden>
+    <div class="section-head" style="margin-top:0">
+      <h2>What it is</h2>
+      <p>Correct anything the Atlas got wrong.</p>
+    </div>
+
+    <label class="field"><span>Title</span><input name="title" required maxlength="300"></label>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(13rem,1fr));gap:0 1.25rem">
+      <label class="field"><span>Authors</span><input name="authors" maxlength="300" placeholder="Surname, Surname"></label>
+      <label class="field"><span>Publisher or journal</span><input name="publisher" maxlength="200"></label>
+      <label class="field"><span>Year</span><input name="year" inputmode="numeric" maxlength="4" placeholder="2024"></label>
+    </div>
+
+    <label class="field"><span>Summary</span>
+      <textarea name="summary" maxlength="1200" placeholder="What does it actually say?"></textarea></label>
+
+    <label class="field"><span>Why it matters</span>
+      <textarea name="note" maxlength="600" placeholder="Your note to whoever finds this next."></textarea>
+      <p class="field__hint">Optional, and the most useful part of a record.</p></label>
+
+    <div class="section-head">
+      <h2>Where it sits</h2>
+      <p>At least one tag. Tags are what draw the lines on the map.</p>
+    </div>
+
+    <div id="suggested"></div>
+    <div id="chosen-tags" class="tag-cloud" style="margin-bottom:1rem"></div>
+
+    <label class="field"><span>Add your own tag</span>
+      <input id="free-tag" maxlength="48" placeholder="Type a tag and press enter" autocomplete="off" list="tag-options">
+      <datalist id="tag-options"></datalist>
+      <p class="field__hint">Near-synonyms are folded into the existing vocabulary automatically.</p></label>
+
+    <div id="vocabulary"></div>
+
+    <label class="field" style="max-width:22rem;margin-top:2rem"><span>Your name or handle</span>
+      <input name="contributor" maxlength="120" placeholder="Optional">
+    </label>
+
+    <p><button class="label" type="submit" id="submit-button">Add to the Atlas</button></p>
+  </form>
+</main>
+
+<script type="module" src="/js/add.js"></script>
+</body>
+</html>
