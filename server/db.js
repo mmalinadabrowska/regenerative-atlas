@@ -118,7 +118,9 @@ export class Atlas {
   tagsWithCounts() {
     return this.db
       .prepare(
-        `SELECT t.slug, t.label, t.facet, t.note, t.core, COUNT(st.source_id) AS count
+        // Count s.id, not st.source_id: the status test lives on a LEFT JOIN,
+        // so an unpublished source still leaves its source_tags row behind.
+        `SELECT t.slug, t.label, t.facet, t.note, t.core, COUNT(s.id) AS count
          FROM tags t
          LEFT JOIN source_tags st ON st.tag_id = t.id
          LEFT JOIN sources s ON s.id = st.source_id AND s.status = 'published'

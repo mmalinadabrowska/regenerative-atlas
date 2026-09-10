@@ -1,0 +1,158 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { openDatabase } from '../server/db.js';
+import { buildGraph, idfWeights, kinship, labelPropagate } from '../server/graph.js';
+
+/** A small library with three obvious territories and one deliberate outlier. */
+function library() {
+  const atlas = openDatabase(':memory:');
+  const add = (title, tags) =>
+    atlas.addSource({ url: `https://example.org/${title.replace(/\s+/g, '-')}`, title, tags });
+
+  add('Timber tower', ['timber', 'materials', 'building', 'case-study']);
+  add('Mass timber LCA', ['timber', 'life-cycle-assessment', 'carbon', 'paper']);
+  add('Embodied carbon primer', ['carbon', 'life-cycle-assessment', 'building', 'guidance']);
+  add('Reuse toolkit', ['reuse', 'materials', 'toolkit', 'circular-economy']);
+  add('Material passports', ['reuse', 'materials', 'circular-economy', 'building']);
+  add('Soil and the city', ['soil', 'city', 'ecology', 'essay']);
+  add('Urban ecology reader', ['soil', 'ecology', 'city', 'book']);
+  add('A lone star', ['glossary']);
+  return atlas;
+}
+
+test('idf makes a rare tag worth more than a common one', () => {
+  const atlas = library();
+  const tagMap = atlas.tagMap();
+  const idf = idfWeights(tagMap, atlas.count());
+  assert.ok(idf.get('glossary') > idf.get('materials'));
+});
+
+test('kinship is symmetric, bounded, and 1 for identical vocabularies', () => {
+  const idf = new Map([['a', 1], ['b', 2], ['c', 3]]);
+  assert.equal(kinship(['a', 'b'], ['a', 'b'], idf), 1);
+  assert.equal(kinship(['a'], ['c'], idf), 0);
+  assert.equal(kinship([], ['a'], idf), 0);
+  const forward = kinship(['a', 'b'], ['b', 'c'], idf);
+  assert.equal(forward, kinship(['b', 'c'], ['a', 'b'], idf));
+  assert.ok(forward > 0 && forward < 1);
+});
+
+test('one shared uncommon tag outweighs one shared common tag', () => {
+  const idf = new Map([['common', 0.2], ['rare', 4]]);
+  const viaRare = kinship(['rare', 'x'], ['rare', 'y'], new Map([...idf, ['x', 1], ['y', 1]]));
+  const viaCommon = kinship(['common', 'x'], ['common', 'y'], new Map([...idf, ['x', 1], ['y', 1]]));
+  assert.ok(viaRare > viaCommon);
+});
+
+test('label propagation puts a connected pair in one community', () => {
+  const adjacency = new Map([
+    ['a', new Map([['b', 1]])],
+    ['b', new Map([['a', 1]])],
+    ['c', new Map()],
+  ]);
+  const labels = labelPropagate(['a', 'b', 'c'], adjacency);
+  assert.equal(labels.get('a'), labels.get('b'));
+  assert.notEqual(labels.get('c'), labels.get('a'));
+});
+
+test('the graph clusters the vocabulary and names each cluster', () => {
+  const graph = buildGraph(library());
+  assert.equal(graph.stats.sources, 8);
+  assert.ok(graph.clusters.length >= 2, 'a library with distinct territories should cluster');
+
+  for (const cluster of graph.clusters) {
+    assert.ok(cluster.label, 'every cluster needs a name');
+    assert.ok(cluster.tags.length > 0);
+    assert.equal(typeof cluster.id, 'number');
+  }
+
+  // Cluster ids are a dense, stable ordering by weight.
+  assert.deepEqual(graph.clusters.map((c) => c.id), graph.clusters.map((_, i) => i));
+});
+
+test('sources that share a subject land in the same cluster', () => {
+  const graph = buildGraph(library());
+  const clusterOf = (title) => graph.nodes.find((n) => n.label === title).cluster;
+  assert.equal(clusterOf('Soil and the city'), clusterOf('Urban ecology reader'));
+  assert.equal(clusterOf('Reuse toolkit'), clusterOf('Material passports'));
+});
+
+test('kin lines connect related work and skip the unrelated', () => {
+  const graph = buildGraph(library());
+  const kin = graph.links.filter((l) => l.kind === 'kin');
+  const idOf = (title) => graph.nodes.find((n) => n.label === title).id;
+  const joined = (a, b) =>
+    kin.some(
+      (l) =>
+        (l.source === idOf(a) && l.target === idOf(b)) ||
+        (l.source === idOf(b) && l.target === idOf(a)),
+    );
+
+  assert.ok(joined('Soil and the city', 'Urban ecology reader'));
+  assert.ok(joined('Reuse toolkit', 'Material passports'));
+  assert.equal(joined('Timber tower', 'Soil and the city'), false);
+
+  for (const link of kin) {
+    assert.ok(link.weight > 0 && link.weight <= 1);
+    assert.ok(Array.isArray(link.shared));
+  }
+});
+
+test('a source sharing nothing gets no kin line rather than a false one', () => {
+  const graph = buildGraph(library());
+  const lone = graph.nodes.find((n) => n.label === 'A lone star');
+  const kin = graph.links.filter(
+    (l) => l.kind === 'kin' && (l.source === lone.id || l.target === lone.id),
+  );
+  assert.equal(kin.length, 0);
+});
+
+test('no source is left with fewer lines than it deserves', () => {
+  const graph = buildGraph(library());
+  const degree = new Map();
+  for (const link of graph.links.filter((l) => l.kind === 'kin')) {
+    degree.set(link.source, (degree.get(link.source) ?? 0) + 1);
+    degree.set(link.target, (degree.get(link.target) ?? 0) + 1);
+  }
+  const orphans = graph.nodes
+    .filter((n) => n.type === 'source' && n.tags.length > 1 && !degree.has(n.id))
+    .map((n) => n.label);
+  assert.deepEqual(orphans, [], 'a well-tagged source should reach the rest of the map');
+});
+
+test('the same library always draws the same map', () => {
+  const atlas = library();
+  const a = buildGraph(atlas);
+  const b = buildGraph(atlas);
+  assert.deepEqual(a.clusters, b.clusters);
+  assert.deepEqual(
+    a.nodes.map((n) => [n.id, n.cluster]),
+    b.nodes.map((n) => [n.id, n.cluster]),
+  );
+  assert.deepEqual(a.links, b.links);
+});
+
+test('every link points at a node that exists', () => {
+  const graph = buildGraph(library());
+  const ids = new Set(graph.nodes.map((n) => n.id));
+  for (const link of graph.links) {
+    assert.ok(ids.has(link.source), `dangling source ${link.source}`);
+    assert.ok(ids.has(link.target), `dangling target ${link.target}`);
+  }
+});
+
+test('filtering narrows the map to the sources that survive', () => {
+  const graph = buildGraph(library(), { filterTags: ['materials'] });
+  assert.equal(graph.stats.sources, 3);
+  for (const node of graph.nodes.filter((n) => n.type === 'source')) {
+    assert.ok(node.tags.includes('materials'));
+  }
+});
+
+test('an empty library produces an empty but well-formed map', () => {
+  const graph = buildGraph(openDatabase(':memory:'));
+  assert.deepEqual(graph.nodes, []);
+  assert.deepEqual(graph.links, []);
+  assert.deepEqual(graph.clusters, []);
+  assert.equal(graph.stats.sources, 0);
+});

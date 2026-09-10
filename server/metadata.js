@@ -226,20 +226,29 @@ export async function describeUrl(rawUrl) {
     };
   }
 
+  return readMetadata(html, url);
+}
+
+/**
+ * Pull a record out of a page's markup. Kept separate from fetching so it can
+ * be tested against real-world HTML without going near the network.
+ */
+export function readMetadata(html, url) {
+  const parsed = url instanceof URL ? url : new URL(url);
   const meta = parseMeta(html);
   const authors = (meta.get('citation_author') ?? meta.get('dc.creator') ?? [])
     .filter(Boolean)
     .join(', ');
 
   const described = {
-    url: rawUrl,
+    url: parsed.href,
     title:
       clean(pick(meta, 'citation_title', 'og:title', 'dc.title', 'twitter:title'), 300) ||
       clean(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1], 300),
     authors: clean(authors || pick(meta, 'author', 'article:author'), 300),
     publisher: clean(
       pick(meta, 'citation_journal_title', 'og:site_name', 'citation_publisher', 'dc.publisher') ||
-        url.hostname.replace(/^www\./, ''),
+        parsed.hostname.replace(/^www\./, ''),
       200,
     ),
     year: parseYear(

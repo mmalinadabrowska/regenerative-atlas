@@ -165,7 +165,13 @@ export function exportJson(atlas) {
   };
 }
 
-const bibEscape = (value) => String(value ?? '').replace(/[{}\\]/g, '').trim();
+// Strip the characters that would break a .bib file, then close the gap they
+// leave behind so the field doesn't read with a hole in it.
+const bibEscape = (value) =>
+  String(value ?? '')
+    .replace(/[{}\\]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 
 /** BibTeX, because a bibliography that can't be cited is a reading list. */
 export function exportBibtex(atlas) {
