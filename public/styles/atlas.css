@@ -370,9 +370,22 @@ a.label:active, button.label:active { transform: none; }
   position: relative;
   flex: 1;
   min-height: 60vh;
+  /* The record panel parks off the right edge; without this it widens the page. */
+  overflow: hidden;
 }
 
-#constellation { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+/* Absolutely positioned rather than 100%/100%: a canvas is a replaced element,
+   so a percentage height falls back to its own width/height attributes — which
+   this code sets from the measured box, and the loop never resolves. */
+#constellation {
+  display: block;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  cursor: grab;
+}
 #constellation.is-dragging { cursor: grabbing; }
 #constellation.is-over { cursor: pointer; }
 
@@ -520,8 +533,34 @@ a.label:active, button.label:active { transform: none; }
   .door__mark { height: 6.5rem; }
   .colophon { text-align: left; }
   .colophon p { margin-left: 0; }
-  .panel { width: 100%; border-left: 0; border-top: 1px solid var(--ink-32); top: auto; height: 68%; }
-  .map-controls { position: static; padding: 0.75rem var(--gutter); border-bottom: var(--rule); }
+  .panel {
+    width: 100%;
+    z-index: 4;
+    border-left: 0;
+    border-top: 1px solid var(--ink-32);
+    top: auto;
+    height: 70%;
+    transform: translateY(100%);
+  }
+  .panel.is-open { transform: none; }
+
+  /* One scrolling row of filters rather than five wrapped ones over the map,
+     on its own band of paper so it never sits on top of the drawing. */
+  .map-controls {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 0.6rem 0.75rem;
+    background: var(--paper);
+    border-bottom: var(--rule);
+  }
+  .map-controls::-webkit-scrollbar { display: none; }
+  .map-controls > * { flex: 0 0 auto; }
+  .map-search { min-width: 9rem; }
+  #map-filters { flex-wrap: nowrap; }
   .map-legend { display: none; }
 }
 

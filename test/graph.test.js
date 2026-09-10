@@ -132,6 +132,29 @@ test('the same library always draws the same map', () => {
   assert.deepEqual(a.links, b.links);
 });
 
+test('one source spanning several territories does not merge them', () => {
+  // Label propagation on a dense tag graph collapses into a single giant
+  // community, and a well-meaning contributor tagging across three subjects is
+  // enough to trigger it. Adjacency is pruned to each tag's strongest ties to
+  // stop that; this is the guard on it.
+  const atlas = library();
+  const before = buildGraph(atlas).clusters.length;
+  assert.ok(before >= 3, 'the fixture should start with distinct territories');
+
+  atlas.addSource({
+    url: 'https://example.org/bridge',
+    title: 'Everything, everywhere',
+    tags: ['timber', 'soil', 'reuse', 'carbon', 'ecology', 'materials', 'city'],
+  });
+
+  const after = buildGraph(atlas).clusters.length;
+  assert.ok(after > 1, `a single bridging source collapsed the map to ${after} cluster(s)`);
+  assert.ok(
+    after >= before - 1,
+    `clusters fell from ${before} to ${after} on one added source`,
+  );
+});
+
 test('every link points at a node that exists', () => {
   const graph = buildGraph(library());
   const ids = new Set(graph.nodes.map((n) => n.id));

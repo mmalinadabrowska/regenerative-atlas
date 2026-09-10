@@ -117,19 +117,50 @@ export function labelPropagate(nodes, adjacency, { iterations = 24, seed = 7 } =
   return labels;
 }
 
-/** Cosine-normalised co-occurrence, so common tags don't dominate every pair. */
+/**
+ * Cosine-normalised co-occurrence, pruned to each tag's strongest few ties.
+ *
+ * The pruning matters more than it looks. Label propagation on a dense graph
+ * runs away into one giant community — a single source tagged across three
+ * territories is enough of a bridge to merge them, and then the map has no
+ * regions left to read. Keeping only the edges that are among either endpoint's
+ * strongest keeps the incidental bridges out while leaving the real structure
+ * intact.
+ */
+const TAG_NEIGHBOURS = 4;
+
 function tagAdjacency(cooccurrence, tagCounts) {
+  const scored = cooccurrence.map(({ a, b, weight }) => ({
+    a,
+    b,
+    weight: weight / Math.sqrt((tagCounts.get(a) ?? 1) * (tagCounts.get(b) ?? 1)),
+  }));
+
+  const strongest = new Map();
+  for (const edge of scored) {
+    for (const [from, to] of [[edge.a, edge.b], [edge.b, edge.a]]) {
+      if (!strongest.has(from)) strongest.set(from, []);
+      strongest.get(from).push({ to, weight: edge.weight });
+    }
+  }
+
+  const kept = new Set();
+  for (const [from, edges] of strongest) {
+    edges
+      .sort((x, y) => y.weight - x.weight || x.to.localeCompare(y.to))
+      .slice(0, TAG_NEIGHBOURS)
+      .forEach(({ to }) => kept.add(from < to ? `${from}|${to}` : `${to}|${from}`));
+  }
+
   const adjacency = new Map();
   const add = (a, b, w) => {
     if (!adjacency.has(a)) adjacency.set(a, new Map());
     adjacency.get(a).set(b, w);
   };
-  for (const { a, b, weight } of cooccurrence) {
-    const na = tagCounts.get(a) ?? 1;
-    const nb = tagCounts.get(b) ?? 1;
-    const normalised = weight / Math.sqrt(na * nb);
-    add(a, b, normalised);
-    add(b, a, normalised);
+  for (const { a, b, weight } of scored) {
+    if (!kept.has(a < b ? `${a}|${b}` : `${b}|${a}`)) continue;
+    add(a, b, weight);
+    add(b, a, weight);
   }
   return adjacency;
 }
