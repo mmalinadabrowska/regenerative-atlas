@@ -153,51 +153,135 @@ a.label:active, button.label:active { transform: none; }
   font-variant-numeric: tabular-nums;
 }
 
-/* --- landing ------------------------------------------------------------- */
+/* --- landing --------------------------------------------------------------
+   The drawing and the type share one 1920x1080 frame. The hero is as wide as it
+   can be while still fitting the viewport height, so the composition is never
+   cropped; type is sized in cqw so it scales with the drawing rather than
+   drifting off the lines that point at it.
+   -------------------------------------------------------------------------- */
 
-.doors {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-  gap: clamp(2rem, 5vw, 4.5rem);
-  padding: clamp(2.5rem, 7vw, 6rem) var(--gutter) 3rem;
-  max-width: 84rem;
-  margin: 0 auto;
+.page--landing { justify-content: center; overflow-x: hidden; }
+
+.hero {
+  position: relative;
   width: 100%;
+  max-width: calc((100svh - 6.5rem) * 16 / 9);
+  aspect-ratio: 16 / 9;
+  margin: 0 auto;
+  container-type: inline-size;
 }
 
-.door { display: flex; flex-direction: column; }
-
-.door__mark {
-  height: clamp(7rem, 13vw, 11rem);
-  display: flex;
-  align-items: center;
-  margin-bottom: clamp(1.5rem, 4vw, 3rem);
+.hero__drawing {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  user-select: none;
 }
 
-.door__mark svg { width: 100%; height: 100%; overflow: visible; }
+/* The text column: x 500-1420 of 1920, matching the drawing's clearing. */
+.hero__type {
+  position: absolute;
+  left: 26.05%;
+  width: 47.9%;
+  top: 11.5%;
+  text-align: center;
+}
 
-.door .label { align-self: flex-start; margin-bottom: 1.4rem; }
-
-.door p {
+.hero .wordmark {
+  font-size: 4cqw;
+  line-height: 1;
   margin: 0;
-  font-size: clamp(1.05rem, 1.5vw, 1.35rem);
-  line-height: 1.3;
-  max-width: 22ch;
 }
 
-.colophon {
-  margin-top: auto;
-  padding: 2rem var(--gutter) 2.5rem;
+.hero .standfirst {
+  font-size: 1.55cqw;
+  margin: 1.15cqw 0 0;
+  color: var(--ink);
+}
+
+.hero .blurb {
+  font-size: 1.18cqw;
+  line-height: 1.5;
+  text-align: left;
+  max-width: 96%;
+  margin: 2.5cqw 0 0;
+  color: var(--ink);
+}
+
+/* Centred on the hub the lines radiate from. */
+.hero__map {
+  position: absolute;
+  left: 50%;
+  top: 62.2%;
+  transform: translateX(-50%);
+  font-size: 2cqw;
+  padding: 0.55em 1.5em 0.62em;
+}
+
+.hero__map:hover { transform: translate(calc(-50% - 2px), -2px); }
+.hero__map:active { transform: translateX(-50%); }
+
+.landing-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 2rem;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 1.25rem var(--gutter) 1.75rem;
   font-family: var(--display);
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   color: var(--ink-80);
-  text-align: right;
-  line-height: 1.45;
 }
 
-.colophon p { margin: 0 0 0 auto; max-width: 34ch; }
+.landing-foot nav { display: flex; gap: 1.25rem; flex-wrap: wrap; }
+.landing-foot p { margin: 0; max-width: 38ch; text-align: right; }
 
-.page { display: flex; flex-direction: column; min-height: 100vh; }
+@media (max-width: 48rem) {
+  /* Below this the frame is too small to read type off, so the composition
+     unstacks: type first at ordinary sizes, the drawing kept as a coda. */
+  .hero {
+    max-width: none;
+    aspect-ratio: auto;
+    display: flex;
+    flex-direction: column;
+    padding: 2.5rem var(--gutter) 0;
+  }
+
+  .hero__drawing {
+    position: static;
+    order: 3;
+    height: auto;
+    margin: 2.5rem -0.5rem 0;
+    opacity: 0.9;
+  }
+
+  .hero__type {
+    position: static;
+    width: auto;
+    text-align: left;
+  }
+
+  .hero .wordmark { font-size: clamp(2.4rem, 11vw, 3.4rem); }
+  .hero .standfirst { font-size: 1.05rem; margin-top: 0.6rem; }
+  .hero .blurb { font-size: 1rem; margin-top: 1.4rem; }
+
+  .hero__map {
+    position: static;
+    order: 2;
+    transform: none;
+    align-self: flex-start;
+    margin-top: 2rem;
+    font-size: 1.25rem;
+    padding: 0.4em 1.2em 0.46em;
+  }
+
+  .hero__map:hover { transform: translate(-2px, -2px); }
+
+  .landing-foot { flex-direction: column; gap: 1rem; }
+  .landing-foot p { text-align: left; }
+}
 
 /* --- generic page body --------------------------------------------------- */
 
@@ -529,10 +613,6 @@ a.label:active, button.label:active { transform: none; }
 /* --- responsive ---------------------------------------------------------- */
 
 @media (max-width: 46rem) {
-  .doors { gap: 2.5rem; }
-  .door__mark { height: 6.5rem; }
-  .colophon { text-align: left; }
-  .colophon p { margin-left: 0; }
   .panel {
     width: 100%;
     z-index: 4;

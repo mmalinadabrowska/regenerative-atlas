@@ -18,6 +18,27 @@ these are things somebody chose, not rows returned from a query.
 The whole site draws from one module, `public/js/ink.js`, so the landing page marks and
 the map nodes are made by the same hand.
 
+## The landing page
+
+One frame, 1920x1080: the title block in the clearing at the centre, marks scattered
+around it, and thin lines running between them to a black `The Map` label sitting under
+the biggest star. It is the map in miniature — the same grammar of blobs, stars and
+connecting lines — so that pressing the label is continuous with what you find behind it
+rather than a jump to a different idea.
+
+The marks are brush strokes: a centreline whose width varies along its length, filled as
+an outline rather than stroked. A pen has a nib and the nib turns, so the line swells
+where the hand pressed and thins where it lifted; that one property is most of what
+separates a drawn mark from a plotted one. Closed centrelines come back as hollow rings,
+which is where the blob shapes come from.
+
+They are generated rather than hand-authored (`scripts/draw-hero.mjs`) so they stay
+editable as geometry — points and widths — instead of freezing into path data nobody can
+adjust. Type is overlaid as real HTML on the same coordinates, sized in container-query
+units so it scales with the drawing and stays on the lines that point at it. Below 48rem
+the frame is too small to read type off, so the composition unstacks: type at ordinary
+sizes first, the drawing kept underneath as a coda.
+
 ## Decisions worth knowing about
 
 **Sources are blobs, tags are stars.** A source is a thing — it has weight and a body.

@@ -15,7 +15,8 @@
     "reset": "node --disable-warning=ExperimentalWarning server/seed.js --reset",
     "test": "node --disable-warning=ExperimentalWarning --test",
     "check-links": "node --disable-warning=ExperimentalWarning scripts/check-links.js",
-    "check-seed": "node --disable-warning=ExperimentalWarning scripts/check-links.js --seed"
+    "check-seed": "node --disable-warning=ExperimentalWarning scripts/check-links.js --seed",
+    "draw": "node --disable-warning=ExperimentalWarning scripts/draw-hero.mjs"
   },
   "keywords": [
     "regenerative-design",

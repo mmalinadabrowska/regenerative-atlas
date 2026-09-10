@@ -104,6 +104,100 @@ export function star(ctx, cx, cy, radius, seed) {
   }
 }
 
+/* --------------------------------------------------------------------------
+   Brush strokes
+   -------------------------------------------------------------------------- */
+
+/** Catmull-Rom through four control points — a curve that passes through them. */
+function spline(p0, p1, p2, p3, t) {
+  const t2 = t * t;
+  const t3 = t2 * t;
+  const axis = (i) =>
+    0.5 *
+    (2 * p1[i] +
+      (-p0[i] + p2[i]) * t +
+      (2 * p0[i] - 5 * p1[i] + 4 * p2[i] - p3[i]) * t2 +
+      (-p0[i] + 3 * p1[i] - 3 * p2[i] + p3[i]) * t3);
+  return [axis(0), axis(1)];
+}
+
+/** Resample a centreline into a dense polyline, carrying a width along it. */
+function sampleCentreline(points, widths, closed, density) {
+  const n = points.length;
+  const at = (i) => points[closed ? ((i % n) + n) % n : Math.min(Math.max(i, 0), n - 1)];
+  const widthAt = (i) => widths[closed ? ((i % n) + n) % n : Math.min(Math.max(i, 0), n - 1)];
+
+  const out = [];
+  const segments = closed ? n : n - 1;
+  for (let i = 0; i < segments; i++) {
+    for (let step = 0; step < density; step++) {
+      const t = step / density;
+      const [x, y] = spline(at(i - 1), at(i), at(i + 1), at(i + 2), t);
+      out.push({ x, y, w: widthAt(i) + (widthAt(i + 1) - widthAt(i)) * t });
+    }
+  }
+  if (!closed) {
+    const last = points[n - 1];
+    out.push({ x: last[0], y: last[1], w: widths[n - 1] });
+  }
+  return out;
+}
+
+const round = (v) => Math.round(v * 10) / 10;
+
+function polyline(points) {
+  return points.map(([x, y], i) => `${i === 0 ? 'M' : 'L'} ${round(x)} ${round(y)}`).join(' ');
+}
+
+/**
+ * A brush stroke: a centreline whose width varies along its length, returned as
+ * a filled outline rather than a stroked line.
+ *
+ * This is what separates a drawn mark from a plotted one. A pen has a nib and
+ * the nib turns: the line swells where the hand pressed and thins where it
+ * lifted. `widths` gives the nib width at each control point — taper the ends
+ * and a stroke reads as brushed; keep them equal and it reads as a ribbon.
+ *
+ * A closed centreline returns a hollow ring (two contours, even-odd filled),
+ * which is how the blob-shaped marks in the Atlas are made.
+ */
+export function brushStroke(points, options = {}) {
+  const { width = 8, widths, closed = false, density = 10 } = options;
+  if (points.length < 2) return '';
+
+  const profile = Array.isArray(widths)
+    ? widths
+    : points.map((_, i) => {
+        if (closed || points.length < 3) return width;
+        // Taper both ends so the mark starts and finishes like a brush.
+        const t = i / (points.length - 1);
+        return width * (0.42 + 0.58 * Math.sin(Math.PI * Math.min(Math.max(t, 0), 1)) ** 0.55);
+      });
+
+  const spine = sampleCentreline(points, profile, closed, density);
+  const left = [];
+  const right = [];
+
+  for (let i = 0; i < spine.length; i++) {
+    const previous = spine[i === 0 ? (closed ? spine.length - 1 : 0) : i - 1];
+    const next = spine[i === spine.length - 1 ? (closed ? 0 : i) : i + 1];
+    let dx = next.x - previous.x;
+    let dy = next.y - previous.y;
+    const length = Math.hypot(dx, dy) || 1;
+    dx /= length;
+    dy /= length;
+    const half = spine[i].w / 2;
+    left.push([spine[i].x - dy * half, spine[i].y + dx * half]);
+    right.push([spine[i].x + dy * half, spine[i].y - dx * half]);
+  }
+
+  if (closed) {
+    // Two contours, outer and inner: even-odd fill leaves the middle empty.
+    return `${polyline(left)} Z ${polyline(right.reverse())} Z`;
+  }
+  return `${polyline(left)} ${polyline(right.reverse().map((p) => p))} Z`;
+}
+
 /**
  * A line with a little life in it. Straight lines read as diagram; a line that
  * bows very slightly reads as drawn. The bow is derived from the endpoints so

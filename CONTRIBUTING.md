@@ -27,7 +27,15 @@ npm test        # 63 tests, no network needed
 npm run dev     # node --watch
 npm run reset   # rebuild data/atlas.db from data/seed.json
 npm run check-links
+npm run draw    # redraw public/images/hero.svg from scripts/draw-hero.mjs
 ```
+
+The landing drawing is generated, not hand-authored SVG. Its marks live as
+centrelines in `scripts/draw-hero.mjs` — move a point, run `npm run draw`, and
+commit both the script and the regenerated `public/images/hero.svg`. The frame is
+1920x1080 and `index.html` positions its type on the same coordinates, which is
+why the lines meet the title block and the Map button; if you move a mark that a
+line points at, move the line too.
 
 House rules:
 
