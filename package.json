@@ -9,13 +9,13 @@
   },
   "main": "server/index.js",
   "scripts": {
-    "start": "node server/index.js",
-    "dev": "node --watch server/index.js",
-    "seed": "node server/seed.js",
-    "reset": "node server/seed.js --reset",
-    "test": "node --test",
-    "check-links": "node scripts/check-links.js",
-    "check-seed": "node scripts/check-links.js --seed"
+    "start": "node --disable-warning=ExperimentalWarning server/index.js",
+    "dev": "node --disable-warning=ExperimentalWarning --watch server/index.js",
+    "seed": "node --disable-warning=ExperimentalWarning server/seed.js",
+    "reset": "node --disable-warning=ExperimentalWarning server/seed.js --reset",
+    "test": "node --disable-warning=ExperimentalWarning --test",
+    "check-links": "node --disable-warning=ExperimentalWarning scripts/check-links.js",
+    "check-seed": "node --disable-warning=ExperimentalWarning scripts/check-links.js --seed"
   },
   "keywords": [
     "regenerative-design",
