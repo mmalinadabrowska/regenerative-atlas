@@ -14,7 +14,8 @@
     "seed": "node server/seed.js",
     "reset": "node server/seed.js --reset",
     "test": "node --test",
-    "check-links": "node scripts/check-links.js"
+    "check-links": "node scripts/check-links.js",
+    "check-seed": "node scripts/check-links.js --seed"
   },
   "keywords": [
     "regenerative-design",

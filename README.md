@@ -118,8 +118,13 @@ loopback and link-local addresses.
 Through the site is the intended way — `/add`, paste, check, tag.
 
 To propose entries as a pull request instead, add them to `data/seed.json` and run
-`npm run reset`. Please run `node scripts/check-links.js --seed` first: link rot is
-what kills a bibliography, and a reference nobody can open is not a reference.
+`npm run reset`. Please run `npm run check-seed` first: link rot is what kills a
+bibliography, and a reference nobody can open is not a reference.
+
+> **The starter links are unverified.** They were written from knowledge of the field,
+> not checked against the live web, so some will have moved or rotted. `npm run
+> check-seed` reports what is unreachable and what has redirected; fixing those is a
+> good first contribution.
 
 ## The typeface
 

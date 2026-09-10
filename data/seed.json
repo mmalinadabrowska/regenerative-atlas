@@ -1,5 +1,5 @@
 {
-  "note": "A starting constellation. These are widely-cited anchors of the field rather than a canon — the Atlas is meant to be added to. Every link here is checked by `npm run check-links`.",
+  "note": "A starting constellation — widely-cited anchors of the field rather than a canon, and meant to be added to. These URLs were written from knowledge of the field and have NOT been verified against the live web; run `npm run check-seed` and repair anything that has moved before relying on them.",
   "sources": [
     {
       "url": "https://donellameadows.org/archives/leverage-points-places-to-intervene-in-a-system/",
@@ -8,7 +8,13 @@
       "publisher": "The Donella Meadows Project",
       "year": 1999,
       "summary": "Twelve places to intervene in a system, ordered from the shallow (adjusting numbers) to the deep (changing the paradigm the system arises from). The foundational text for why regenerative work is rarely a technical problem.",
-      "tags": ["systems-thinking", "regenerative-systems", "essay", "planetary", "framework"]
+      "tags": [
+        "systems-thinking",
+        "regenerative-systems",
+        "essay",
+        "planetary",
+        "framework"
+      ]
     },
     {
       "url": "https://doi.org/10.1080/09613210701475753",
@@ -17,7 +23,13 @@
       "publisher": "Building Research & Information",
       "year": 2007,
       "summary": "The paper that drew the trajectory from degenerative through neutral to regenerative practice, and argued that doing less harm is not a destination.",
-      "tags": ["definition", "regenerative-systems", "paper", "building", "diagrams"]
+      "tags": [
+        "definition",
+        "regenerative-systems",
+        "paper",
+        "building",
+        "diagrams"
+      ]
     },
     {
       "url": "https://regenesisgroup.com/",
@@ -26,7 +38,13 @@
       "publisher": "Regenesis",
       "year": 1995,
       "summary": "The practice that developed story-of-place as a working method: read the living system of a site before proposing anything, and design so the place can keep evolving.",
-      "tags": ["regenerative-systems", "place", "living-systems", "framework", "storytelling"]
+      "tags": [
+        "regenerative-systems",
+        "place",
+        "living-systems",
+        "framework",
+        "storytelling"
+      ]
     },
     {
       "url": "https://www.ellenmacarthurfoundation.org/topics/circular-economy-introduction/overview",
@@ -35,7 +53,13 @@
       "publisher": "Ellen MacArthur Foundation",
       "year": 2013,
       "summary": "The butterfly diagram and the three principles — eliminate waste, circulate materials, regenerate nature. The most-borrowed diagram in the field.",
-      "tags": ["circular-economy", "materials", "diagrams", "framework", "economics"]
+      "tags": [
+        "circular-economy",
+        "materials",
+        "diagrams",
+        "framework",
+        "economics"
+      ]
     },
     {
       "url": "https://doughnuteconomics.org/",
@@ -44,7 +68,13 @@
       "publisher": "DEAL",
       "year": 2019,
       "summary": "Tools for working between the social foundation and the ecological ceiling, including the city portrait method used to downscale planetary boundaries to a place.",
-      "tags": ["economics", "planetary", "city", "toolkit", "justice"]
+      "tags": [
+        "economics",
+        "planetary",
+        "city",
+        "toolkit",
+        "justice"
+      ]
     },
     {
       "url": "https://www.stockholmresilience.org/research/planetary-boundaries.html",
@@ -53,7 +83,13 @@
       "publisher": "Stockholm Resilience Centre",
       "year": 2009,
       "summary": "The nine processes that regulate the stability of the Earth system, and how far past several of them we already are. The ceiling that regenerative targets are measured against.",
-      "tags": ["planetary", "ecology", "measurement", "diagrams", "climate-adaptation"]
+      "tags": [
+        "planetary",
+        "ecology",
+        "measurement",
+        "diagrams",
+        "climate-adaptation"
+      ]
     },
     {
       "url": "https://asknature.org/",
@@ -62,7 +98,13 @@
       "publisher": "Biomimicry Institute",
       "year": 2008,
       "summary": "A searchable library of biological strategies indexed by the design function they solve — how does nature manage water, resist fracture, cool itself.",
-      "tags": ["biomimicry", "ecology", "dataset", "product", "toolkit"]
+      "tags": [
+        "biomimicry",
+        "ecology",
+        "dataset",
+        "product",
+        "toolkit"
+      ]
     },
     {
       "url": "https://biomimicry.net/",
@@ -71,7 +113,13 @@
       "publisher": "Biomimicry 3.8",
       "year": 1998,
       "summary": "Consultancy behind Ecological Performance Standards, which set a project's targets from what the intact local ecosystem would do on that same ground.",
-      "tags": ["biomimicry", "measurement", "place", "standard", "ecology"]
+      "tags": [
+        "biomimicry",
+        "measurement",
+        "place",
+        "standard",
+        "ecology"
+      ]
     },
     {
       "url": "https://living-future.org/lbc/",
@@ -80,7 +128,13 @@
       "publisher": "ILFI",
       "year": 2006,
       "summary": "A certification organised as seven petals and judged on measured performance over twelve months of occupation, not on prediction.",
-      "tags": ["standard", "building", "regenerative-systems", "measurement", "health"]
+      "tags": [
+        "standard",
+        "building",
+        "regenerative-systems",
+        "measurement",
+        "health"
+      ]
     },
     {
       "url": "https://c2ccertified.org/",
@@ -89,7 +143,13 @@
       "publisher": "C2C PII",
       "year": 2010,
       "summary": "Product standard built on McDonough and Braungart's argument that waste is a design error — material health, circularity, clean air, water, social fairness.",
-      "tags": ["circular-economy", "materials", "product", "standard", "health"]
+      "tags": [
+        "circular-economy",
+        "materials",
+        "product",
+        "standard",
+        "health"
+      ]
     },
     {
       "url": "https://www.terrapinbrightgreen.com/reports/14-patterns/",
@@ -98,7 +158,13 @@
       "publisher": "Terrapin Bright Green",
       "year": 2014,
       "summary": "Fourteen named, evidenced patterns for putting nature into buildings, each with the health outcome it is associated with.",
-      "tags": ["health", "pattern-language", "building", "guidance", "ecology"]
+      "tags": [
+        "health",
+        "pattern-language",
+        "building",
+        "guidance",
+        "ecology"
+      ]
     },
     {
       "url": "https://carbonleadershipforum.org/",
@@ -107,7 +173,13 @@
       "publisher": "University of Washington",
       "year": 2010,
       "summary": "Open research and open data on embodied carbon, including the EC3 tool and the material baselines most whole-life assessments are compared against.",
-      "tags": ["carbon", "life-cycle-assessment", "materials", "dataset", "measurement"]
+      "tags": [
+        "carbon",
+        "life-cycle-assessment",
+        "materials",
+        "dataset",
+        "measurement"
+      ]
     },
     {
       "url": "https://www.architecture.com/about/policy/climate-action/2030-climate-challenge",
@@ -116,7 +188,13 @@
       "publisher": "RIBA",
       "year": 2019,
       "summary": "Stepped targets to 2030 for operational energy, embodied carbon and potable water, given per square metre so projects can be held to them.",
-      "tags": ["carbon", "measurement", "building", "guidance", "energy"]
+      "tags": [
+        "carbon",
+        "measurement",
+        "building",
+        "guidance",
+        "energy"
+      ]
     },
     {
       "url": "https://www.leti.uk/",
@@ -125,7 +203,13 @@
       "publisher": "LETI",
       "year": 2017,
       "summary": "Volunteer-built guidance — the Climate Emergency Design Guide and the Embodied Carbon Primer — that turned UK net-zero targets into numbers a design team can work to.",
-      "tags": ["carbon", "energy", "guidance", "building", "retrofit"]
+      "tags": [
+        "carbon",
+        "energy",
+        "guidance",
+        "building",
+        "retrofit"
+      ]
     },
     {
       "url": "https://ukgbc.org/",
@@ -134,7 +218,13 @@
       "publisher": "UKGBC",
       "year": 2007,
       "summary": "Home of the UK Net Zero Carbon Buildings Framework and the whole-life carbon roadmap for the sector.",
-      "tags": ["carbon", "governance", "framework", "building", "measurement"]
+      "tags": [
+        "carbon",
+        "governance",
+        "framework",
+        "building",
+        "measurement"
+      ]
     },
     {
       "url": "https://www.bamb2020.eu/",
@@ -143,7 +233,13 @@
       "publisher": "EU Horizon 2020",
       "year": 2015,
       "summary": "The project that developed material passports and reversible building design — treating a building as a temporary arrangement of materials that must be recoverable.",
-      "tags": ["reuse", "materials", "circular-economy", "building", "toolkit"]
+      "tags": [
+        "reuse",
+        "materials",
+        "circular-economy",
+        "building",
+        "toolkit"
+      ]
     },
     {
       "url": "https://www.circularity-gap.world/",
@@ -152,7 +248,13 @@
       "publisher": "Circle Economy",
       "year": 2018,
       "summary": "An annual measurement of what share of the global economy is actually circular. The number has been going the wrong way.",
-      "tags": ["circular-economy", "measurement", "planetary", "report", "economics"]
+      "tags": [
+        "circular-economy",
+        "measurement",
+        "planetary",
+        "report",
+        "economics"
+      ]
     },
     {
       "url": "https://materialcultures.org/",
@@ -161,7 +263,13 @@
       "publisher": "Material Cultures",
       "year": 2019,
       "summary": "Research and practice rebuilding a construction culture around bio-based materials grown in the landscapes that surround a site — straw, hemp, timber, earth.",
-      "tags": ["bio-based", "materials", "straw", "place", "case-study"]
+      "tags": [
+        "bio-based",
+        "materials",
+        "straw",
+        "place",
+        "case-study"
+      ]
     },
     {
       "url": "https://drawdown.org/solutions",
@@ -170,7 +278,13 @@
       "publisher": "Project Drawdown",
       "year": 2017,
       "summary": "Climate solutions ranked by modelled emissions impact, with the assumptions published — useful precisely because it lets you argue with the ranking.",
-      "tags": ["carbon", "modelling", "dataset", "planetary", "measurement"]
+      "tags": [
+        "carbon",
+        "modelling",
+        "dataset",
+        "planetary",
+        "measurement"
+      ]
     },
     {
       "url": "https://www.footprintnetwork.org/",
@@ -179,7 +293,13 @@
       "publisher": "Global Footprint Network",
       "year": 2003,
       "summary": "Ecological footprint and biocapacity accounts by country — the source behind Earth Overshoot Day and most one-planet framings.",
-      "tags": ["measurement", "dataset", "planetary", "ecology", "economics"]
+      "tags": [
+        "measurement",
+        "dataset",
+        "planetary",
+        "ecology",
+        "economics"
+      ]
     },
     {
       "url": "https://www.bioregional.com/one-planet-living",
@@ -188,7 +308,13 @@
       "publisher": "Bioregional",
       "year": 2003,
       "summary": "Ten principles for living within one planet's resources, developed through BedZED and used since as a masterplanning framework.",
-      "tags": ["framework", "neighbourhood", "community", "case-study", "planetary"]
+      "tags": [
+        "framework",
+        "neighbourhood",
+        "community",
+        "case-study",
+        "planetary"
+      ]
     },
     {
       "url": "https://www.patternlanguage.com/",
@@ -197,7 +323,13 @@
       "publisher": "Center for Environmental Structure",
       "year": 1977,
       "summary": "Alexander's argument that living structure emerges from repeated, named, locally-adapted moves — the ancestor of most attempts to write design knowledge down.",
-      "tags": ["pattern-language", "living-systems", "book", "building", "community"]
+      "tags": [
+        "pattern-language",
+        "living-systems",
+        "book",
+        "building",
+        "community"
+      ]
     },
     {
       "url": "https://milkweed.org/book/braiding-sweetgrass",
@@ -206,7 +338,13 @@
       "publisher": "Milkweed Editions",
       "year": 2013,
       "summary": "Indigenous knowledge and plant science held together, and the honourable harvest as a working ethic for taking anything from a living system.",
-      "tags": ["indigenous-knowledge", "ecology", "book", "justice", "storytelling"]
+      "tags": [
+        "indigenous-knowledge",
+        "ecology",
+        "book",
+        "justice",
+        "storytelling"
+      ]
     },
     {
       "url": "https://www.rewildingbritain.org.uk/",
@@ -215,7 +353,13 @@
       "publisher": "Rewilding Britain",
       "year": 2015,
       "summary": "Case studies and evidence for letting land recover its own processes, at the scale where ecological function actually returns.",
-      "tags": ["biodiversity", "bioregion", "ecology", "case-study", "soil"]
+      "tags": [
+        "biodiversity",
+        "bioregion",
+        "ecology",
+        "case-study",
+        "soil"
+      ]
     },
     {
       "url": "https://new-european-bauhaus.europa.eu/",
@@ -224,7 +368,13 @@
       "publisher": "European Commission",
       "year": 2020,
       "summary": "The EU's attempt to bind the Green Deal to beauty, sustainability and togetherness — and a live argument about whether aesthetics belong in climate policy.",
-      "tags": ["governance", "community", "city", "framework", "justice"]
+      "tags": [
+        "governance",
+        "community",
+        "city",
+        "framework",
+        "justice"
+      ]
     },
     {
       "url": "https://www.passivhaustrust.org.uk/",
@@ -233,7 +383,13 @@
       "publisher": "Passivhaus Trust",
       "year": 2010,
       "summary": "The UK body for the Passivhaus standard — fabric-first energy performance verified by measurement rather than modelled intent.",
-      "tags": ["energy", "standard", "building", "retrofit", "measurement"]
+      "tags": [
+        "energy",
+        "standard",
+        "building",
+        "retrofit",
+        "measurement"
+      ]
     },
     {
       "url": "https://rmi.org/",
@@ -242,7 +398,13 @@
       "publisher": "RMI",
       "year": 1982,
       "summary": "Independent research on energy transition, from deep retrofit economics to embodied carbon in construction materials.",
-      "tags": ["energy", "carbon", "report", "retrofit", "economics"]
+      "tags": [
+        "energy",
+        "carbon",
+        "report",
+        "retrofit",
+        "economics"
+      ]
     },
     {
       "url": "https://www.architectscan.org/",
@@ -251,7 +413,13 @@
       "publisher": "ACAN",
       "year": 2019,
       "summary": "Organising within the profession — retrofit-first campaigning, embodied carbon regulation, and the argument for building less.",
-      "tags": ["degrowth", "governance", "community", "retrofit", "justice"]
+      "tags": [
+        "degrowth",
+        "governance",
+        "community",
+        "retrofit",
+        "justice"
+      ]
     }
   ]
 }
