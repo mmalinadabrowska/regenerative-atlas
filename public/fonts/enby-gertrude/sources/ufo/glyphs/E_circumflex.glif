@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="Ecircumflex" format="2">
+  <advance width="663"/>
+  <unicode hex="00CA"/>
+  <anchor x="337" y="737" name="top"/>
+  <outline>
+    <component base="E"/>
+    <component base="asciicircum" xOffset="117" yOffset="193"/>
+  </outline>
+  <guideline angle="0" x="0" y="1000"/>
+  <guideline angle="90" x="187" y="0"/>
+  <guideline angle="0" x="0" y="797"/>
+  <lib>
+  <dict>
+  <key>public.markColor</key>
+  <string>0.6,1,0.602,1</string>
+  </dict>
+  </lib>
+</glyph>

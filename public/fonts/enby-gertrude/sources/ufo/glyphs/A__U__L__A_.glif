@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="A_U_L_A" format="2">
+  <advance width="2956"/>
+  <anchor x="2540" y="765" name="top"/>
+  <outline>
+    <component base="A"/>
+    <component base="U" xOffset="794"/>
+    <component base="L" xOffset="1561"/>
+    <component base="A" xOffset="2162"/>
+  </outline>
+  <lib>
+  <dict>
+  <key>public.markColor</key>
+  <string>0.6,0.602,1,1</string>
+  </dict>
+  </lib>
+</glyph>

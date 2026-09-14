@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="adieresis" format="2">
+  <advance width="495"/>
+  <unicode hex="00E4"/>
+  <anchor x="220" y="570" name="top"/>
+  <outline>
+    <component base="a"/>
+    <component base="dieresis" xOffset="37" yOffset="10"/>
+  </outline>
+  <guideline angle="0" x="0" y="718"/>
+  <guideline angle="0" x="0" y="640"/>
+  <lib>
+  <dict>
+  <key>public.markColor</key>
+  <string>0.6,1,0.602,1</string>
+  </dict>
+  </lib>
+</glyph>

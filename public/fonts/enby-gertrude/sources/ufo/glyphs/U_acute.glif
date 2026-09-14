@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="Uacute" format="2">
+  <advance width="767"/>
+  <unicode hex="00DA"/>
+  <anchor x="421" y="753" name="top"/>
+  <outline>
+    <component base="U"/>
+    <component base="acute" xOffset="259" yOffset="184"/>
+  </outline>
+  <guideline angle="0" x="0" y="797"/>
+  <lib>
+  <dict>
+  <key>public.markColor</key>
+  <string>0.6,1,0.602,1</string>
+  </dict>
+  </lib>
+</glyph>

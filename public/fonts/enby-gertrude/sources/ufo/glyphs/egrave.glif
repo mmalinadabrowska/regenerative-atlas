@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="egrave" format="2">
+  <advance width="557"/>
+  <unicode hex="00E8"/>
+  <anchor x="288" y="560" name="top"/>
+  <outline>
+    <component base="e"/>
+    <component base="grave" xOffset="115" yOffset="12"/>
+  </outline>
+  <guideline angle="0" x="0" y="777"/>
+  <guideline angle="0" x="0" y="610"/>
+  <lib>
+  <dict>
+  <key>public.markColor</key>
+  <string>0.6,1,0.602,1</string>
+  </dict>
+  </lib>
+</glyph>

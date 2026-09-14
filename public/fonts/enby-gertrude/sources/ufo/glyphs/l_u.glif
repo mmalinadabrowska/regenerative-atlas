@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="l_u" format="2">
+  <advance width="874"/>
+  <unicode hex="F3350"/>
+  <outline>
+    <contour>
+      <point x="190" y="150" type="line" smooth="yes"/>
+      <point x="190" y="99"/>
+      <point x="205" y="45"/>
+      <point x="215" y="32" type="qcurve" smooth="yes"/>
+      <point x="225" y="17"/>
+      <point x="239" y="15" type="qcurve"/>
+      <point x="239" y="0" type="line"/>
+      <point x="65" y="0" type="line"/>
+      <point x="65" y="15" type="line"/>
+      <point x="79" y="17"/>
+      <point x="90" y="32" type="qcurve" smooth="yes"/>
+      <point x="99" y="45"/>
+      <point x="114" y="99"/>
+      <point x="114" y="150" type="qcurve" smooth="yes"/>
+      <point x="114" y="610" type="line"/>
+      <point x="113" y="636"/>
+      <point x="107" y="657" type="qcurve" smooth="yes"/>
+      <point x="102" y="675"/>
+      <point x="81" y="704"/>
+      <point x="61" y="704" type="qcurve"/>
+      <point x="57" y="719" type="line"/>
+      <point x="175" y="805" type="line"/>
+      <point x="190" y="805" type="line"/>
+    </contour>
+    <contour>
+      <point x="822" y="44" type="line"/>
+      <point x="787" y="30"/>
+      <point x="760" y="19" type="qcurve" smooth="yes"/>
+      <point x="737" y="9"/>
+      <point x="698" y="-6"/>
+      <point x="698" y="-5" type="qcurve"/>
+      <point x="684" y="-5" type="line"/>
+      <point x="684" y="81" type="line"/>
+      <point x="672" y="65"/>
+      <point x="639" y="32"/>
+      <point x="599" y="6"/>
+      <point x="552" y="-10"/>
+      <point x="525" y="-10" type="qcurve" smooth="yes"/>
+      <point x="481" y="-10"/>
+      <point x="419" y="20"/>
+      <point x="377" y="69"/>
+      <point x="359" y="134"/>
+      <point x="359" y="169" type="qcurve"/>
+      <point x="360" y="203" type="line"/>
+      <point x="437" y="203" type="line"/>
+      <point x="437" y="180" type="line"/>
+      <point x="436" y="154"/>
+      <point x="448" y="106"/>
+      <point x="474" y="70"/>
+      <point x="514" y="48"/>
+      <point x="539" y="48" type="qcurve" smooth="yes"/>
+      <point x="563" y="48"/>
+      <point x="607" y="60"/>
+      <point x="644" y="79"/>
+      <point x="673" y="101"/>
+      <point x="683" y="111" type="qcurve"/>
+      <point x="683" y="345" type="line"/>
+      <point x="683" y="347"/>
+      <point x="680" y="378"/>
+      <point x="668" y="413"/>
+      <point x="645" y="441"/>
+      <point x="624" y="441" type="qcurve"/>
+      <point x="620" y="456" type="line"/>
+      <point x="743" y="515" type="line"/>
+      <point x="757" y="515" type="line"/>
+      <point x="757" y="184" type="line" smooth="yes"/>
+      <point x="757" y="149"/>
+      <point x="763" y="122" type="qcurve" smooth="yes"/>
+      <point x="768" y="98"/>
+      <point x="794" y="59"/>
+      <point x="820" y="59" type="qcurve"/>
+    </contour>
+    <contour>
+      <point x="342.682" y="402.242" type="qcurve" smooth="yes"/>
+      <point x="326.741" y="421.784"/>
+      <point x="335.73" y="471.673"/>
+      <point x="357.892" y="489.751" type="qcurve" smooth="yes"/>
+      <point x="380.055" y="507.829"/>
+      <point x="429.882" y="505.915"/>
+      <point x="445.822" y="486.373" type="qcurve" smooth="yes"/>
+      <point x="461.763" y="466.832"/>
+      <point x="453.627" y="417.637"/>
+      <point x="431.464" y="399.559" type="qcurve" smooth="yes"/>
+      <point x="409.302" y="381.481"/>
+      <point x="358.623" y="382.7"/>
+    </contour>
+    <contour>
+      <point x="437" y="200" type="line"/>
+      <point x="363" y="127" type="line"/>
+      <point x="362" y="141"/>
+      <point x="357" y="167" type="qcurve" smooth="yes"/>
+      <point x="352" y="190"/>
+      <point x="332" y="237"/>
+      <point x="312" y="237" type="qcurve"/>
+      <point x="309" y="252" type="line"/>
+      <point x="422" y="294" type="line"/>
+      <point x="437" y="294" type="line"/>
+    </contour>
+  </outline>
+  <lib>
+  <dict>
+  <key>com.fontlab.metricsLeft</key>
+  <string>=l</string>
+  <key>public.markColor</key>
+  <string>0.6,1,0.602,1</string>
+  </dict>
+  </lib>
+</glyph>

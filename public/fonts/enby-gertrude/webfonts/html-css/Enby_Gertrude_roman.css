@@ -1,0 +1,9 @@
+/* Webfont: Enby-Gertrude */@font-face {
+    font-family: 'Enby-Gertrude';
+    src: url('Enby_Gertrude_roman_2025.woff2') format('woff2'), /* Modern Browsers */
+         url('Enby_Gertrude_roman_2025.otf') format('opentype'); /* Safari, Android, iOS */
+             font-style: normal;
+    font-weight: normal;
+    text-rendering: optimizeLegibility;
+}
+

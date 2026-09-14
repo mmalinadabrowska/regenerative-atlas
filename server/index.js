@@ -35,6 +35,8 @@ const MIME = {
   '.otf': 'font/otf',
   '.ttf': 'font/ttf',
   '.txt': 'text/plain; charset=utf-8',
+  '.pdf': 'application/pdf',
+  '.md': 'text/markdown; charset=utf-8',
 };
 
 const MAX_BODY = 64 * 1024;

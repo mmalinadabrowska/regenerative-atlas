@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="uni02D9" format="2">
+  <advance width="357"/>
+  <unicode hex="02D9"/>
+  <anchor x="137" y="585" name="_top"/>
+  <outline>
+    <contour>
+      <point x="137" y="642" type="qcurve" smooth="yes"/>
+      <point x="111" y="642"/>
+      <point x="76" y="677"/>
+      <point x="76" y="703" type="qcurve" smooth="yes"/>
+      <point x="76" y="729"/>
+      <point x="111" y="763"/>
+      <point x="137" y="763" type="qcurve" smooth="yes"/>
+      <point x="163" y="763"/>
+      <point x="197" y="729"/>
+      <point x="197" y="703" type="qcurve" smooth="yes"/>
+      <point x="197" y="677"/>
+      <point x="163" y="642"/>
+    </contour>
+  </outline>
+  <lib>
+  <dict>
+  <key>public.markColor</key>
+  <string>0.6,1,0.602,1</string>
+  </dict>
+  </lib>
+</glyph>

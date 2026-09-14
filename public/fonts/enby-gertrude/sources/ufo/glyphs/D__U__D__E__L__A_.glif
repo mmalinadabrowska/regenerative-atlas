@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="D_U_D_E_L_A" format="2">
+  <advance width="4359"/>
+  <anchor x="3943" y="765" name="top"/>
+  <outline>
+    <component base="D"/>
+    <component base="U" xOffset="767"/>
+    <component base="D" xOffset="1534"/>
+    <component base="E" xOffset="2301"/>
+    <component base="L" xOffset="2964"/>
+    <component base="A" xOffset="3565"/>
+  </outline>
+  <lib>
+  <dict>
+  <key>public.markColor</key>
+  <string>0.6,0.602,1,1</string>
+  </dict>
+  </lib>
+</glyph>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="hyphen-fwd" format="2">
+  <advance width="918"/>
+  <unicode hex="FF0D"/>
+  <outline>
+    <component base="emdash" xOffset="42" yOffset="27"/>
+  </outline>
+  <guideline angle="0" x="0" y="260"/>
+  <lib>
+  <dict>
+  <key>public.markColor</key>
+  <string>0.604,0.6,1,1</string>
+  </dict>
+  </lib>
+</glyph>

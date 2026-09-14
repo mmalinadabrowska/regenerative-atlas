@@ -130,10 +130,20 @@ bibliography, and a reference nobody can open is not a reference.
 
 ## The typeface
 
-The design uses **Enby Gertrude** for display type. It is not redistributed here.
-Drop `EnbyGertrude-Regular.woff2` (and/or `.woff`) into `public/fonts/` and it is
-picked up automatically; without it the stack falls back to EB Garamond, then Hoefler
-Text, then Georgia. Nothing breaks, it is just less itself.
+The display type is **Enby Gertrude**, drawn by Valentin Chauveau and Léna
+Salabert-Triby and published by the [Bye Bye Binary](https://typotheque.genderfluid.space)
+collective — a post-binary typeface whose ligatures set inclusive French with the médian
+point drawn into the letterforms rather than dropped between them.
+
+The complete upstream package is bundled at `public/fonts/enby-gertrude/`, sources and
+documentation included, because its licence asks for whole folders rather than lone font
+files. **It is not under this project's MIT licence**, and one of its conditions — placing
+yourself on a donation scale — is not something a repository can discharge for you. Read
+[`public/fonts/README.md`](public/fonts/README.md) before deploying the Atlas anywhere,
+and the CUTE text bundled alongside it.
+
+Deleting `public/fonts/enby-gertrude/` breaks nothing: the stack falls back to EB
+Garamond, then Hoefler Text, then Georgia. The Atlas is just less itself.
 
 ## Deploying
 
@@ -154,4 +164,5 @@ for why the map looks the way it does.
 ## Licence
 
 Code is MIT. Bibliographic records — titles, links, tags — are offered under CC0; the
-works they point at remain with their authors.
+works they point at remain with their authors. The bundled Enby Gertrude typeface is
+**not** MIT — see [`public/fonts/README.md`](public/fonts/README.md).

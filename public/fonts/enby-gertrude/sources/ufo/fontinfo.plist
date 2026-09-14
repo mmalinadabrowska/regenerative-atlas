@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>ascender</key>
+  <integer>795</integer>
+  <key>capHeight</key>
+  <integer>737</integer>
+  <key>descender</key>
+  <integer>-218</integer>
+  <key>familyName</key>
+  <string>Enby Gertrude</string>
+  <key>guidelines</key>
+  <array>
+  <dict>
+    <key>angle</key>
+    <integer>0</integer>
+    <key>name</key>
+    <string>m</string>
+    <key>x</key>
+    <integer>0</integer>
+    <key>y</key>
+    <integer>250</integer>
+  </dict>
+  </array>
+  <key>italicAngle</key>
+  <integer>0</integer>
+  <key>note</key>
+  <string>L&#x2019;Enby Gertrude r&#xe9;sulte de rencontres heureuses de Valentin Chauveau entre 2021 et 2024 : d&#x2019;abord en dessinant librement un caract&#xe8;re de lecture sous le regard de la type designer Katharina K&#xf6;hler &#xe0; l&#x2019;HfG Karlsruhe, puis en l&#x2019;&#xe9;toffant d&#x2019;un set de ligatures non binaires &#xe0; l&#x2019;occasion de diff&#xe9;rents workshops (en visio-conf&#xe9;rence lors de LA LETTERA NEUTR&#xc6; organis&#xe9; par Collletttivo, puis irl &#xe0; Bruxelles avec la collective Bye Bye Binary lors du workshop Qunilicious). 
+&#xab; L&#x2019;int&#xe9;gration homog&#xe8;ne du point m&#xe9;dian dans des ligatures aux lettres d&#xe9;coup&#xe9;es permet un gris typographique homog&#xe8;ne, &#xe9;vite les l&#xe9;zardes et r&#xe9;sout ainsi une critique fr&#xe9;quemment adress&#xe9;e &#xe0; ce point controvers&#xe9;. &#xbb;(1). Ce parti-pris refl&#xe8;te aussi la pr&#xe9;caution de positionnement d&#x2019;un Amab toujours cis &#xe0; ne pas donner une forme criante &#xe0; la queerification du langage, au profit d&#x2019;un dessin &#xe0; la pr&#xe9;sence discr&#xe8;te et tendre (bichette). 
+
+Co-sign&#xe9; par L&#xe9;na Salabert-Triby, la finalisation du caract&#xe8;re s&#x2019;ex&#xe9;cute en duo gr&#xe2;ce &#xe0; la commande du Th&#xe9;&#xe2;tre National Wallonie-Bruxelles dans le cadre du projet Centre d&#x2019;Art Maison Gertrude &#xe0; Bruxelles, qui a financ&#xe9; ce temps de travail dans l&#x2019;envie d&#x2019;employer ce caract&#xe8;re dans leur identit&#xe9; visuelle, tout en comprenant la volont&#xe9; des auteur..ices de le diffuser sous une licence libre. 
+En m&#xe9;moire de cette collaboration et de ces derni&#xe8;res rencontres, le fichier longtemps nomm&#xe9; Enby Roman est renomm&#xe9; Enby Gertrude.
+
+
+1. Circlude Camille, La Typographie post-binaraire, &#xe9;dition B42, Paris, 2023.</string>
+  <key>openTypeGaspRangeRecords</key>
+  <array>
+  <dict>
+    <key>rangeGaspBehavior</key>
+      <array>
+        <integer>0</integer>
+        <integer>1</integer>
+        <integer>2</integer>
+        <integer>3</integer>
+      </array>
+    <key>rangeMaxPPEM</key>
+    <integer>65535</integer>
+  </dict>
+  </array>
+  <key>openTypeHeadCreated</key>
+  <string>2020/11/25 22:56:00</string>
+  <key>openTypeHeadFlags</key>
+  <array>
+  </array>
+  <key>openTypeHheaAscender</key>
+  <integer>795</integer>
+  <key>openTypeHheaCaretOffset</key>
+  <integer>-0</integer>
+  <key>openTypeHheaDescender</key>
+  <integer>-265</integer>
+  <key>openTypeHheaLineGap</key>
+  <integer>100</integer>
+  <key>openTypeNameDescription</key>
+  <string>Valentin Chauveau est graphiste et professeur agr&#xe9;g&#xe9; de design et m&#xe9;tiers d&#x2019;art. En parall&#xe8;le de l&#x2019;enseignement, sa pratique du design oscille entre des projets &#xe9;ditoriaux et typographiques ind&#xe9;pendants. Adh&#xe9;rent actif de l&#x2019;association pour l&#x2019;&#xe9;cologie du livre, le contexte associatif lui permet d&#x2019;engager des travaux de recherche action sur les enjeux et responsabilit&#xe9;s contemporaines du design graphique. Il r&#xea;ve de trouver le temps de dessiner lettres et livres dans des d&#xe9;marches collectives. 
+
+L&#xe9;na Salabert-Triby est graphiste, dessinatrice de caract&#xe8;res typographiques et tatoueur&#xb7;se. Elle int&#xe8;gre la collective Bye Bye Binary lors de sa cr&#xe9;ation en 2018, lorsqu&#x2019;elle est &#xe9;tudiante &#xe0; l&#x2019;erg. Son travail tourne autour des questions f&#xe9;ministes, non-binaire, queer, en m&#xe9;langeant formes imprim&#xe9;es, num&#xe9;riques, 3D, et typographie. Elle questionne le tatouage, en m&#xe9;langeant des blobs fluides et des formes typographiques inclusives, pour diffuser &#xe0; m&#xea;me la peau des typographies non-binaire. La couture et la peinture sont des pratiques qu&#x2019;elle affectionne particuli&#xe8;rement pour r&#xe9;aliser des drapeaux et des banni&#xe8;res typographiques militantes.</string>
+  <key>openTypeNameDesigner</key>
+  <string>Valentin Chauveau &amp; L&#xe9;na Salabert-Triby</string>
+  <key>openTypeNameLicense</key>
+  <string>OIFL</string>
+  <key>openTypeNamePreferredFamilyName</key>
+  <string>Enby Gertrude</string>
+  <key>openTypeNamePreferredSubfamilyName</key>
+  <string>Text</string>
+  <key>openTypeNameVersion</key>
+  <string>Version 1.0</string>
+  <key>openTypeOS2CodePageRanges</key>
+  <array>
+    <integer>0</integer>
+    <integer>29</integer>
+  </array>
+  <key>openTypeOS2Panose</key>
+  <array>
+    <integer>0</integer>
+    <integer>0</integer>
+    <integer>0</integer>
+    <integer>0</integer>
+    <integer>0</integer>
+    <integer>0</integer>
+    <integer>0</integer>
+    <integer>0</integer>
+    <integer>0</integer>
+    <integer>0</integer>
+  </array>
+  <key>openTypeOS2Selection</key>
+  <array>
+    <integer>7</integer>
+  </array>
+  <key>openTypeOS2StrikeoutPosition</key>
+  <integer>-0</integer>
+  <key>openTypeOS2StrikeoutSize</key>
+  <integer>-0</integer>
+  <key>openTypeOS2SubscriptXOffset</key>
+  <integer>-0</integer>
+  <key>openTypeOS2SubscriptXSize</key>
+  <integer>-0</integer>
+  <key>openTypeOS2SubscriptYOffset</key>
+  <integer>-0</integer>
+  <key>openTypeOS2SubscriptYSize</key>
+  <integer>-0</integer>
+  <key>openTypeOS2SuperscriptXOffset</key>
+  <integer>-0</integer>
+  <key>openTypeOS2SuperscriptXSize</key>
+  <integer>-0</integer>
+  <key>openTypeOS2SuperscriptYOffset</key>
+  <integer>-0</integer>
+  <key>openTypeOS2SuperscriptYSize</key>
+  <integer>-0</integer>
+  <key>openTypeOS2Type</key>
+  <array>
+    <integer>2</integer>
+  </array>
+  <key>openTypeOS2TypoAscender</key>
+  <integer>795</integer>
+  <key>openTypeOS2TypoDescender</key>
+  <integer>-218</integer>
+  <key>openTypeOS2TypoLineGap</key>
+  <integer>100</integer>
+  <key>openTypeOS2UnicodeRanges</key>
+  <array>
+    <integer>0</integer>
+    <integer>1</integer>
+    <integer>2</integer>
+    <integer>3</integer>
+  </array>
+  <key>openTypeOS2WeightClass</key>
+  <integer>500</integer>
+  <key>openTypeOS2WidthClass</key>
+  <integer>5</integer>
+  <key>openTypeOS2WinAscent</key>
+  <integer>1050</integer>
+  <key>openTypeOS2WinDescent</key>
+  <integer>260</integer>
+  <key>postscriptBlueFuzz</key>
+  <integer>1</integer>
+  <key>postscriptBlueScale</key>
+  <real>0.039625</real>
+  <key>postscriptBlueShift</key>
+  <integer>7</integer>
+  <key>postscriptBlueValues</key>
+  <array>
+    <integer>-20</integer>
+    <integer>0</integer>
+  </array>
+  <key>postscriptFontName</key>
+  <string>Enby-Gertrude</string>
+  <key>postscriptForceBold</key>
+  <false/>
+  <key>postscriptFullName</key>
+  <string>Enby-Gertrude</string>
+  <key>postscriptIsFixedPitch</key>
+  <false/>
+  <key>postscriptUnderlinePosition</key>
+  <integer>-100</integer>
+  <key>postscriptUnderlineThickness</key>
+  <integer>50</integer>
+  <key>postscriptWeightName</key>
+  <string>Medium</string>
+  <key>styleMapFamilyName</key>
+  <string>Enby-Gertrude</string>
+  <key>styleMapStyleName</key>
+  <string>regular</string>
+  <key>styleName</key>
+  <string>Text</string>
+  <key>unitsPerEm</key>
+  <integer>1000</integer>
+  <key>versionMajor</key>
+  <integer>0</integer>
+  <key>versionMinor</key>
+  <integer>1</integer>
+  <key>xHeight</key>
+  <integer>505</integer>
+</dict>
+</plist>

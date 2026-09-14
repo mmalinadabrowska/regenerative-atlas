@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="figuredash" format="2">
+  <advance width="660"/>
+  <unicode hex="2012"/>
+  <outline>
+    <contour>
+      <point x="80" y="355" type="line"/>
+      <point x="580" y="355" type="line"/>
+      <point x="580" y="290" type="line"/>
+      <point x="80" y="290" type="line"/>
+    </contour>
+  </outline>
+  <guideline angle="0" x="0" y="260"/>
+  <lib>
+  <dict>
+  <key>public.markColor</key>
+  <string>0.604,0.6,1,1</string>
+  </dict>
+  </lib>
+</glyph>
