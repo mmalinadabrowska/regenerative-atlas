@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="exclam" format="2">
+	<advance width="320"/>
+	<unicode hex="0021"/>
+	<guideline x="291" y="251" angle="0"/>
+	<outline>
+		<contour>
+			<point x="80" y="700" type="line"/>
+			<point x="90" y="251" type="line"/>
+			<point x="230" y="251" type="line"/>
+			<point x="240" y="700" type="line"/>
+		</contour>
+		<component base="period"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.leftMetricsKey</key>
+			<string>l</string>
+			<key>com.schriftgestaltung.Glyphs.rightMetricsKey</key>
+			<string>l</string>
+		</dict>
+	</lib>
+</glyph>

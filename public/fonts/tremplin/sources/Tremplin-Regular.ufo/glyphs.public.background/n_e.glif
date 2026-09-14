@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="n_e" format="2">
+	<advance width="1415"/>
+	<outline>
+		<component base="periodcentered" xOffset="542" yOffset="-6"/>
+	</outline>
+</glyph>

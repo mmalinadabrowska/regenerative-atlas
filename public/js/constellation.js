@@ -499,7 +499,7 @@ export function createConstellation(canvas, options = {}) {
       const active = hovered === node || selected === node;
       ctx.font =
         node.type === 'tag'
-          ? `${Math.max(11, Math.min(15, 10 + (node.count ?? 1) * 0.3))}px "Poppins", "Century Gothic", system-ui, sans-serif`
+          ? `${Math.max(11, Math.min(15, 10 + (node.count ?? 1) * 0.3))}px "Tremplin", "Century Gothic", system-ui, sans-serif`
           : '13px "EB Garamond", Georgia, serif';
 
       const limit = node.type === 'tag' ? 28 : active ? 64 : 34;

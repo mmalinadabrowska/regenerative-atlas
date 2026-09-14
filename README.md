@@ -128,22 +128,27 @@ bibliography, and a reference nobody can open is not a reference.
 > check-seed` reports what is unreachable and what has redirected; fixing those is a
 > good first contribution.
 
-## The typeface
+## The typefaces
 
-The display type is **Enby Gertrude**, drawn by Valentin Chauveau and Léna
-Salabert-Triby and published by the [Bye Bye Binary](https://typotheque.genderfluid.space)
-collective — a post-binary typeface whose ligatures set inclusive French with the médian
-point drawn into the letterforms rather than dropped between them.
+Both are post-binary faces from the [Bye Bye Binary](https://typotheque.byebyebinary.space)
+collective:
 
-The complete upstream package is bundled at `public/fonts/enby-gertrude/`, sources and
-documentation included, because its licence asks for whole folders rather than lone font
-files. **It is not under this project's MIT licence**, and one of its conditions — placing
-yourself on a donation scale — is not something a repository can discharge for you. Read
-[`public/fonts/README.md`](public/fonts/README.md) before deploying the Atlas anywhere,
-and the CUTE text bundled alongside it.
+- **Enby Gertrude** — Valentin Chauveau and Léna Salabert-Triby. Display and reading type.
+  Its ligatures set inclusive French with the médian point drawn into the letterforms
+  rather than dropped between them.
+- **Tremplin** — Benjamin Dott. Drawn for long text and titling, with the médian point
+  built into each inclusive ligature. Used for every button, label and interface string,
+  in Light, Regular and Bold.
 
-Deleting `public/fonts/enby-gertrude/` breaks nothing: the stack falls back to EB
-Garamond, then Hoefler Text, then Georgia. The Atlas is just less itself.
+Both complete upstream packages are bundled under `public/fonts/`, sources and
+documentation included, because their licence asks for whole folders rather than lone font
+files. **They are not under this project's MIT licence**, and one of their conditions —
+placing yourself on a donation scale — is not something a repository can discharge for
+you. Read [`public/fonts/README.md`](public/fonts/README.md) before deploying the Atlas
+anywhere, and the CUTE text bundled alongside each face.
+
+Deleting either directory breaks nothing; the stacks fall back to EB Garamond and Century
+Gothic. The Atlas is just less itself.
 
 ## Deploying
 
@@ -164,5 +169,5 @@ for why the map looks the way it does.
 ## Licence
 
 Code is MIT. Bibliographic records — titles, links, tags — are offered under CC0; the
-works they point at remain with their authors. The bundled Enby Gertrude typeface is
-**not** MIT — see [`public/fonts/README.md`](public/fonts/README.md).
+works they point at remain with their authors. The bundled typefaces are **not** MIT —
+see [`public/fonts/README.md`](public/fonts/README.md).

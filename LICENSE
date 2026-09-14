@@ -4,8 +4,8 @@ Copyright (c) 2026 Malina Dabrowska and the Regenerative Atlas contributors
 
 This licence covers the Regenerative Atlas' own code, content and drawings.
 It does NOT cover third-party work bundled with it — in particular the Enby
-Gertrude typeface in public/fonts/enby-gertrude/, which is published by the
-Bye Bye Binary collective under its own terms. See public/fonts/README.md.
+Gertrude and Tremplin typefaces under public/fonts/, which are published by the
+Bye Bye Binary collective under their own terms. See public/fonts/README.md.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="F_V" format="2">
+	<advance width="1084"/>
+	<unicode hex="F2050"/>
+	<outline>
+		<contour>
+			<point x="90" y="0" type="line"/>
+			<point x="175" y="0" type="line"/>
+			<point x="175" y="306" type="line"/>
+			<point x="455" y="306" type="line"/>
+			<point x="455" y="386" type="line"/>
+			<point x="175" y="386" type="line"/>
+			<point x="175" y="620" type="line"/>
+			<point x="500" y="620" type="line"/>
+			<point x="500" y="700" type="line"/>
+			<point x="90" y="700" type="line"/>
+		</contour>
+		<contour>
+			<point x="973" y="700" type="line"/>
+			<point x="781" y="114" type="line" smooth="yes"/>
+			<point x="778" y="106"/>
+			<point x="773" y="100"/>
+			<point x="763" y="100" type="curve" smooth="yes"/>
+			<point x="753" y="100"/>
+			<point x="748" y="106"/>
+			<point x="745" y="114" type="curve" smooth="yes"/>
+			<point x="553" y="700" type="line"/>
+			<point x="460" y="700" type="line"/>
+			<point x="698" y="0" type="line"/>
+			<point x="825" y="0" type="line"/>
+			<point x="1064" y="700" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.leftMetricsKey</key>
+			<string>F</string>
+			<key>com.schriftgestaltung.Glyphs.rightMetricsKey</key>
+			<string>V</string>
+		</dict>
+	</lib>
+</glyph>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="s_c" format="2">
+	<advance width="1285"/>
+	<outline>
+		<component base="periodcentered" xOffset="529"/>
+	</outline>
+</glyph>

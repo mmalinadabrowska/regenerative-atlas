@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="Eacute_E" format="2">
+	<advance width="1181"/>
+	<unicode hex="F1820"/>
+	<outline>
+		<contour>
+			<point x="373" y="916" type="line"/>
+			<point x="192" y="812" type="line"/>
+			<point x="217" y="762" type="line"/>
+			<point x="408" y="844" type="line"/>
+		</contour>
+		<contour>
+			<point x="90" y="0" type="line"/>
+			<point x="1126" y="0" type="line"/>
+			<point x="1126" y="80" type="line"/>
+			<point x="175" y="80" type="line"/>
+			<point x="175" y="316" type="line"/>
+			<point x="480" y="316" type="line"/>
+			<point x="480" y="396" type="line"/>
+			<point x="175" y="396" type="line"/>
+			<point x="175" y="620" type="line"/>
+			<point x="515" y="620" type="line"/>
+			<point x="515" y="700" type="line"/>
+			<point x="90" y="700" type="line"/>
+		</contour>
+		<contour>
+			<point x="701" y="316" type="line"/>
+			<point x="701" y="700" type="line"/>
+			<point x="1126" y="700" type="line"/>
+			<point x="1126" y="620" type="line"/>
+			<point x="786" y="620" type="line"/>
+			<point x="786" y="396" type="line"/>
+			<point x="1101" y="396" type="line"/>
+			<point x="1101" y="316" type="line"/>
+		</contour>
+		<component base="periodcentered" xOffset="529" yOffset="90"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.leftMetricsKey</key>
+			<string>Eacute</string>
+			<key>com.schriftgestaltung.Glyphs.rightMetricsKey</key>
+			<string>E</string>
+		</dict>
+	</lib>
+</glyph>

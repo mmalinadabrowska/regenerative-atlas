@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="periodcentered.case" format="2">
+	<advance width="210"/>
+	<outline>
+		<component base="periodcentered" yOffset="80"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.leftMetricsKey</key>
+			<string>periodcentered</string>
+			<key>com.schriftgestaltung.Glyphs.rightMetricsKey</key>
+			<string>periodcentered</string>
+		</dict>
+	</lib>
+</glyph>

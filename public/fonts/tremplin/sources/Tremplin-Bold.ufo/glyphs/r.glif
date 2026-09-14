@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="r" format="2">
+	<advance width="407"/>
+	<unicode hex="0072"/>
+	<outline>
+		<contour>
+			<point x="60" y="0" type="line"/>
+			<point x="220" y="0" type="line"/>
+			<point x="220" y="246" type="line" smooth="yes"/>
+			<point x="220" y="323"/>
+			<point x="249" y="376"/>
+			<point x="328" y="376" type="curve" smooth="yes"/>
+			<point x="350" y="376"/>
+			<point x="375" y="373"/>
+			<point x="402" y="368" type="curve"/>
+			<point x="402" y="532" type="line"/>
+			<point x="287" y="532"/>
+			<point x="261" y="487"/>
+			<point x="232" y="487" type="curve" smooth="yes"/>
+			<point x="218" y="487"/>
+			<point x="212" y="497"/>
+			<point x="212" y="507" type="curve" smooth="yes"/>
+			<point x="212" y="516" type="line"/>
+			<point x="60" y="516" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.leftMetricsKey</key>
+			<string>n</string>
+		</dict>
+	</lib>
+</glyph>

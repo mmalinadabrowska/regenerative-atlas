@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="upArrow" format="2">
+	<advance width="380"/>
+	<unicode hex="2191"/>
+	<outline>
+		<component base="rightArrow" xScale="0" xyScale="1" yScale="0" yxScale="-1" xOffset="459" yOffset="-27"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.ComponentInfo</key>
+			<array>
+				<dict>
+					<key>alignment</key>
+					<integer>-1</integer>
+					<key>index</key>
+					<integer>0</integer>
+					<key>name</key>
+					<string>rightArrow</string>
+				</dict>
+			</array>
+		</dict>
+	</lib>
+</glyph>

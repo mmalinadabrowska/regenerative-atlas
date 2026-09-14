@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="I.sc" format="2">
+	<advance width="237"/>
+	<guideline x="213" y="553" angle="180"/>
+	<anchor x="119" y="553" name="top"/>
+	<outline>
+		<contour>
+			<point x="80" y="0" type="line"/>
+			<point x="157" y="0" type="line"/>
+			<point x="157" y="553" type="line"/>
+			<point x="80" y="553" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.leftMetricsKey</key>
+			<string>H.sc</string>
+			<key>com.schriftgestaltung.Glyphs.rightMetricsKey</key>
+			<string>H.sc</string>
+		</dict>
+	</lib>
+</glyph>

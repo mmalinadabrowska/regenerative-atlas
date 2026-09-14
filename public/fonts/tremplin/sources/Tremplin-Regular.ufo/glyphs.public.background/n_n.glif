@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="n_n" format="2">
+	<advance width="1357"/>
+	<outline>
+		<component base="periodcentered" xOffset="583"/>
+		<contour>
+			<point x="912" y="351" type="line"/>
+			<point x="912" y="229" type="line" smooth="yes"/>
+			<point x="912" y="76"/>
+			<point x="841" y="20"/>
+			<point x="696" y="20" type="curve" smooth="yes"/>
+			<point x="551" y="20"/>
+			<point x="480" y="76"/>
+			<point x="480" y="229" type="curve" smooth="yes"/>
+			<point x="480" y="341" type="line"/>
+			<point x="400" y="341" type="line"/>
+			<point x="400" y="229" type="line" smooth="yes"/>
+			<point x="400" y="26"/>
+			<point x="504" y="-55"/>
+			<point x="696" y="-55" type="curve" smooth="yes"/>
+			<point x="888" y="-55"/>
+			<point x="992" y="26"/>
+			<point x="992" y="229" type="curve" smooth="yes"/>
+			<point x="992" y="351" type="line"/>
+		</contour>
+	</outline>
+</glyph>

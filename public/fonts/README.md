@@ -1,5 +1,10 @@
 # Fonts bundled with the Atlas
 
+Two faces, both from the [Bye Bye Binary](https://typotheque.byebyebinary.space)
+collective, both post-binary, and both under the collective's CUTE rather than this
+project's MIT licence. Enby Gertrude sets the display and reading type; Tremplin sets the
+buttons, labels and interface.
+
 ## Enby Gertrude
 
 Drawn by **Valentin Chauveau** and **Léna Salabert-Triby**, published by the
@@ -46,8 +51,33 @@ research and self-organised practice, to €300–1000 for a cultural institutio
 If you deploy the Atlas somewhere funded, find your rung and pay it. Bye Bye
 Binary's donation details live with the typotheque above.
 
-### If you would rather not ship it
+## Tremplin
 
-Delete `public/fonts/enby-gertrude/`. Nothing breaks: `--font-display` in
-`public/styles/atlas.css` falls through to EB Garamond, then Hoefler Text, then
-Georgia. The Atlas will simply be less itself.
+Drawn by **Benjamin Dott**.
+
+- Source: <https://gitlab.com/bye-bye-binary/tremplin>
+  (bundled from `cf730eb`)
+
+Tremplin was drawn for *texte de labeur* and titling both — the research behind it was
+about post-binary glyphs and legibility over long text, with the médian point built
+directly into each inclusive ligature rather than set between letters. That is why it
+carries the interface here: every button, label, tag, form field and map annotation, the
+role Poppins held in the original mockups.
+
+It ships in Light, Regular and Bold, and all three are declared, so weight is real rather
+than synthesised by the browser. There is a variable version in `tremplin/variable/` that
+the Atlas does not currently load.
+
+Same terms as Enby Gertrude — the CUTE, here in both French and English at
+`tremplin/Licence/`. The same five conditions apply, the donation scale included, and the
+whole upstream package is bundled for the same reason.
+
+Its post-binary ligatures are discretionary, so they do not fire on the Atlas' English
+copy; they are there for anyone setting inclusive French with it, and must not be stripped.
+
+### If you would rather not ship them
+
+Delete `public/fonts/enby-gertrude/` or `public/fonts/tremplin/`. Nothing breaks: the stacks
+in `public/styles/atlas.css` fall through — the display face to EB Garamond, then Hoefler
+Text, then Georgia; the sans to Century Gothic, then Questrial, then Futura. The Atlas
+will simply be less itself.

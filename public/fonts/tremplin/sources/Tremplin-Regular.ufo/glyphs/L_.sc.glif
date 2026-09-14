@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="L.sc" format="2">
+	<advance width="443"/>
+	<outline>
+		<contour>
+			<point x="80" y="0" type="line"/>
+			<point x="433" y="0" type="line"/>
+			<point x="433" y="69" type="line"/>
+			<point x="157" y="69" type="line"/>
+			<point x="157" y="553" type="line"/>
+			<point x="80" y="553" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.leftMetricsKey</key>
+			<string>H.sc</string>
+			<key>com.schriftgestaltung.Glyphs.rightMetricsKey</key>
+			<string>L</string>
+		</dict>
+	</lib>
+</glyph>

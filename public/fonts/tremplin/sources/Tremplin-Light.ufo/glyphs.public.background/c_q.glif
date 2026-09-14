@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="c_q" format="2">
+	<advance width="1250"/>
+	<anchor x="324" y="-16" name="bottom"/>
+	<outline>
+		<component base="periodcentered" xOffset="493"/>
+	</outline>
+</glyph>

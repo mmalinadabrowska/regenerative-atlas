@@ -11,6 +11,36 @@
    Bye Bye Binary collective. Bundled complete in public/fonts/enby-gertrude/
    under its own terms (CUTE / OIFL), not under this project's MIT licence.
    See public/fonts/README.md. */
+/* Tremplin — Benjamin Dott, published by Bye Bye Binary. Drawn for long text
+   and titling, which is why it carries the interface. Same terms as below;
+   bundled complete in public/fonts/tremplin/. */
+@font-face {
+  font-family: 'Tremplin';
+  src: url('../fonts/tremplin/webfont/Tremplin-Light.woff2') format('woff2'),
+       url('../fonts/tremplin/webfont/Tremplin-Light.woff') format('woff');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Tremplin';
+  src: url('../fonts/tremplin/webfont/Tremplin-Regular.woff2') format('woff2'),
+       url('../fonts/tremplin/webfont/Tremplin-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Tremplin';
+  src: url('../fonts/tremplin/webfont/Tremplin-Bold.woff2') format('woff2'),
+       url('../fonts/tremplin/webfont/Tremplin-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @font-face {
   font-family: 'Enby Gertrude';
   src: url('../fonts/enby-gertrude/webfonts/woff2/Enby_Gertrude_roman.woff2') format('woff2'),
@@ -35,7 +65,7 @@
   --yellow: #dda32f;
 
   --display: 'Enby Gertrude', 'EB Garamond', 'Hoefler Text', Garamond, Georgia, 'Times New Roman', serif;
-  --sans: 'Poppins', 'Century Gothic', Questrial, Futura, 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
+  --sans: 'Tremplin', 'Century Gothic', Questrial, Futura, 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
 
   --gutter: clamp(1.25rem, 4vw, 4.5rem);
   --rule: 1px solid var(--ink-14);
@@ -111,7 +141,7 @@ a { color: inherit; }
   background: var(--ink);
   color: var(--paper);
   font-family: var(--sans);
-  font-weight: 500;
+  font-weight: 400;
   font-size: clamp(1.05rem, 1.5vw, 1.45rem);
   line-height: 1.25;
   padding: 0.34em 0.9em 0.4em;
@@ -171,7 +201,7 @@ a.label:active, button.label:active { transform: none; }
 .hero {
   position: relative;
   width: 100%;
-  max-width: calc((100svh - 8.5rem) * 16 / 9);
+  max-width: calc((100svh - 10rem) * 16 / 9);
   aspect-ratio: 16 / 9;
   margin: 0 auto;
   container-type: inline-size;

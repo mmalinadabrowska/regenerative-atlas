@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="E.sc" format="2">
+	<advance width="520"/>
+	<anchor x="256" y="566" name="top"/>
+	<outline>
+		<contour>
+			<point x="60" y="0" type="line"/>
+			<point x="445" y="0" type="line"/>
+			<point x="445" y="140" type="line"/>
+			<point x="205" y="140" type="line"/>
+			<point x="205" y="221" type="line"/>
+			<point x="433" y="221" type="line"/>
+			<point x="433" y="356" type="line"/>
+			<point x="205" y="356" type="line"/>
+			<point x="205" y="426" type="line"/>
+			<point x="445" y="426" type="line"/>
+			<point x="445" y="566" type="line"/>
+			<point x="60" y="566" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.leftMetricsKey</key>
+			<string>H.sc</string>
+		</dict>
+	</lib>
+</glyph>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="l_l" format="2">
+	<advance width="906"/>
+	<unicode hex="F3320"/>
+	<outline>
+		<contour>
+			<point x="60" y="90" type="line"/>
+			<point x="220" y="90" type="line"/>
+			<point x="220" y="700" type="line"/>
+			<point x="60" y="700" type="line"/>
+		</contour>
+		<contour>
+			<point x="686" y="90" type="line"/>
+			<point x="846" y="90" type="line"/>
+			<point x="846" y="700" type="line"/>
+			<point x="686" y="700" type="line"/>
+		</contour>
+		<contour>
+			<point x="686" y="202" type="line"/>
+			<point x="686" y="101" type="line" smooth="yes"/>
+			<point x="686" y="-12"/>
+			<point x="598" y="-63"/>
+			<point x="453" y="-63" type="curve" smooth="yes"/>
+			<point x="308" y="-63"/>
+			<point x="220" y="-12"/>
+			<point x="220" y="101" type="curve" smooth="yes"/>
+			<point x="220" y="199" type="line"/>
+			<point x="60" y="199" type="line"/>
+			<point x="60" y="106" type="line" smooth="yes"/>
+			<point x="60" y="-87"/>
+			<point x="206" y="-192"/>
+			<point x="453" y="-192" type="curve" smooth="yes"/>
+			<point x="700" y="-192"/>
+			<point x="846" y="-85"/>
+			<point x="846" y="106" type="curve" smooth="yes"/>
+			<point x="846" y="202" type="line"/>
+		</contour>
+		<component base="periodcentered" xOffset="350"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.leftMetricsKey</key>
+			<string>l</string>
+			<key>com.schriftgestaltung.Glyphs.rightMetricsKey</key>
+			<string>l</string>
+		</dict>
+	</lib>
+</glyph>

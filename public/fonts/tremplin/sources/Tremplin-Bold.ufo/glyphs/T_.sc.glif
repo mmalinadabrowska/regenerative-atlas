@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="T.sc" format="2">
+	<advance width="495"/>
+	<outline>
+		<contour>
+			<point x="175" y="0" type="line"/>
+			<point x="320" y="0" type="line"/>
+			<point x="320" y="426" type="line"/>
+			<point x="475" y="426" type="line"/>
+			<point x="475" y="566" type="line"/>
+			<point x="20" y="566" type="line"/>
+			<point x="20" y="426" type="line"/>
+			<point x="175" y="426" type="line"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.leftMetricsKey</key>
+			<string>T</string>
+			<key>com.schriftgestaltung.Glyphs.rightMetricsKey</key>
+			<string>T</string>
+		</dict>
+	</lib>
+</glyph>

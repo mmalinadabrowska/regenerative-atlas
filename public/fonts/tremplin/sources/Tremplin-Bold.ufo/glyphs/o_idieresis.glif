@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="o_idieresis" format="2">
+	<advance width="1215"/>
+	<unicode hex="F3970"/>
+	<anchor x="291" y="516" name="top"/>
+	<outline>
+		<contour>
+			<point x="291" y="-16" type="curve" smooth="yes"/>
+			<point x="463" y="-16"/>
+			<point x="552" y="107"/>
+			<point x="552" y="260" type="curve" smooth="yes"/>
+			<point x="552" y="413"/>
+			<point x="454" y="532"/>
+			<point x="291" y="532" type="curve" smooth="yes"/>
+			<point x="128" y="532"/>
+			<point x="30" y="413"/>
+			<point x="30" y="260" type="curve" smooth="yes"/>
+			<point x="30" y="107"/>
+			<point x="119" y="-16"/>
+		</contour>
+		<contour>
+			<point x="291" y="119" type="curve" smooth="yes"/>
+			<point x="223" y="119"/>
+			<point x="183" y="170"/>
+			<point x="183" y="227" type="curve" smooth="yes"/>
+			<point x="183" y="289" type="line" smooth="yes"/>
+			<point x="183" y="336"/>
+			<point x="221" y="397"/>
+			<point x="291" y="397" type="curve" smooth="yes"/>
+			<point x="361" y="397"/>
+			<point x="399" y="336"/>
+			<point x="399" y="289" type="curve" smooth="yes"/>
+			<point x="399" y="227" type="line" smooth="yes"/>
+			<point x="399" y="170"/>
+			<point x="359" y="119"/>
+		</contour>
+		<component base="periodcentered" xOffset="675"/>
+		<contour>
+			<point x="1018" y="180" type="line"/>
+			<point x="1178" y="180" type="line"/>
+			<point x="1178" y="516" type="line"/>
+			<point x="1018" y="516" type="line"/>
+		</contour>
+		<contour>
+			<point x="968" y="593" type="curve" smooth="yes"/>
+			<point x="1026" y="593"/>
+			<point x="1068" y="631"/>
+			<point x="1068" y="687" type="curve" smooth="yes"/>
+			<point x="1068" y="741"/>
+			<point x="1026" y="781"/>
+			<point x="968" y="781" type="curve" smooth="yes"/>
+			<point x="910" y="781"/>
+			<point x="868" y="741"/>
+			<point x="868" y="687" type="curve" smooth="yes"/>
+			<point x="868" y="631"/>
+			<point x="910" y="593"/>
+		</contour>
+		<contour>
+			<point x="1221" y="592" type="curve" smooth="yes"/>
+			<point x="1279" y="592"/>
+			<point x="1321" y="630"/>
+			<point x="1321" y="686" type="curve" smooth="yes"/>
+			<point x="1321" y="740"/>
+			<point x="1279" y="780"/>
+			<point x="1221" y="780" type="curve" smooth="yes"/>
+			<point x="1163" y="780"/>
+			<point x="1121" y="740"/>
+			<point x="1121" y="686" type="curve" smooth="yes"/>
+			<point x="1121" y="630"/>
+			<point x="1163" y="592"/>
+		</contour>
+		<contour>
+			<point x="552" y="258" type="line"/>
+			<point x="399" y="258" type="line"/>
+			<point x="399" y="136" type="line" smooth="yes"/>
+			<point x="399" y="-55"/>
+			<point x="538" y="-162"/>
+			<point x="785" y="-162" type="curve" smooth="yes"/>
+			<point x="1032" y="-162"/>
+			<point x="1178" y="-36"/>
+			<point x="1178" y="157" type="curve" smooth="yes"/>
+			<point x="1178" y="199" type="line"/>
+			<point x="1018" y="199" type="line"/>
+			<point x="1018" y="131" type="line" smooth="yes"/>
+			<point x="1018" y="18"/>
+			<point x="930" y="-33"/>
+			<point x="785" y="-33" type="curve" smooth="yes"/>
+			<point x="640" y="-33"/>
+			<point x="552" y="18"/>
+			<point x="552" y="131" type="curve" smooth="yes"/>
+		</contour>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.ComponentInfo</key>
+			<array>
+				<dict>
+					<key>alignment</key>
+					<integer>-1</integer>
+					<key>index</key>
+					<integer>2</integer>
+					<key>name</key>
+					<string>periodcentered</string>
+				</dict>
+			</array>
+			<key>com.schriftgestaltung.Glyphs.leftMetricsKey</key>
+			<string>o</string>
+			<key>com.schriftgestaltung.Glyphs.rightMetricsKey</key>
+			<string>idieresis</string>
+		</dict>
+	</lib>
+</glyph>

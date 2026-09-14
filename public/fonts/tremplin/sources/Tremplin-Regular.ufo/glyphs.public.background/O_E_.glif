@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="OE" format="2">
+	<advance width="1031"/>
+	<outline>
+		<contour>
+			<point x="551" y="0" type="line"/>
+			<point x="976" y="0" type="line"/>
+			<point x="976" y="80" type="line"/>
+			<point x="636" y="80" type="line"/>
+			<point x="636" y="316" type="line"/>
+			<point x="951" y="316" type="line"/>
+			<point x="951" y="396" type="line"/>
+			<point x="636" y="396" type="line"/>
+			<point x="636" y="620" type="line"/>
+			<point x="976" y="620" type="line"/>
+			<point x="976" y="700" type="line"/>
+			<point x="551" y="700" type="line"/>
+		</contour>
+	</outline>
+</glyph>

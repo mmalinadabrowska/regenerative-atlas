@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<glyph name="l_u" format="2">
+	<advance width="954"/>
+	<unicode hex="F3350"/>
+	<outline>
+		<contour>
+			<point x="90" y="0" type="line"/>
+			<point x="140" y="0" type="line"/>
+			<point x="140" y="500" type="line"/>
+			<point x="90" y="500" type="line"/>
+		</contour>
+		<contour>
+			<point x="662" y="-16" type="curve" smooth="yes"/>
+			<point x="736" y="-16"/>
+			<point x="767" y="31"/>
+			<point x="796" y="31" type="curve" smooth="yes"/>
+			<point x="811" y="31"/>
+			<point x="817" y="21"/>
+			<point x="817" y="9" type="curve" smooth="yes"/>
+			<point x="817" y="0" type="line"/>
+			<point x="864" y="0" type="line"/>
+			<point x="864" y="495" type="line"/>
+			<point x="814" y="495" type="line"/>
+			<point x="814" y="181" type="line" smooth="yes"/>
+			<point x="814" y="82"/>
+			<point x="765" y="31"/>
+			<point x="680" y="31" type="curve" smooth="yes"/>
+			<point x="587" y="31"/>
+			<point x="556" y="69"/>
+			<point x="556" y="181" type="curve" smooth="yes"/>
+			<point x="556" y="495" type="line"/>
+			<point x="506" y="495" type="line"/>
+			<point x="506" y="184" type="line" smooth="yes"/>
+			<point x="506" y="53"/>
+			<point x="560" y="-16"/>
+		</contour>
+		<contour>
+			<point x="140" y="431" type="line"/>
+			<point x="140" y="600" type="line" smooth="yes"/>
+			<point x="140" y="690"/>
+			<point x="200" y="754"/>
+			<point x="323" y="754" type="curve" smooth="yes"/>
+			<point x="446" y="754"/>
+			<point x="506" y="690"/>
+			<point x="506" y="600" type="curve" smooth="yes"/>
+			<point x="506" y="461" type="line"/>
+			<point x="556" y="461" type="line"/>
+			<point x="556" y="590" type="line" smooth="yes"/>
+			<point x="556" y="732"/>
+			<point x="474" y="799"/>
+			<point x="323" y="799" type="curve" smooth="yes"/>
+			<point x="172" y="799"/>
+			<point x="90" y="732"/>
+			<point x="90" y="590" type="curve" smooth="yes"/>
+			<point x="90" y="431" type="line"/>
+		</contour>
+		<component base="periodcentered" xOffset="253"/>
+	</outline>
+	<lib>
+		<dict>
+			<key>com.schriftgestaltung.Glyphs.ComponentInfo</key>
+			<array>
+				<dict>
+					<key>alignment</key>
+					<integer>-1</integer>
+					<key>index</key>
+					<integer>3</integer>
+					<key>name</key>
+					<string>periodcentered</string>
+				</dict>
+			</array>
+			<key>com.schriftgestaltung.Glyphs.leftMetricsKey</key>
+			<string>l</string>
+			<key>com.schriftgestaltung.Glyphs.rightMetricsKey</key>
+			<string>u</string>
+		</dict>
+	</lib>
+</glyph>
