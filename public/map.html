@@ -12,10 +12,11 @@
 
 <header class="topbar">
   <a class="topbar__brand" href="/">Regenerative Atlas</a>
-  <nav>
-    <a class="label label--small" href="/map" aria-current="page">Explore</a>
-    <a class="label label--small" href="/themes">Themes</a>
-    <a class="label label--small" href="/add">Add</a>
+  <nav class="navgroup" data-connected-nav aria-label="Sections of the Atlas">
+    <a class="navgroup__mark" data-connect href="/" aria-label="Atlas home"><svg viewBox="-11 -11 22 22" aria-hidden="true"><path d="M -5 -5 A 5 5 0 0 1 5 -5 A 5 5 0 0 1 5 5 A 5 5 0 0 1 -5 5 A 5 5 0 0 1 -5 -5 Z"/></svg></a>
+    <a data-connect href="/map" aria-current="page">Explore</a>
+    <a data-connect href="/themes">Themes</a>
+    <a data-connect href="/add">Add</a>
   </nav>
   <span class="topbar__count" data-count></span>
 </header>
@@ -39,5 +40,6 @@
 </div>
 
 <script type="module" src="/js/map.js"></script>
+<script type="module" src="/js/connected-nav.js"></script>
 </body>
 </html>

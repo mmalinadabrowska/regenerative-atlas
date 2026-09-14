@@ -21,10 +21,12 @@ the map nodes are made by the same hand.
 ## The landing page
 
 One frame, 1920x1080: the title block in the clearing at the centre, marks scattered
-around it, and thin lines running between them to a black `The Map` label sitting under
-the biggest star. It is the map in miniature — the same grammar of blobs, stars and
-connecting lines — so that pressing the label is continuous with what you find behind it
-rather than a jump to a different idea.
+around it, and thin lines running between them to `The Atlas` sitting under the biggest
+star, with the three sections in a row beneath. It is the map in miniature — the same
+grammar of blobs, stars and connecting lines — so that pressing through is continuous
+with what you find behind it rather than a jump to a different idea. One of the drawing's
+lines runs from the Atlas button down to the section menu, so the buttons read as part of
+the constellation rather than as chrome dropped on top of it.
 
 The marks are brush strokes: a centreline whose width varies along its length, filled as
 an outline rather than stroked. A pen has a nib and the nib turns, so the line swells
@@ -68,6 +70,21 @@ viewport makes the map collapse in a short window and drift in a tall one.
 **Filtering narrows the map rather than highlighting within it.** Choosing `materials`
 rebuilds the graph from those sources only, so clusters re-form around what is left.
 You are looking at a smaller atlas, not the same atlas with most of it greyed out.
+
+## Buttons
+
+Every button is an outline at rest and fills black when it is the one you are on or
+pointing at. Nothing is filled by default, so the page has one ink weight and the filled
+shape is always the answer to "where am I".
+
+Navigation goes further: a row of capsules whose outlines merge into a single continuous
+curve, pinching inward through a concave fillet where two neighbours meet. It is real
+geometry rather than a blur filter — for two end circles of radius r whose centres are d
+apart, a fillet of radius R tangent to both sits at `k = sqrt((r + R)² − (d / 2)²)` off
+the axis, and the outline alternates convex arcs with concave ones. `js/connected-nav.js`
+measures the rendered items and draws the union outline behind them, so the curve is
+exact at any width and in any typeface. Each item keeps its own border until that curve
+is drawn, so with the script blocked the nav is still a row of buttons.
 
 ## What is deliberately missing
 

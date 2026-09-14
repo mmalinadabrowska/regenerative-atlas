@@ -215,5 +215,12 @@ recordForm.addEventListener('submit', async (event) => {
 });
 
 fillCount();
-await renderVocabulary();
+
+// Without the vocabulary there is nothing to tag with, so say so rather than
+// leaving the page half-built.
+try {
+  await renderVocabulary();
+} catch (error) {
+  say(`The tag vocabulary could not be loaded. ${escapeHtml(error.message)}`, 'bad');
+}
 renderChosen();

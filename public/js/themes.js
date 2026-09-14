@@ -126,5 +126,11 @@ searchInput.addEventListener('input', () => {
 
 readUrl();
 fillCount();
-await renderFacets();
-await load();
+
+// A failed bootstrap should say so, not disappear into an unhandled rejection.
+try {
+  await renderFacets();
+  await load();
+} catch (error) {
+  results.innerHTML = `<li class="empty">The library could not be reached. ${escapeHtml(error.message)}</li>`;
+}

@@ -69,6 +69,7 @@
 
   --gutter: clamp(1.25rem, 4vw, 4.5rem);
   --rule: 1px solid var(--ink-14);
+  --stroke: 1.5px;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -136,27 +137,99 @@ a { color: inherit; }
 
 /* --- the black label box, straight from the mockup ----------------------- */
 
+/* Every button reads the same way: an outline at rest, filled when it is the
+   one you are on or pointing at. Nothing is filled by default. */
 .label {
   display: inline-block;
-  background: var(--ink);
-  color: var(--paper);
+  background: none;
+  color: var(--ink);
   font-family: var(--sans);
   font-weight: 400;
   font-size: clamp(1.05rem, 1.5vw, 1.45rem);
   line-height: 1.25;
-  padding: 0.34em 0.9em 0.4em;
+  padding: 0.38em 1.05em 0.44em;
   text-decoration: none;
-  border: 0;
+  border: var(--stroke) solid var(--ink);
+  border-radius: 999px;
   cursor: pointer;
-  transition: transform 120ms ease;
+  transition: background 140ms ease, color 140ms ease;
 }
 
-a.label:hover, button.label:hover { transform: translate(-2px, -2px); }
-a.label:active, button.label:active { transform: none; }
+a.label:hover, button.label:hover,
+a.label:focus-visible, button.label:focus-visible,
+.label[aria-current='page'], .label.is-on {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+button.label[disabled] { opacity: 0.4; cursor: progress; }
 
 .label--wide { min-width: min(18rem, 70vw); text-align: left; }
-.label--small { font-size: 0.95rem; padding: 0.3em 0.8em; }
-.label[aria-current='page'] { box-shadow: 3px 3px 0 var(--ink-32); }
+.label--small { font-size: 0.95rem; padding: 0.32em 0.95em 0.38em; }
+
+/* --- the connected navigation ---------------------------------------------
+   A row of capsules whose outlines merge into one continuous curve. The curve
+   is drawn into an SVG behind the links by js/connected-nav.js; until it is,
+   each item carries its own border, so this is a row of buttons either way.
+   -------------------------------------------------------------------------- */
+
+[data-connected-nav] {
+  position: relative;
+  display: inline-flex;
+  align-items: stretch;
+  gap: 0.7rem;
+}
+
+[data-connected-nav] > a {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.34em 1.05em 0.4em;
+  border: var(--stroke) solid var(--ink);
+  border-radius: 999px;
+  font-size: 0.95rem;
+  line-height: 1.25;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 140ms ease;
+}
+
+/* Once the curve is drawn the individual borders would double it. */
+[data-connected-nav].is-connected > a { border-color: transparent; }
+[data-connected-nav] > a.is-on { color: var(--paper); }
+
+[data-connected-nav]:not(.is-connected) > a[aria-current='page'] {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.navgroup__mark { aspect-ratio: 1 / 1; padding: 0; }
+.navgroup__mark svg {
+  width: 1.05em;
+  height: 1.05em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+}
+
+.connected__canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.connected__outline {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: var(--stroke);
+}
+
+.connected__fill { fill: none; transition: fill 140ms ease; }
+.connected__fill[data-on] { fill: var(--ink); }
 
 /* --- site navigation ----------------------------------------------------- */
 
@@ -247,17 +320,28 @@ a.label:active, button.label:active { transform: none; }
 }
 
 /* Centred on the hub the lines radiate from. */
-.hero__map {
+.hero__atlas {
   position: absolute;
   left: 50%;
   top: 62.2%;
   transform: translateX(-50%);
   font-size: 2cqw;
-  padding: 0.55em 1.5em 0.62em;
+  padding: 0.5em 1.5em 0.56em;
 }
 
-.hero__map:hover { transform: translate(calc(-50% - 2px), -2px); }
-.hero__map:active { transform: translateX(-50%); }
+/* The sections, sitting in the clear ground below the Atlas button. */
+.hero__menu {
+  position: absolute;
+  left: 50%;
+  top: 74.5%;
+  transform: translateX(-50%);
+  gap: 1.15cqw;
+}
+
+.hero__menu > a {
+  font-size: 1.35cqw;
+  padding: 0.46em 1.5em 0.52em;
+}
 
 .landing-foot {
   display: flex;
@@ -307,7 +391,7 @@ a.label:active, button.label:active { transform: none; }
   .hero .standfirst { font-size: 1.05rem; margin-top: 0.6rem; }
   .hero .blurb { font-size: 1rem; margin-top: 1.4rem; }
 
-  .hero__map {
+  .hero__atlas {
     position: static;
     order: 2;
     transform: none;
@@ -317,7 +401,22 @@ a.label:active, button.label:active { transform: none; }
     padding: 0.4em 1.2em 0.46em;
   }
 
-  .hero__map:hover { transform: translate(-2px, -2px); }
+  .hero__menu {
+    /* Stays relative: it is the containing block for the curve drawn behind it,
+       and going static would anchor that SVG to the hero instead. */
+    position: relative;
+    top: auto;
+    left: auto;
+    order: 3;
+    transform: none;
+    align-self: flex-start;
+    margin-top: 1.25rem;
+    gap: 0.7rem;
+  }
+
+  .hero__menu > a { font-size: 0.95rem; padding: 0.34em 1.05em 0.4em; }
+
+  .hero__drawing { order: 4; }
 
   .landing-foot { flex-direction: column; gap: 1rem; }
   .landing-foot__curator { text-align: left; }
@@ -357,7 +456,7 @@ a.label:active, button.label:active { transform: none; }
   font: inherit;
   font-size: 0.85rem;
   background: none;
-  border: 1px solid var(--ink-32);
+  border: var(--stroke) solid var(--ink);
   border-radius: 999px;
   padding: 0.28em 0.85em;
   cursor: pointer;
@@ -369,7 +468,7 @@ a.label:active, button.label:active { transform: none; }
   transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
 }
 
-.tag:hover { border-color: var(--ink); }
+.tag:hover, .chip:hover { background: var(--ink); color: var(--paper); }
 
 .tag[aria-pressed='true'], .tag.is-on {
   background: var(--ink);
@@ -441,15 +540,21 @@ a.label:active, button.label:active { transform: none; }
 .pill-field input::placeholder { color: var(--ink-32); }
 
 .pill-field button {
-  border: 0;
+  border: var(--stroke) solid var(--ink);
   border-radius: 999px;
-  background: var(--ink);
-  color: var(--paper);
+  background: none;
+  color: var(--ink);
   font: inherit;
   font-size: 0.9rem;
-  padding: 0.6rem 1.2rem;
+  padding: 0.55rem 1.2rem;
   cursor: pointer;
   white-space: nowrap;
+  transition: background 140ms ease, color 140ms ease;
+}
+
+.pill-field button:hover, .pill-field button:focus-visible {
+  background: var(--ink);
+  color: var(--paper);
 }
 
 .pill-field button[disabled] { opacity: 0.4; cursor: progress; }
@@ -545,14 +650,13 @@ a.label:active, button.label:active { transform: none; }
   font: inherit;
   font-size: 0.8rem;
   background: var(--paper);
-  border: 1px solid var(--ink-32);
+  border: var(--stroke) solid var(--ink);
   border-radius: 999px;
   padding: 0.35em 0.85em;
   cursor: pointer;
   color: inherit;
 }
 
-.chip:hover { border-color: var(--ink); }
 .chip.is-on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 
 .map-legend {
