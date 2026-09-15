@@ -8,6 +8,8 @@ const searchInput = document.getElementById('map-search');
 const filterBox = document.getElementById('map-filters');
 const clearButton = document.getElementById('map-clear');
 const resetButton = document.getElementById('map-reset');
+const zoomInButton = document.getElementById('map-in');
+const zoomOutButton = document.getElementById('map-out');
 const legend = document.getElementById('map-legend');
 const panel = document.getElementById('panel');
 const panelBody = document.getElementById('panel-body');
@@ -23,6 +25,21 @@ const map = createConstellation(canvas, {
   onTagToggle: (slug) => {
     toggleTag(slug);
     load();
+  },
+  // The filter row floats over the canvas on wide screens; node names should
+  // not be printed underneath it.
+  avoid() {
+    const canvasBox = canvas.getBoundingClientRect();
+    const controls = filterBox.closest('.map-controls')?.getBoundingClientRect();
+    if (!controls || controls.bottom <= canvasBox.top) return [];
+    return [
+      {
+        x: 0,
+        y: 0,
+        w: canvasBox.width,
+        h: Math.max(controls.bottom - canvasBox.top + 6, 0),
+      },
+    ];
   },
 });
 
@@ -109,8 +126,9 @@ function renderLegend(graph) {
   legend.innerHTML = `
     ${plural(sources, 'source')}, ${plural(kin, 'line')} of kinship, ${plural(clusters, 'cluster')}.<br>
     ${names}<br>
-    <span style="opacity:.75">Stars are tags, ink is research. Drag to pan, scroll to zoom,
-    click a tag to filter.</span>`;
+    <span style="opacity:.75">Ink shapes are tags — the bigger the blot, the more
+    research sits under it. Circled crosses are the research. Drag to pan, scroll
+    to zoom for detail, click a tag to filter.</span>`;
 }
 
 /* --- the record panel --------------------------------------------------- */
@@ -201,6 +219,10 @@ clearButton.addEventListener('click', () => {
 });
 
 resetButton.addEventListener('click', () => map.reset());
+
+// Not everyone has a wheel, and the map's detail is behind its zoom.
+zoomInButton.addEventListener('click', () => map.zoomBy(1.4));
+zoomOutButton.addEventListener('click', () => map.zoomBy(1 / 1.4));
 
 document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape') {

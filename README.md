@@ -37,9 +37,10 @@ decides how hard they pull on the map. Themes hold territory; formats only tint 
 
 **A map.** `/map` draws the library as a constellation. Two kinds of node:
 
-- **ink blobs** are sources, their shape derived from their id so a piece keeps the
-  same body every time you visit;
-- **stars** are tags.
+- **ink blobs** are tags, and they grow with use — a tag carrying ten sources is a
+  territory, a tag carrying one is a speck. Each blob's shape is derived from its id,
+  so a tag keeps the same silhouette every time you visit;
+- **circled crosses** are the research itself, small and near-uniform.
 
 Two kinds of line:
 
@@ -49,6 +50,11 @@ Two kinds of line:
   vocabulary to be worth reading together.
 
 Kin lines are deliberately sparse. A graph that connects everything says nothing.
+
+Names arrive with the zoom. Fully out, only the tags that actually organise the library
+are named and no titles are shown at all; each step closer lowers the bar on tags and
+lets more of each title through. The thresholds are relative to the zoom that fits the
+whole map, so a library of thirty and a library of three thousand both open as territory.
 
 ## How the clustering works
 

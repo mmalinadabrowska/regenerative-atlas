@@ -4,7 +4,7 @@
  * Every mark on the site — the icons on the landing page and every node on the
  * map — comes from here, so the whole thing looks drawn by one person. The
  * shapes are Miró by way of a brush pen: closed blobs with uneven weight,
- * asterisk stars, lone crescents. Nothing is random at runtime; each glyph is
+ * lone crescents, small plotted marks. Nothing is random at runtime; each glyph is
  * derived from a seed, so a source keeps the same body every time you visit.
  */
 
@@ -88,20 +88,20 @@ export function blobPath(seed, scale = 10, options) {
 }
 
 /**
- * A star: an asterisk of uneven arms, the mark Miró scatters between the
- * heavier bodies. Used for tag nodes, which are ideas rather than things.
+ * A cross in a circle: the mark for one piece of research.
+ *
+ * Deliberately plain and near-uniform in size. Research is the thing being
+ * indexed, not the thing organising the map, so it reads as a plotted point
+ * against the drawn ink of the tags. The caller strokes it.
  */
-export function star(ctx, cx, cy, radius, seed) {
-  const random = rng(seed);
-  const arms = 4 + Math.floor(random() * 3);
-  const drift = random() * Math.PI;
+export function crossInCircle(ctx, cx, cy, radius) {
+  const arm = radius * 0.92;
   ctx.beginPath();
-  for (let i = 0; i < arms; i++) {
-    const angle = drift + (i / arms) * Math.PI * 2;
-    const length = radius * (0.62 + random() * 0.75);
-    ctx.moveTo(cx - Math.cos(angle) * length * 0.18, cy - Math.sin(angle) * length * 0.18);
-    ctx.lineTo(cx + Math.cos(angle) * length, cy + Math.sin(angle) * length);
-  }
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+  ctx.moveTo(cx - arm, cy);
+  ctx.lineTo(cx + arm, cy);
+  ctx.moveTo(cx, cy - arm);
+  ctx.lineTo(cx, cy + arm);
 }
 
 /* --------------------------------------------------------------------------

@@ -10,11 +10,14 @@
  *   gravity   draws each node toward the centre of its cluster, which is what
  *             turns a hairball into readable territories.
  *
- * Rendering is deliberately hand-drawn: sources are ink blobs whose shape is
- * derived from their id, tags are asterisk stars, and the lines bow a little.
+ * Rendering is deliberately hand-drawn, and the hierarchy is carried by the
+ * marks themselves: a tag is an ink shape that grows with the number of sources
+ * filed under it, so the territories of the map are the biggest blots on it.
+ * Research is a circled cross — small, near-uniform, a plotted point against
+ * drawn ink. Lines bow a little.
  */
 
-import { blobPoints, inkLine, rng, seedOf, star, traceBlob } from './ink.js';
+import { blobPoints, crossInCircle, inkLine, rng, seedOf, traceBlob } from './ink.js';
 
 const THEME = {
   paper: '#f2ecdf',
@@ -112,7 +115,13 @@ class Quad {
    -------------------------------------------------------------------------- */
 
 export function createConstellation(canvas, options = {}) {
-  const { onSelect = () => {}, onTagToggle = () => {} } = options;
+  const {
+    onSelect = () => {},
+    onTagToggle = () => {},
+    // Rectangles, in canvas coordinates, that the page's own chrome sits over.
+    // Labels are not placed under them.
+    avoid = () => [],
+  } = options;
   const ctx = canvas.getContext('2d');
 
   let nodes = [];
@@ -124,6 +133,11 @@ export function createConstellation(canvas, options = {}) {
   let alpha = 0;
   let running = false;
   let fitWhenSettled = false;
+  // The zoom at which the whole map is in frame. Label detail is expressed
+  // relative to this rather than as absolute zoom, so a library of thirty and a
+  // library of three thousand both start as territory and reveal titles at the
+  // same point in the gesture.
+  let overview = 1;
   let frame = null;
 
   const view = { x: 0, y: 0, k: 1 };
@@ -137,7 +151,7 @@ export function createConstellation(canvas, options = {}) {
     repulsion: 260,
     theta: 0.9,
     linkStrength: { tagged: 0.07, kin: 0.02 },
-    linkDistance: { tagged: 70, kin: 190 },
+    linkDistance: { tagged: 92, kin: 190 },
     clusterGravity: 0.055,
     centreGravity: 0.006,
     decay: 0.78,
@@ -200,6 +214,7 @@ export function createConstellation(canvas, options = {}) {
       1.6,
       Math.max(0.5, Math.min((width - padding * 2) / spanX, (height - padding * 2) / spanY)),
     );
+    overview = view.k;
     view.x = width / 2 - ((minX + maxX) / 2) * view.k;
     view.y = height / 2 - ((minY + maxY) / 2) * view.k;
     draw();
@@ -232,11 +247,16 @@ export function createConstellation(canvas, options = {}) {
         vx: 0,
         vy: 0,
         seed: seedOf(node.id),
+        // A tag's size is its weight in the library: one source is a small
+        // blot, ten is a territory. Research stays small and close to uniform.
         radius:
           node.type === 'tag'
-            ? 4 + Math.min(Math.sqrt(node.count ?? 1) * 3, 13)
-            : 7 + Math.min((node.weight ?? 1) * 1.1, 7),
-        blob: node.type === 'source' ? blobPoints(seedOf(node.id), { lobes: 6, wobble: 0.55 }) : null,
+            ? 5 + Math.min(Math.max((node.count ?? 1) - 1, 0) ** 0.62 * 7.5, 25)
+            : 5 + Math.min((node.weight ?? 1) * 0.35, 2.5),
+        blob:
+          node.type === 'tag'
+            ? blobPoints(seedOf(node.id), { lobes: 8, wobble: 0.85 })
+            : null,
       };
     });
 
@@ -386,6 +406,33 @@ export function createConstellation(canvas, options = {}) {
 
   const toScreen = (node) => ({ x: node.x * view.k + view.x, y: node.y * view.k + view.y });
 
+  /**
+   * What a node is allowed to say at this zoom, and how much of it.
+   *
+   * Far out, the map should read as territory: only the tags that actually
+   * organise the library are named, and no titles at all — a title is detail,
+   * and detail is what coming closer is for. Each step in tightens the bar on
+   * tags and lets more of each title through. Whatever you are pointing at is
+   * always named in full, wherever you are standing.
+   *
+   * Returns { limit } in characters, or null for "say nothing".
+   */
+  function labelPolicy(node, active, nearFocus) {
+    const closeness = view.k / (overview || 1);
+    if (active) return { limit: node.type === 'tag' ? 30 : 72 };
+
+    if (node.type === 'tag') {
+      const needed = closeness < 1.4 ? 5 : closeness < 2.2 ? 3 : closeness < 3.2 ? 2 : 1;
+      if (nearFocus || (node.count ?? 0) >= needed) return { limit: 26 };
+      return null;
+    }
+
+    if (nearFocus) return { limit: 30 };
+    if (closeness >= 3.6) return { limit: 54 };
+    if (closeness >= 2.2) return { limit: 24 };
+    return null;
+  }
+
   function focusSet() {
     const focus = hovered ?? selected;
     if (!focus) return null;
@@ -412,12 +459,15 @@ export function createConstellation(canvas, options = {}) {
       const a = toScreen(link.a);
       const b = toScreen(link.b);
 
+      // Line weight follows the zoom only so far. Past that the lines stop
+      // being connections and start being the picture.
+      const stroke = Math.min(view.k, 1.3);
       if (link.kind === 'kin') {
         ctx.strokeStyle = lit ? THEME.ink : muted ? 'rgba(16,15,13,0.07)' : 'rgba(16,15,13,0.42)';
-        ctx.lineWidth = Math.max((lit ? 1.5 : 1) * view.k, 0.6);
+        ctx.lineWidth = Math.max((lit ? 1.5 : 1) * stroke, 0.6);
       } else {
         ctx.strokeStyle = lit ? 'rgba(16,15,13,0.55)' : muted ? 'rgba(16,15,13,0.04)' : 'rgba(16,15,13,0.16)';
-        ctx.lineWidth = Math.max(0.8 * view.k, 0.4);
+        ctx.lineWidth = Math.max(0.8 * stroke, 0.4);
       }
       inkLine(ctx, a.x, a.y, b.x, b.y, link.kind === 'kin' ? 0.05 : 0.02);
       ctx.stroke();
@@ -436,20 +486,6 @@ export function createConstellation(canvas, options = {}) {
       ctx.globalAlpha = muted ? 0.16 : 1;
 
       if (node.type === 'tag') {
-        ctx.strokeStyle = THEME.ink;
-        ctx.lineWidth = Math.max((active ? 2.1 : 1.35) * view.k, 0.7);
-        star(ctx, x, y, radius, node.seed);
-        ctx.stroke();
-
-        // A Miró accent on the tag that names its cluster.
-        const cluster = clusters[node.cluster ?? -1];
-        if (cluster && cluster.tags?.[0] === node.slug) {
-          ctx.fillStyle = THEME.accents[(node.cluster ?? 0) % THEME.accents.length];
-          ctx.beginPath();
-          ctx.arc(x + radius * 0.72, y - radius * 0.72, Math.max(radius * 0.28, 2), 0, Math.PI * 2);
-          ctx.fill();
-        }
-      } else {
         ctx.fillStyle = THEME.ink;
         traceBlob(ctx, node.blob, x, y, radius);
         ctx.fill();
@@ -459,21 +495,41 @@ export function createConstellation(canvas, options = {}) {
           traceBlob(ctx, node.blob, x, y, radius + 6 * view.k);
           ctx.stroke();
         }
+
+        // A Miró accent on the tag that names its cluster.
+        const cluster = clusters[node.cluster ?? -1];
+        if (cluster && cluster.tags?.[0] === node.slug) {
+          ctx.fillStyle = THEME.accents[(node.cluster ?? 0) % THEME.accents.length];
+          ctx.beginPath();
+          ctx.arc(x + radius * 0.82, y - radius * 0.72, Math.max(radius * 0.2, 2.5), 0, Math.PI * 2);
+          ctx.fill();
+        }
+      } else {
+        ctx.strokeStyle = THEME.ink;
+        ctx.lineWidth = Math.max((active ? 2.2 : 1.4) * view.k, 0.8);
+        crossInCircle(ctx, x, y, radius);
+        ctx.stroke();
+        if (active) {
+          ctx.beginPath();
+          ctx.arc(x, y, radius + 5 * view.k, 0, Math.PI * 2);
+          ctx.lineWidth = 1.2;
+          ctx.stroke();
+        }
       }
       ctx.globalAlpha = 1;
 
       const nearFocus = Boolean(focus && focus.has(node.id));
-      const wants =
-        active ||
-        nearFocus ||
-        (node.type === 'tag' ? view.k > 0.55 || node.count >= 4 : view.k > 1.5);
-      if (wants && !muted) {
+      const policy = muted ? null : labelPolicy(node, active, nearFocus);
+      if (policy) {
         labelQueue.push({
           node,
+          policy,
           x,
           y: y + radius + 6,
+          // The heaviest tags claim label space first: they are the ones a
+          // reader needs to orient by.
           priority: (active ? 1000 : 0) + (nearFocus ? 400 : 0) +
-            (node.type === 'tag' ? 100 + (node.count ?? 0) : node.weight ?? 0),
+            (node.type === 'tag' ? 100 + (node.count ?? 0) * 4 : node.weight ?? 0),
         });
       }
     }
@@ -484,7 +540,7 @@ export function createConstellation(canvas, options = {}) {
      * label in any patch of the map wins and the rest wait for a zoom.
      */
     labelQueue.sort((a, b) => b.priority - a.priority);
-    const occupied = [];
+    const occupied = avoid();
     const overlaps = (box) =>
       occupied.some(
         (other) =>
@@ -495,14 +551,16 @@ export function createConstellation(canvas, options = {}) {
       );
 
     for (const entry of labelQueue) {
-      const { node } = entry;
+      const { node, policy } = entry;
       const active = hovered === node || selected === node;
+      // A tag's name is sized like the tag: the bigger the territory, the
+      // louder it is allowed to be.
       ctx.font =
         node.type === 'tag'
-          ? `${Math.max(11, Math.min(15, 10 + (node.count ?? 1) * 0.3))}px "Tremplin", "Century Gothic", system-ui, sans-serif`
-          : '13px "EB Garamond", Georgia, serif';
+          ? `${Math.max(11, Math.min(18, 10.5 + (node.count ?? 1) * 0.5))}px "Tremplin", "Century Gothic", system-ui, sans-serif`
+          : '12px "EB Garamond", Georgia, serif';
 
-      const limit = node.type === 'tag' ? 28 : active ? 64 : 34;
+      const { limit } = policy;
       const text = node.label.length > limit ? `${node.label.slice(0, limit - 1)}…` : node.label;
       const metrics = ctx.measureText(text);
       const box = { x: entry.x - metrics.width / 2 - 3, y: entry.y - 2, w: metrics.width + 6, h: 16 };
@@ -534,7 +592,9 @@ export function createConstellation(canvas, options = {}) {
     for (const node of nodes) {
       const { x, y } = toScreen(node);
       const distance = Math.hypot(px - x, py - y);
-      const reach = node.radius * view.k + 10;
+      // Research marks are deliberately small, so the target is not: a node is
+      // always at least a comfortable thumb-width to hit, however far out you are.
+      const reach = Math.max(node.radius * view.k, 10) + 6;
       if (distance < reach && distance < bestDistance) {
         best = node;
         bestDistance = distance;

@@ -10,7 +10,7 @@ It is good at answering *what is near this?* — which is the question a researc
 actually has.
 
 **Joan Miró's constellations** are the visual language. Miró's marks are uneven,
-weighted, alive: black bodies of varying heft, asterisk stars, thin lines that connect
+weighted, alive: black bodies of varying heft, small plotted marks, thin lines that connect
 without explaining, a very occasional primary colour. That is a far better register
 for a library of research than the even circles of a network diagram, because it says
 these are things somebody chose, not rows returned from a query.
@@ -23,7 +23,7 @@ the map nodes are made by the same hand.
 One frame, 1920x1080: the title block in the clearing at the centre, marks scattered
 around it, and thin lines running between them to `The Atlas` sitting under the biggest
 star, with the three sections in a row beneath. It is the map in miniature — the same
-grammar of blobs, stars and connecting lines — so that pressing through is continuous
+grammar of blobs, marks and connecting lines — so that pressing through is continuous
 with what you find behind it rather than a jump to a different idea. One of the drawing's
 lines runs from the Atlas button down to the section menu, so the buttons read as part of
 the constellation rather than as chrome dropped on top of it.
@@ -43,9 +43,29 @@ sizes first, the drawing kept underneath as a coda.
 
 ## Decisions worth knowing about
 
-**Sources are blobs, tags are stars.** A source is a thing — it has weight and a body.
-A tag is an idea — it radiates. The blob's shape comes from a hash of the node's id,
-so a source keeps its silhouette between visits and becomes recognisable.
+**Tags are ink, research is a plotted point.** The heavy marks belong to the tags,
+because the tags are what organise the map — and a tag's blot grows with the number of
+sources filed under it, so the hierarchy of the library is legible as weight before you
+read a single word. Research is a circled cross: small, near-uniform, deliberately plain.
+The thing being indexed should not outshout the index. Each blob's shape comes from a
+hash of its id, so a tag keeps its silhouette between visits and becomes recognisable.
+
+This is the second arrangement. The first had it the other way round — sources as blobs,
+tags as asterisks — which drew the eye to the individual paper and left the territories
+unreadable. Inverting it made the map answer *what is this region about* before *what is
+this particular thing*, which is the question you have first.
+
+**Detail arrives with the zoom.** Fully out, the map names only the tags that carry
+enough of the library to orient by, and no titles at all. Coming closer lowers the bar on
+tags and lets more of each title through, in three steps. The thresholds are expressed
+relative to the zoom that fits the whole map rather than as absolute zoom levels, so the
+behaviour holds as the library grows: thirty sources and three thousand both open as
+territory and reveal titles at the same point in the gesture. Line weight stops following
+the zoom past a point, too — past it the lines stop being connections and start being the
+picture.
+
+Because the research marks are small by design, they are given a minimum hit target of
+about sixteen pixels regardless of zoom. Small to read is not the same as small to hit.
 
 **Colour is almost absent.** Ink on unbleached paper, with Miró's red, blue and yellow
 used only as a small accent on the tag that names each cluster. Clusters are told apart
