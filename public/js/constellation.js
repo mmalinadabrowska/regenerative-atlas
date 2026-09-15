@@ -238,17 +238,22 @@ export function createConstellation(canvas, options = {}) {
       height: Math.max(height - (gap.top ?? 0) - (gap.bottom ?? 0), 120),
     };
 
-    // Never shrink so far that the marks stop being marks — past this the
-    // reader pans instead, which is the honest trade for a growing library.
-    // The islands are allowed to fill the frame: the blots are the content
-    // there, not a summary of it.
-    view.k = Math.min(
-      focused ? 1.7 : 2.8,
-      Math.max(
-        0.5,
-        Math.min((frame.width - padding * 2) / spanX, (frame.height - padding * 2) / spanY),
-      ),
+    // Margin scales with the frame: ninety pixels is breathing room on a laptop
+    // and a third of a phone.
+    const margin = Math.min(padding, frame.width * 0.08, frame.height * 0.08);
+    // Names run out to either side of the mark they belong to, and the bounding
+    // box above only knows about the marks. Without an allowance for the text
+    // the outermost labels are the part that gets cut off.
+    const labelRoom = Math.min(58, frame.width * 0.14);
+    const ideal = Math.min(
+      (frame.width - (margin + labelRoom) * 2) / spanX,
+      (frame.height - margin * 2) / spanY,
     );
+
+    // The islands are allowed to fill the frame: the blots are the content
+    // there, not a summary of it. The floor only stops the marks becoming dust —
+    // it must never be what keeps the map from fitting on a small screen.
+    view.k = Math.min(focused ? 1.7 : 2.8, Math.max(0.25, ideal));
     overview = view.k;
     view.x = frame.left + frame.width / 2 - ((minX + maxX) / 2) * view.k;
     view.y = frame.top + frame.height / 2 - ((minY + maxY) / 2) * view.k;
@@ -263,9 +268,12 @@ export function createConstellation(canvas, options = {}) {
     const count = clusters.length;
     const angle = (cluster / count) * Math.PI * 2 - Math.PI / 2;
     const radius = count > 1 ? layoutRadius() : 0;
-    // A rounder archipelago than the frame, so the map fills the height too
-    // rather than laying itself out in a thin band.
-    const squash = focused ? Math.min(1, Math.max(0.5, height / Math.max(width, 1))) : 0.76;
+    // The archipelago takes the shape of the frame it is in — a wide band on a
+    // laptop, a tall one on a phone held upright — so it fills the screen either
+    // way instead of leaving half of it empty.
+    const squash = focused
+      ? Math.min(1, Math.max(0.5, height / Math.max(width, 1)))
+      : Math.min(1.5, Math.max(0.7, (height / Math.max(width, 1)) * 1.25));
     return { x: Math.cos(angle) * radius, y: Math.sin(angle) * radius * squash };
   }
 
@@ -391,6 +399,70 @@ export function createConstellation(canvas, options = {}) {
     return out;
   };
 
+  /** Everything one hop from a node, whatever kind it is. */
+  function neighboursOf(node) {
+    if (node.type === 'tag') return sourcesOfTag.get(node.id) ?? [];
+    return [
+      ...(tagsOfSource.get(node.id) ?? []),
+      ...(kinOf.get(node.id) ?? []).map((k) => k.other),
+    ];
+  }
+
+  /**
+   * What is two hops out: the things the ring is attached to that you are not
+   * looking at yet. They orbit faintly outside the arrangement — enough to show
+   * that the map continues past this view, not enough to compete with it.
+   * Ranked by how many of the ring they hang off, so the orbit is the places
+   * this neighbourhood actually leads.
+   */
+  const HALO_LIMIT = 22;
+
+  function secondOrder(centre, shown) {
+    const reach = new Map();
+    for (const node of nodes) {
+      if (node === centre) continue;
+      for (const other of neighboursOf(node)) {
+        if (shown.has(other.id) || other === centre) continue;
+        if (!reach.has(other.id)) reach.set(other.id, { node: other, via: node, ties: 0 });
+        reach.get(other.id).ties += 1;
+      }
+    }
+    return [...reach.values()]
+      .sort(
+        (a, b) =>
+          b.ties - a.ties ||
+          (b.node.count ?? b.node.weight ?? 0) - (a.node.count ?? a.node.weight ?? 0) ||
+          a.node.label.localeCompare(b.node.label),
+      )
+      .slice(0, HALO_LIMIT);
+  }
+
+  /**
+   * Park the orbit on a ring outside everything else, each one near whatever it
+   * hangs off, so a faint line has only a short way to travel.
+   */
+  function orbitLayout(halo) {
+    if (halo.length === 0) return;
+    const inner = Math.max(...nodes.map((n) => Math.hypot(n.tx, n.ty)), 1);
+    const radius = inner + 170;
+
+    // Each one wants to sit in the direction of whatever it hangs off. Sorting
+    // by that and then spacing evenly keeps the association legible without
+    // letting four things that share a parent pile up on the same spot.
+    const wanted = halo.map((entry) => ({
+      ...entry,
+      towards: Math.atan2(entry.via.ty, entry.via.tx),
+    }));
+    wanted.sort((a, b) => a.towards - b.towards);
+
+    const start = wanted[0].towards;
+    wanted.forEach((entry, i) => {
+      const angle = start + (i / wanted.length) * Math.PI * 2;
+      entry.node.tx = Math.cos(angle) * radius;
+      entry.node.ty = Math.sin(angle) * radius;
+    });
+  }
+
   /** What is on screen, given what is open. */
   function compose({ animate = true } = {}) {
     const from = new Map(nodes.map((n) => [n.id, { x: n.x, y: n.y }]));
@@ -423,6 +495,18 @@ export function createConstellation(canvas, options = {}) {
       // beside to the other. Concentric rings put the tags inside the relatives
       // and every line crossed every other one.
       fanLayout(focused, orderRing(tags), orderRing(kin));
+    }
+
+    for (const node of library.nodes) node.isHalo = false;
+
+    if (focused) {
+      const halo = secondOrder(focused, new Set(nodes.map((n) => n.id)));
+      orbitLayout(halo);
+      for (const { node, via } of halo) {
+        node.isHalo = true;
+        nodes.push(node);
+        links.push({ a: via, b: node, kind: 'halo', weight: 0.4 });
+      }
     }
 
     byId = new Map(nodes.map((n) => [n.id, n]));
@@ -754,6 +838,9 @@ export function createConstellation(canvas, options = {}) {
     // only rations names when it is showing you the whole library at once.
     if (!focused) return node.type === 'tag' ? { limit: 26 } : null;
     if (node === focused) return { limit: node.type === 'tag' ? 30 : 76 };
+    // The orbit stays quiet until you point at it, or it would be a second
+    // ring of names competing with the one you opened.
+    if (node.isHalo) return nearFocus ? { limit: 24 } : null;
     if (node.type === 'tag') return { limit: 26 };
     if (nearFocus || closeness >= 1.6) return { limit: 46 };
     return { limit: 30 };
@@ -790,7 +877,10 @@ export function createConstellation(canvas, options = {}) {
       // Line weight follows the zoom only so far. Past that the lines stop
       // being connections and start being the picture.
       const stroke = Math.min(view.k, 1.3);
-      if (link.kind === 'kin') {
+      if (link.kind === 'halo') {
+        ctx.strokeStyle = lit ? 'rgba(16,15,13,0.4)' : 'rgba(16,15,13,0.11)';
+        ctx.lineWidth = Math.max(0.7 * stroke, 0.4);
+      } else if (link.kind === 'kin') {
         ctx.strokeStyle = lit ? THEME.ink : muted ? 'rgba(16,15,13,0.07)' : 'rgba(16,15,13,0.42)';
         ctx.lineWidth = Math.max((lit ? 1.5 : 1) * stroke, 0.6);
       } else {
@@ -806,12 +896,13 @@ export function createConstellation(canvas, options = {}) {
 
     for (const node of nodes) {
       const { x, y } = toScreen(node);
-      const radius = node.radius * view.k;
+      const radius = (node.isHalo ? Math.min(node.radius * 0.66, 15) : node.radius) * view.k;
       if (x < -160 || y < -160 || x > width + 160 || y > height + 160) continue;
 
       const muted = isMuted(node);
       const active = hovered === node || selected === node;
-      ctx.globalAlpha = muted ? 0.16 : 1;
+      const orbiting = node.isHalo && !active;
+      ctx.globalAlpha = muted ? 0.16 : orbiting ? 0.3 : 1;
 
       if (node.type === 'tag') {
         ctx.fillStyle = THEME.ink;

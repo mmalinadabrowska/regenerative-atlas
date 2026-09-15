@@ -72,6 +72,16 @@ every other. Splitting it left and right means reading the picture and reading t
 sentence are the same act. Only the islands are simulated, because only they are asking
 a question about the whole library at once; the opened views are composed, and stay put.
 
+**The orbit.** Inside an opened view, everything two hops out sits faintly on a ring
+around the arrangement — the tags those sources also live under, the research those tags
+also hold. It is drawn at a third of the ink, two thirds of the size, and stays unnamed
+until you point at it. The point is to show that the map continues past this view without
+competing with it: enough to tell you there is somewhere further to go, not enough to read
+as part of what you opened. They are ranked by how much of the ring they hang off, so the
+orbit is the places this neighbourhood actually leads, and spaced evenly around the circle
+after being sorted by direction — near their parent without four of them piling onto the
+same spot.
+
 **Detail arrives with the zoom.** Fully out, the map names only the tags that carry
 enough of the library to orient by, and no titles at all. Coming closer lowers the bar on
 tags and lets more of each title through, in three steps. The thresholds are expressed

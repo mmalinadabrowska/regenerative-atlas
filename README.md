@@ -162,6 +162,18 @@ anywhere, and the CUTE text bundled alongside each face.
 Deleting either directory breaks nothing; the stacks fall back to EB Garamond and Century
 Gothic. The Atlas is just less itself.
 
+## Testing it without a server
+
+`npm run build-static` bakes the read endpoints into `public/data/snapshot.json` and
+writes `dist/atlas.html`, the map as one self-contained file — styles, scripts, fonts
+and library all inlined, nothing to fetch. Open that file on any device, or drop
+`public/` on any static host: `js/api.js` falls back to the snapshot whenever the API
+is not there, so the map, the themes index and search all work. Adding does not, and
+says so — a snapshot has nowhere to write to.
+
+Rebuild the snapshot whenever the library changes; it is committed, so a static deploy
+needs no build step of its own.
+
 ## Deploying
 
 Put it behind a reverse proxy and give it a persistent volume for `data/`.
