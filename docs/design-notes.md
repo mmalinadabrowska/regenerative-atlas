@@ -82,6 +82,21 @@ orbit is the places this neighbourhood actually leads, and spaced evenly around 
 after being sorted by direction — near their parent without four of them piling onto the
 same spot.
 
+**Distance means something.** Nothing on a ring, fan or orbit sits at a uniform
+radius. How far out a thing sits is how loosely it is tied to what you opened: on a
+tag's ring, how much kinship it has with the others filed there; on a source's fan, how
+many of its relatives share that tag, or how close the kinship runs; in the orbit, how
+much of the ring it hangs off. A small seeded nudge on top keeps even an evenly tied
+ring from drawing as a compass circle. The irregularity is not decoration — reading the
+distance tells you something, which is the only reason to have it.
+
+**The rearrangement takes three seconds.** Long, deliberately: it is the map turning
+over, not a screen changing. The names dissolve before anything has moved far, stay gone
+while it moves, and resolve once it has nearly settled — text sliding across the screen
+is unreadable and makes movement feel like a fault, where text that clears and comes
+back makes it feel like a thing being redrawn. The camera reframes continuously through
+it, and clicking mid-flight retargets rather than waiting.
+
 **Detail arrives with the zoom.** Fully out, the map names only the tags that carry
 enough of the library to orient by, and no titles at all. Coming closer lowers the bar on
 tags and lets more of each title through, in three steps. The thresholds are expressed

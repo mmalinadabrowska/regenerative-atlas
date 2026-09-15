@@ -19,6 +19,9 @@
 
 import { blobPoints, crossInCircle, inkLine, rng, seedOf, traceBlob } from './ink.js';
 
+/** Long enough to read as the map turning over rather than a cut. */
+const TRANSITION_MS = 3000;
+
 const THEME = {
   paper: '#f2ecdf',
   ink: '#100f0d',
@@ -455,11 +458,13 @@ export function createConstellation(canvas, options = {}) {
     }));
     wanted.sort((a, b) => a.towards - b.towards);
 
+    const strongest = Math.max(...wanted.map((e) => e.ties), 1);
     const start = wanted[0].towards;
     wanted.forEach((entry, i) => {
       const angle = start + (i / wanted.length) * Math.PI * 2;
-      entry.node.tx = Math.cos(angle) * radius;
-      entry.node.ty = Math.sin(angle) * radius;
+      const reach = standoff(radius, { node: entry.node, tie: entry.ties / strongest }, 120);
+      entry.node.tx = Math.cos(angle) * reach;
+      entry.node.ty = Math.sin(angle) * reach;
     });
   }
 
@@ -481,7 +486,14 @@ export function createConstellation(canvas, options = {}) {
         ...kinAmong(new Set(sources.map((s) => s.id))),
       ];
       drawLinks = true;
-      ringLayout(focused, [orderRing(sources)]);
+      // How much of this neighbourhood each source is bound into: kinship with
+      // the others filed here draws it towards the middle.
+      const kinHere = new Set(sources.map((s) => s.id));
+      ringLayout(focused, [
+        weighRing(sources, (source) =>
+          (kinOf.get(source.id) ?? []).filter((k) => kinHere.has(k.other.id)).length,
+        ),
+      ]);
     } else {
       const tags = tagsOfSource.get(focused.id) ?? [];
       const kin = (kinOf.get(focused.id) ?? []).map((k) => k.other);
@@ -494,7 +506,20 @@ export function createConstellation(canvas, options = {}) {
       // A fan, not two rings: what it is filed under to one side, what it sits
       // beside to the other. Concentric rings put the tags inside the relatives
       // and every line crossed every other one.
-      fanLayout(focused, orderRing(tags), orderRing(kin));
+      //
+      // A tag draws in by how many of these relatives are also filed under it —
+      // the ground they actually share. A relative draws in by how close the
+      // kinship is.
+      const kinWeight = new Map(
+        (kinOf.get(focused.id) ?? []).map((k) => [k.other.id, k.weight]),
+      );
+      fanLayout(
+        focused,
+        weighRing(tags, (tag) =>
+          kin.filter((source) => (tagsOfSource.get(source.id) ?? []).includes(tag)).length,
+        ),
+        weighRing(kin, (source) => kinWeight.get(source.id) ?? 0),
+      );
     }
 
     for (const node of library.nodes) node.isHalo = false;
@@ -531,7 +556,7 @@ export function createConstellation(canvas, options = {}) {
         node.x = start.x;
         node.y = start.y;
       }
-      transition = { at: performance.now(), until: 620 };
+      transition = { at: performance.now(), until: TRANSITION_MS };
       run();
     } else {
       for (const node of nodes) {
@@ -548,14 +573,36 @@ export function createConstellation(canvas, options = {}) {
     }
   }
 
-  /** Sort a ring so that things of a kind, and things that are alike, adjoin. */
-  function orderRing(list) {
-    return [...list].sort(
+  /**
+   * Sort a ring so that things of a kind, and things that are alike, adjoin,
+   * and score each one on how tied it is to what you opened.
+   *
+   * The tie decides how far out it sits: closely bound things draw in, loose
+   * ones hang back. That is what breaks the ring out of being a circle — the
+   * distance means something rather than being uniform for its own sake.
+   * `tieOf` returns any positive number; it is normalised against the ring.
+   */
+  function weighRing(list, tieOf) {
+    const scored = [...list].sort(
       (a, b) =>
         (a.cluster ?? 99) - (b.cluster ?? 99) ||
         (b.count ?? b.weight ?? 0) - (a.count ?? a.weight ?? 0) ||
         a.label.localeCompare(b.label),
     );
+    const ties = scored.map((node) => Math.max(tieOf(node), 0));
+    const strongest = Math.max(...ties, 1);
+    return scored.map((node, i) => ({ node, tie: ties[i] / strongest }));
+  }
+
+  /**
+   * How far out one member sits. Weakly tied things fall back by up to a whole
+   * step, and each is nudged a little off the true radius by its own seed, so
+   * even an evenly tied ring never draws as a compass circle.
+   */
+  function standoff(radius, entry, step) {
+    const loose = (1 - entry.tie) * step * 0.9;
+    const wobble = ((entry.node.seed % 1000) / 1000 - 0.5) * step * 0.28;
+    return radius + loose + wobble;
   }
 
   /**
@@ -569,14 +616,15 @@ export function createConstellation(canvas, options = {}) {
     let radius = centre.radius + 105;
     for (const ring of rings) {
       if (ring.length === 0) continue;
-      const spacing = Math.max(...ring.map((n) => n.radius)) * 2 + 66;
+      const spacing = Math.max(...ring.map((e) => e.node.radius)) * 2 + 66;
       radius = Math.max(radius, (spacing * ring.length) / (Math.PI * 2));
-      ring.forEach((node, i) => {
+      ring.forEach((entry, i) => {
         const angle = (i / ring.length) * Math.PI * 2 - Math.PI / 2;
-        node.tx = Math.cos(angle) * radius;
-        node.ty = Math.sin(angle) * radius * 0.86;
+        const reach = standoff(radius, entry, spacing);
+        entry.node.tx = Math.cos(angle) * reach;
+        entry.node.ty = Math.sin(angle) * reach * 0.86;
       });
-      radius += spacing * 1.15;
+      radius += spacing * 1.6;
     }
   }
 
@@ -595,18 +643,19 @@ export function createConstellation(canvas, options = {}) {
 
     function place(list, towards, minRadius) {
       if (list.length === 0) return;
+      const spacing = Math.max(...list.map((e) => e.node.radius)) * 2 + 76;
       if (list.length === 1) {
-        list[0].tx = Math.cos(towards) * minRadius;
-        list[0].ty = 0;
+        list[0].node.tx = Math.cos(towards) * standoff(minRadius, list[0], spacing);
+        list[0].node.ty = 0;
         return;
       }
-      const spacing = Math.max(...list.map((n) => n.radius)) * 2 + 76;
       const span = Math.min(Math.PI * 0.8, 0.34 * (list.length - 1));
       const radius = Math.max(minRadius, (spacing * (list.length - 1)) / span);
-      list.forEach((node, i) => {
+      list.forEach((entry, i) => {
         const angle = towards - span / 2 + (i / (list.length - 1)) * span;
-        node.tx = Math.cos(angle) * radius;
-        node.ty = Math.sin(angle) * radius;
+        const reach = standoff(radius, entry, spacing);
+        entry.node.tx = Math.cos(angle) * reach;
+        entry.node.ty = Math.sin(angle) * reach;
       });
     }
   }
@@ -646,10 +695,27 @@ export function createConstellation(canvas, options = {}) {
 
   const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 
+  /**
+   * How readable the names are, part way through a rearrangement.
+   *
+   * They dissolve before anything moves far, stay gone while it moves, and
+   * resolve once it is nearly settled. Text sliding across the screen is
+   * unreadable and makes the movement feel like an error; text that clears out
+   * and comes back makes it feel like the map turning over.
+   */
+  function labelOpacity(t) {
+    if (t < 0.18) return 1 - t / 0.18;
+    if (t < 0.62) return 0;
+    return (t - 0.62) / 0.38;
+  }
+
+  let labelFade = 1;
+
   function tick(now = performance.now()) {
     if (transition) {
       const t = Math.min((now - transition.at) / transition.until, 1);
       const eased = easeInOut(t);
+      labelFade = labelOpacity(t);
       for (const node of nodes) {
         node.x = node.fromX + (node.tx - node.fromX) * eased;
         node.y = node.fromY + (node.ty - node.fromY) * eased;
@@ -658,6 +724,7 @@ export function createConstellation(canvas, options = {}) {
       fit();
       if (t >= 1) {
         transition = null;
+        labelFade = 1;
         if (!focused) reheat(0.7);
       }
     } else if (!focused) {
@@ -960,6 +1027,9 @@ export function createConstellation(canvas, options = {}) {
      */
     labelQueue.sort((a, b) => b.priority - a.priority);
     const occupied = avoid();
+    // Mid-dissolve there is nothing to place, and placing it would only reserve
+    // space against positions that are still moving.
+    if (labelFade < 0.02) return;
     const overlaps = (box) =>
       occupied.some(
         (other) =>
@@ -987,7 +1057,7 @@ export function createConstellation(canvas, options = {}) {
       if (!active && overlaps(box)) continue;
       occupied.push(box);
 
-      ctx.globalAlpha = active ? 1 : 0.85;
+      ctx.globalAlpha = (active ? 1 : 0.85) * labelFade;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
       ctx.lineJoin = 'round';
