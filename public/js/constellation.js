@@ -117,18 +117,36 @@ class Quad {
 export function createConstellation(canvas, options = {}) {
   const {
     onSelect = () => {},
-    onTagToggle = () => {},
+    onFocus = () => {},
     // Rectangles, in canvas coordinates, that the page's own chrome sits over.
     // Labels are not placed under them.
     avoid = () => [],
+    // How much of the frame the page's own panels are covering, so the map is
+    // fitted to the part of it you can actually see.
+    inset = () => ({ top: 0, right: 0, bottom: 0, left: 0 }),
   } = options;
   const ctx = canvas.getContext('2d');
 
+  // The whole library, built once. What is on screen is a view of it.
+  let library = { nodes: [], clusters: [] };
+  let allById = new Map();
+  let affinity = [];          // tag-to-tag, used to shape the islands only
+  let sourcesOfTag = new Map();
+  let tagsOfSource = new Map();
+  let kinOf = new Map();
+
+  // The current view: the islands, or one node opened.
+  let focused = null;
   let nodes = [];
   let links = [];
   let clusters = [];
   let byId = new Map();
   let neighbours = new Map();
+  let drawLinks = true;
+
+  let transition = null;      // { at, until } while the graph is rearranging
+  let drifting = false;
+  const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 
   let alpha = 0;
   let running = false;
@@ -165,6 +183,9 @@ export function createConstellation(canvas, options = {}) {
    * tall one, which is exactly what you don't want from a map.
    */
   function layoutRadius() {
+    // The islands are only the tags, so they gather more tightly than a view
+    // holding every source would — which lets the blots themselves read bigger.
+    if (!focused) return 70 + clusters.length * 26 + Math.sqrt(nodes.length) * 10;
     return 120 + clusters.length * 44 + Math.sqrt(nodes.length) * 16;
   }
 
@@ -208,15 +229,29 @@ export function createConstellation(canvas, options = {}) {
     }
     const spanX = Math.max(maxX - minX, 1);
     const spanY = Math.max(maxY - minY, 1);
+
+    const gap = inset();
+    const frame = {
+      left: gap.left ?? 0,
+      top: gap.top ?? 0,
+      width: Math.max(width - (gap.left ?? 0) - (gap.right ?? 0), 120),
+      height: Math.max(height - (gap.top ?? 0) - (gap.bottom ?? 0), 120),
+    };
+
     // Never shrink so far that the marks stop being marks — past this the
     // reader pans instead, which is the honest trade for a growing library.
+    // The islands are allowed to fill the frame: the blots are the content
+    // there, not a summary of it.
     view.k = Math.min(
-      1.6,
-      Math.max(0.5, Math.min((width - padding * 2) / spanX, (height - padding * 2) / spanY)),
+      focused ? 1.7 : 2.8,
+      Math.max(
+        0.5,
+        Math.min((frame.width - padding * 2) / spanX, (frame.height - padding * 2) / spanY),
+      ),
     );
     overview = view.k;
-    view.x = width / 2 - ((minX + maxX) / 2) * view.k;
-    view.y = height / 2 - ((minY + maxY) / 2) * view.k;
+    view.x = frame.left + frame.width / 2 - ((minX + maxX) / 2) * view.k;
+    view.y = frame.top + frame.height / 2 - ((minY + maxY) / 2) * view.k;
     draw();
   }
 
@@ -228,76 +263,368 @@ export function createConstellation(canvas, options = {}) {
     const count = clusters.length;
     const angle = (cluster / count) * Math.PI * 2 - Math.PI / 2;
     const radius = count > 1 ? layoutRadius() : 0;
-    const squash = Math.min(1, Math.max(0.5, height / Math.max(width, 1)));
+    // A rounder archipelago than the frame, so the map fills the height too
+    // rather than laying itself out in a thin band.
+    const squash = focused ? Math.min(1, Math.max(0.5, height / Math.max(width, 1))) : 0.76;
     return { x: Math.cos(angle) * radius, y: Math.sin(angle) * radius * squash };
   }
 
-  function setGraph(graph, { keepView = false } = {}) {
-    const previous = new Map(nodes.map((n) => [n.id, n]));
+  /**
+   * Take the whole library in once, and build the indexes every view needs.
+   * Node objects are made here and reused across views, so a tag keeps its
+   * shape, its size and its place in your memory of the map.
+   */
+  function setGraph(graph) {
     clusters = graph.clusters ?? [];
-
-    nodes = (graph.nodes ?? []).map((node) => {
-      const before = previous.get(node.id);
-      const random = rng(seedOf(node.id));
-      const anchor = anchorFor(node.cluster);
-      return {
+    library = {
+      clusters,
+      nodes: (graph.nodes ?? []).map((node) => ({
         ...node,
-        x: before?.x ?? anchor.x + (random() - 0.5) * 260,
-        y: before?.y ?? anchor.y + (random() - 0.5) * 260,
+        x: 0,
+        y: 0,
         vx: 0,
         vy: 0,
         seed: seedOf(node.id),
         // A tag's size is its weight in the library: one source is a small
-        // blot, ten is a territory. Research stays small and close to uniform.
+        // blot, ten is a territory. Research stays small and near-uniform.
         radius:
           node.type === 'tag'
-            ? 5 + Math.min(Math.max((node.count ?? 1) - 1, 0) ** 0.62 * 7.5, 25)
+            ? 7 + Math.min(Math.max((node.count ?? 1) - 1, 0) ** 0.62 * 8.5, 30)
             : 5 + Math.min((node.weight ?? 1) * 0.35, 2.5),
         blob:
           node.type === 'tag'
             ? blobPoints(seedOf(node.id), { lobes: 8, wobble: 0.85 })
             : null,
-      };
-    });
+        drift: {
+          rate: 0.00007 + (seedOf(`${node.id}r`) % 1000) / 1e7,
+          phase: (seedOf(`${node.id}p`) % 628) / 100,
+        },
+      })),
+    };
+    allById = new Map(library.nodes.map((n) => [n.id, n]));
 
-    byId = new Map(nodes.map((n) => [n.id, n]));
-    links = (graph.links ?? [])
-      .map((link) => ({ ...link, a: byId.get(link.source), b: byId.get(link.target) }))
-      .filter((link) => link.a && link.b);
+    sourcesOfTag = new Map();
+    tagsOfSource = new Map();
+    kinOf = new Map();
+    for (const link of graph.links ?? []) {
+      const a = allById.get(link.source);
+      const b = allById.get(link.target);
+      if (!a || !b) continue;
+      if (link.kind === 'tagged') {
+        const [source, tag] = a.type === 'source' ? [a, b] : [b, a];
+        if (!sourcesOfTag.has(tag.id)) sourcesOfTag.set(tag.id, []);
+        if (!tagsOfSource.has(source.id)) tagsOfSource.set(source.id, []);
+        sourcesOfTag.get(tag.id).push(source);
+        tagsOfSource.get(source.id).push(tag);
+      } else {
+        for (const [one, other] of [[a, b], [b, a]]) {
+          if (!kinOf.has(one.id)) kinOf.set(one.id, []);
+          kinOf.get(one.id).push({ other, weight: link.weight ?? 0, shared: link.shared ?? [] });
+        }
+      }
+    }
+    for (const list of kinOf.values()) list.sort((x, y) => y.weight - x.weight);
 
-    neighbours = new Map(nodes.map((n) => [n.id, new Set()]));
-    for (const link of links) {
-      neighbours.get(link.a.id).add(link.b.id);
-      neighbours.get(link.b.id).add(link.a.id);
+    affinity = tagAffinity();
+    focused = null;
+    compose({ animate: false });
+  }
+
+  /**
+   * Two tags are drawn together when they are filed on the same research,
+   * normalised so a tag on half the library does not pull the whole map into
+   * itself. Only each tag's strongest few ties are kept — the rest are the
+   * incidental overlaps that would smear the islands back into one continent.
+   */
+  function tagAffinity() {
+    const weights = new Map();
+    for (const tags of tagsOfSource.values()) {
+      for (let i = 0; i < tags.length; i++) {
+        for (let j = i + 1; j < tags.length; j++) {
+          const key = tags[i].id < tags[j].id ? `${tags[i].id}|${tags[j].id}` : `${tags[j].id}|${tags[i].id}`;
+          weights.set(key, (weights.get(key) ?? 0) + 1);
+        }
+      }
     }
 
-    if (!keepView) userAdjusted = false;
-    fitWhenSettled = true;
-    reheat(1);
+    const scored = [...weights].map(([key, shared]) => {
+      const [a, b] = key.split('|');
+      const na = allById.get(a)?.count ?? 1;
+      const nb = allById.get(b)?.count ?? 1;
+      return { a, b, weight: shared / Math.sqrt(na * nb) };
+    });
+
+    const best = new Map();
+    for (const edge of scored) {
+      for (const [from, to] of [[edge.a, edge.b], [edge.b, edge.a]]) {
+        if (!best.has(from)) best.set(from, []);
+        best.get(from).push({ to, weight: edge.weight });
+      }
+    }
+    const kept = new Set();
+    for (const [from, edges] of best) {
+      edges
+        .sort((x, y) => y.weight - x.weight || x.to.localeCompare(y.to))
+        .slice(0, 3)
+        .forEach(({ to }) => kept.add(from < to ? `${from}|${to}` : `${to}|${from}`));
+    }
+
+    return scored
+      .filter((edge) => kept.has(edge.a < edge.b ? `${edge.a}|${edge.b}` : `${edge.b}|${edge.a}`))
+      .map((edge) => ({ a: allById.get(edge.a), b: allById.get(edge.b), kind: 'affinity', weight: edge.weight }));
+  }
+
+  /* --- the three views -------------------------------------------------- */
+
+  const kinAmong = (ids) => {
+    const drawn = new Set();
+    const out = [];
+    for (const id of ids) {
+      for (const { other, weight, shared } of kinOf.get(id) ?? []) {
+        if (!ids.has(other.id)) continue;
+        const key = id < other.id ? `${id}|${other.id}` : `${other.id}|${id}`;
+        if (drawn.has(key)) continue;
+        drawn.add(key);
+        out.push({ a: allById.get(id), b: other, kind: 'kin', weight, shared });
+      }
+    }
+    return out;
+  };
+
+  /** What is on screen, given what is open. */
+  function compose({ animate = true } = {}) {
+    const from = new Map(nodes.map((n) => [n.id, { x: n.x, y: n.y }]));
+    const previouslyPlaced = new Set(nodes.map((n) => n.id));
+
+    if (!focused) {
+      nodes = library.nodes.filter((n) => n.type === 'tag');
+      links = affinity.filter((l) => l.a && l.b);
+      drawLinks = false;
+      islandLayout(previouslyPlaced);
+    } else if (focused.type === 'tag') {
+      const sources = sourcesOfTag.get(focused.id) ?? [];
+      nodes = [focused, ...sources];
+      links = [
+        ...sources.map((source) => ({ a: focused, b: source, kind: 'tagged', weight: 1 })),
+        ...kinAmong(new Set(sources.map((s) => s.id))),
+      ];
+      drawLinks = true;
+      ringLayout(focused, [orderRing(sources)]);
+    } else {
+      const tags = tagsOfSource.get(focused.id) ?? [];
+      const kin = (kinOf.get(focused.id) ?? []).map((k) => k.other);
+      nodes = [focused, ...tags, ...kin];
+      links = [
+        ...tags.map((tag) => ({ a: focused, b: tag, kind: 'tagged', weight: 1 })),
+        ...kinAmong(new Set([focused.id, ...kin.map((k) => k.id)])),
+      ];
+      drawLinks = true;
+      // A fan, not two rings: what it is filed under to one side, what it sits
+      // beside to the other. Concentric rings put the tags inside the relatives
+      // and every line crossed every other one.
+      fanLayout(focused, orderRing(tags), orderRing(kin));
+    }
+
+    byId = new Map(nodes.map((n) => [n.id, n]));
+    neighbours = new Map(nodes.map((n) => [n.id, new Set()]));
+    for (const link of links) {
+      neighbours.get(link.a.id)?.add(link.b.id);
+      neighbours.get(link.b.id)?.add(link.a.id);
+    }
+
+    drifting = false;
+    userAdjusted = false;
+    hovered = null;
+
+    if (animate && !reducedMotion) {
+      // Anything new arrives from where you clicked, so the rearrangement
+      // reads as the map opening rather than as a different map.
+      const origin = focused ? { x: focused.tx, y: focused.ty } : { x: 0, y: 0 };
+      for (const node of nodes) {
+        const start = from.get(node.id) ?? origin;
+        node.fromX = start.x;
+        node.fromY = start.y;
+        node.x = start.x;
+        node.y = start.y;
+      }
+      transition = { at: performance.now(), until: 620 };
+      run();
+    } else {
+      for (const node of nodes) {
+        node.x = node.tx;
+        node.y = node.ty;
+      }
+      transition = null;
+      fitWhenSettled = true;
+      if (!focused) reheat(1);
+      else {
+        fit();
+        run();
+      }
+    }
+  }
+
+  /** Sort a ring so that things of a kind, and things that are alike, adjoin. */
+  function orderRing(list) {
+    return [...list].sort(
+      (a, b) =>
+        (a.cluster ?? 99) - (b.cluster ?? 99) ||
+        (b.count ?? b.weight ?? 0) - (a.count ?? a.weight ?? 0) ||
+        a.label.localeCompare(b.label),
+    );
+  }
+
+  /**
+   * The opened node at the centre, everything else on rings around it. A ring
+   * is the most legible arrangement there is for "these belong to that": no
+   * crossings, even spacing, and the centre unmistakable.
+   */
+  function ringLayout(centre, rings) {
+    centre.tx = 0;
+    centre.ty = 0;
+    let radius = centre.radius + 105;
+    for (const ring of rings) {
+      if (ring.length === 0) continue;
+      const spacing = Math.max(...ring.map((n) => n.radius)) * 2 + 66;
+      radius = Math.max(radius, (spacing * ring.length) / (Math.PI * 2));
+      ring.forEach((node, i) => {
+        const angle = (i / ring.length) * Math.PI * 2 - Math.PI / 2;
+        node.tx = Math.cos(angle) * radius;
+        node.ty = Math.sin(angle) * radius * 0.86;
+      });
+      radius += spacing * 1.15;
+    }
+  }
+
+  /**
+   * The opened source in the middle, its tags fanned to the left and the
+   * research it sits beside fanned to the right. Reading the picture and
+   * reading the sentence — filed under, sits beside — are the same act.
+   */
+  function fanLayout(centre, left, right) {
+    centre.tx = 0;
+    centre.ty = 0;
+    place(left, Math.PI, centre.radius + 210);
+    // The relatives sit further out than the tags: their names are titles, and
+    // titles need room the way a one-word tag does not.
+    place(right, 0, centre.radius + 320);
+
+    function place(list, towards, minRadius) {
+      if (list.length === 0) return;
+      if (list.length === 1) {
+        list[0].tx = Math.cos(towards) * minRadius;
+        list[0].ty = 0;
+        return;
+      }
+      const spacing = Math.max(...list.map((n) => n.radius)) * 2 + 76;
+      const span = Math.min(Math.PI * 0.8, 0.34 * (list.length - 1));
+      const radius = Math.max(minRadius, (spacing * (list.length - 1)) / span);
+      list.forEach((node, i) => {
+        const angle = towards - span / 2 + (i / (list.length - 1)) * span;
+        node.tx = Math.cos(angle) * radius;
+        node.ty = Math.sin(angle) * radius;
+      });
+    }
+  }
+
+  /** The islands keep whatever the simulation last settled them into. */
+  function islandLayout(previouslyPlaced) {
+    for (const node of nodes) {
+      if (previouslyPlaced.has(node.id) && node.homeX !== undefined) {
+        node.tx = node.homeX;
+        node.ty = node.homeY;
+        continue;
+      }
+      const random = rng(node.seed);
+      const anchor = anchorFor(node.cluster);
+      node.tx = node.homeX ?? anchor.x + (random() - 0.5) * 240;
+      node.ty = node.homeY ?? anchor.y + (random() - 0.5) * 240;
+    }
+  }
+
+  function setFocus(node) {
+    if (focused === node) return;
+    focused = node;
+    compose();
+    onFocus(focused);
   }
 
   function reheat(value = 0.6) {
     alpha = Math.max(alpha, value);
-    if (!running) {
-      running = true;
-      frame = requestAnimationFrame(tick);
-    }
+    run();
   }
 
-  function tick() {
-    step();
+  function run() {
+    if (running || document.hidden) return;
+    running = true;
+    frame = requestAnimationFrame(tick);
+  }
+
+  const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
+
+  function tick(now = performance.now()) {
+    if (transition) {
+      const t = Math.min((now - transition.at) / transition.until, 1);
+      const eased = easeInOut(t);
+      for (const node of nodes) {
+        node.x = node.fromX + (node.tx - node.fromX) * eased;
+        node.y = node.fromY + (node.ty - node.fromY) * eased;
+      }
+      // Reframe as it moves, so the arrangement is never half off the edge.
+      fit();
+      if (t >= 1) {
+        transition = null;
+        if (!focused) reheat(0.7);
+      }
+    } else if (!focused) {
+      // Physics belong to the islands. An opened node keeps its ring.
+      if (alpha > settings.minAlpha) {
+        step();
+        if (alpha <= settings.minAlpha) {
+          for (const node of nodes) {
+            node.homeX = node.x;
+            node.homeY = node.y;
+          }
+          drifting = true;
+          if (!userAdjusted) fit();
+        }
+      } else if (drifting && !reducedMotion) {
+        drift(now);
+      }
+    }
+
     draw();
-    if (alpha > settings.minAlpha || dragging) {
+
+    const keepGoing =
+      transition || dragging || alpha > settings.minAlpha || (drifting && !reducedMotion && !focused);
+    if (keepGoing && !document.hidden) {
       frame = requestAnimationFrame(tick);
     } else {
       running = false;
-      if (fitWhenSettled) {
+      if (fitWhenSettled && !transition) {
         fitWhenSettled = false;
         if (!userAdjusted) fit();
       }
       draw();
     }
   }
+
+  /**
+   * The islands breathe. Each blot wanders a few pixels around where the
+   * simulation left it, on its own slow period, so the map is alive without
+   * ever moving far enough to make you chase it.
+   */
+  function drift(now) {
+    for (const node of nodes) {
+      if (node === dragging || node.homeX === undefined) continue;
+      node.x = node.homeX + Math.cos(now * node.drift.rate + node.drift.phase) * 9;
+      node.y = node.homeY + Math.sin(now * node.drift.rate * 0.8 + node.drift.phase * 1.7) * 7;
+    }
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) run();
+  });
 
   function step() {
     if (nodes.length === 0) return;
@@ -419,18 +746,17 @@ export function createConstellation(canvas, options = {}) {
    */
   function labelPolicy(node, active, nearFocus) {
     const closeness = view.k / (overview || 1);
-    if (active) return { limit: node.type === 'tag' ? 30 : 72 };
+    if (active) return { limit: node.type === 'tag' ? 30 : 76 };
 
-    if (node.type === 'tag') {
-      const needed = closeness < 1.4 ? 5 : closeness < 2.2 ? 3 : closeness < 3.2 ? 2 : 1;
-      if (nearFocus || (node.count ?? 0) >= needed) return { limit: 26 };
-      return null;
-    }
-
-    if (nearFocus) return { limit: 30 };
-    if (closeness >= 3.6) return { limit: 54 };
-    if (closeness >= 2.2) return { limit: 24 };
-    return null;
+    // On the islands the tags are the whole content, so they are all named and
+    // the collision pass decides which fit. Inside an opened view everything on
+    // screen is there because you asked for it, so it is named too — the map
+    // only rations names when it is showing you the whole library at once.
+    if (!focused) return node.type === 'tag' ? { limit: 26 } : null;
+    if (node === focused) return { limit: node.type === 'tag' ? 30 : 76 };
+    if (node.type === 'tag') return { limit: 26 };
+    if (nearFocus || closeness >= 1.6) return { limit: 46 };
+    return { limit: 30 };
   }
 
   function focusSet() {
@@ -452,8 +778,10 @@ export function createConstellation(canvas, options = {}) {
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
-    // Lines first, so the ink sits on top of them.
-    for (const link of links) {
+    // Lines first, so the ink sits on top of them. The islands have none: the
+    // tags are laid out by their affinities, but drawing every one of those
+    // would be the hairball this view exists to avoid.
+    for (const link of drawLinks ? links : []) {
       const muted = isMuted(link.a) || isMuted(link.b);
       const lit = focus && focus.has(link.a.id) && focus.has(link.b.id);
       const a = toScreen(link.a);
@@ -681,14 +1009,26 @@ export function createConstellation(canvas, options = {}) {
     { passive: false },
   );
 
+  /**
+   * One gesture drives the whole map. Open a node and the graph rearranges
+   * around it; click the empty ground and you are back on the islands.
+   */
   function choose(node) {
-    if (node?.type === 'tag') {
-      onTagToggle(node.slug);
+    if (!node) {
+      if (focused) {
+        selected = null;
+        onSelect(null);
+        setFocus(null);
+      } else if (selected) {
+        selected = null;
+        onSelect(null);
+        draw();
+      }
       return;
     }
-    selected = node;
-    onSelect(node);
-    draw();
+    selected = node.type === 'source' ? node : null;
+    onSelect(selected);
+    setFocus(node);
   }
 
   /* --- public surface --------------------------------------------------- */
@@ -707,18 +1047,16 @@ export function createConstellation(canvas, options = {}) {
       dimmed = new Set(ids ?? []);
       draw();
     },
-    /** Bring a node to the middle of the frame — used by search results. */
-    focus(id) {
-      const node = byId.get(id);
+    /** Open a node by id — used by the record panel's "read alongside" list. */
+    open(id) {
+      const node = allById.get(id);
       if (!node) return;
-      view.k = Math.max(view.k, 1.5);
-      userAdjusted = true;
-      view.x = width / 2 - node.x * view.k;
-      view.y = height / 2 - node.y * view.k;
-      selected = node;
-      onSelect(node);
-      draw();
+      selected = node.type === 'source' ? node : null;
+      onSelect(selected);
+      setFocus(node);
     },
+    /** What is currently open, or null for the islands. */
+    opened: () => focused,
     zoomBy(factor) {
       userAdjusted = true;
       const next = Math.min(4, Math.max(0.25, view.k * factor));
@@ -729,6 +1067,12 @@ export function createConstellation(canvas, options = {}) {
     },
     reset() {
       userAdjusted = false;
+      if (focused) {
+        selected = null;
+        onSelect(null);
+        setFocus(null);
+        return;
+      }
       fitWhenSettled = true;
       reheat(0.8);
       fit();

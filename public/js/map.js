@@ -22,24 +22,53 @@ const state = {
 
 const map = createConstellation(canvas, {
   onSelect: showRecord,
-  onTagToggle: (slug) => {
-    toggleTag(slug);
-    load();
+  onFocus: (node) => {
+    if (node?.type === 'tag') showTag(node);
+    renderLegend(state.graph, node);
   },
   // The filter row floats over the canvas on wide screens; node names should
   // not be printed underneath it.
+  // The record panel covers the right of the canvas; the map is fitted to what
+  // is left rather than to the whole frame.
+  inset() {
+    if (!panel.classList.contains('is-open')) return {};
+    const canvasBox = canvas.getBoundingClientRect();
+    const panelBox = panel.getBoundingClientRect();
+    if (panelBox.left >= canvasBox.right) return {};
+    // On a narrow screen the panel rises from the bottom across the full width;
+    // on a wide one it sits against the right edge. Which one it is has to be
+    // read from where it actually is, not from where it starts vertically —
+    // the desktop panel is inset from the top too.
+    const fullWidth = panelBox.left <= canvasBox.left + 2;
+    return fullWidth
+      ? { bottom: Math.max(canvasBox.bottom - panelBox.top, 0) }
+      : { right: Math.max(canvasBox.right - panelBox.left, 0) };
+  },
   avoid() {
     const canvasBox = canvas.getBoundingClientRect();
+    const keepClear = [];
+
     const controls = filterBox.closest('.map-controls')?.getBoundingClientRect();
-    if (!controls || controls.bottom <= canvasBox.top) return [];
-    return [
-      {
+    if (controls && controls.bottom > canvasBox.top) {
+      keepClear.push({
         x: 0,
         y: 0,
         w: canvasBox.width,
         h: Math.max(controls.bottom - canvasBox.top + 6, 0),
-      },
-    ];
+      });
+    }
+
+    const legendBox = legend.getBoundingClientRect();
+    if (legendBox.height > 0) {
+      keepClear.push({
+        x: legendBox.left - canvasBox.left - 8,
+        y: legendBox.top - canvasBox.top - 8,
+        w: legendBox.width + 16,
+        h: legendBox.height + 16,
+      });
+    }
+
+    return keepClear;
   },
 });
 
@@ -69,7 +98,7 @@ function toggleTag(slug) {
 
 let inFlight = 0;
 
-async function load({ keepView = true } = {}) {
+async function load() {
   writeUrl();
   const ticket = ++inFlight;
   const params = {};
@@ -80,8 +109,8 @@ async function load({ keepView = true } = {}) {
     const graph = await api.graph(params);
     if (ticket !== inFlight) return;
     state.graph = graph;
-    map.setGraph(graph, { keepView });
-    renderLegend(graph);
+    map.setGraph(graph);
+    renderLegend(graph, map.opened?.());
     renderFilters();
   } catch (error) {
     legend.innerHTML = `<b>The map could not be drawn.</b> ${escapeHtml(error.message)}`;
@@ -117,21 +146,54 @@ async function renderFilters() {
 
 const plural = (n, word) => `<b>${n}</b> ${word}${n === 1 ? '' : 's'}`;
 
-function renderLegend(graph) {
-  const { sources, kin, clusters } = graph.stats;
-  const names = graph.clusters
-    .slice(0, 6)
-    .map((c) => escapeHtml(c.label))
-    .join(' · ');
+function renderLegend(graph, opened = map.opened?.()) {
+  if (!graph) return;
+  const { sources, tags } = graph.stats;
+
+  if (opened) {
+    const what =
+      opened.type === 'tag'
+        ? `${plural(opened.count ?? 0, 'source')} filed under <b>${escapeHtml(opened.label)}</b>`
+        : `<b>${escapeHtml(opened.label)}</b> — what it is filed under, and what it sits beside`;
+    legend.innerHTML = `
+      ${what}<br>
+      <span style="opacity:.75">Open anything else to travel on.
+      Click the empty ground to come back to the islands.</span>`;
+    return;
+  }
+
   legend.innerHTML = `
-    ${plural(sources, 'source')}, ${plural(kin, 'line')} of kinship, ${plural(clusters, 'cluster')}.<br>
-    ${names}<br>
-    <span style="opacity:.75">Ink shapes are tags — the bigger the blot, the more
-    research sits under it. Circled crosses are the research. Drag to pan, scroll
-    to zoom for detail, click a tag to filter.</span>`;
+    ${plural(tags, 'theme')} across ${plural(sources, 'source')}.<br>
+    <span style="opacity:.75">Each blot is a tag, sized by how much research sits
+    under it. Open one to see what it holds.</span>`;
 }
 
 /* --- the record panel --------------------------------------------------- */
+
+function showTag(node) {
+  const sources = (state.graph?.links ?? [])
+    .filter((l) => l.kind === 'tagged' && (l.source === node.id || l.target === node.id))
+    .map((l) => state.graph.nodes.find((n) => n.id === (l.source === node.id ? l.target : l.source)))
+    .filter((n) => n?.type === 'source')
+    .sort((a, b) => (b.year ?? 0) - (a.year ?? 0) || a.label.localeCompare(b.label));
+
+  panelBody.innerHTML = `
+    <h3>${escapeHtml(node.label)}</h3>
+    <p class="panel__meta">${plural(sources.length, 'source')}${
+      node.facet && node.facet !== 'open' ? ` · ${escapeHtml(node.facet)}` : ''
+    }</p>
+    ${node.note ? `<p class="panel__summary">${escapeHtml(node.note)}</p>` : ''}
+    <p><button class="label label--small" type="button" data-tag="${escapeHtml(node.slug)}">Filter the library to this</button></p>
+    <h4>What sits here</h4>
+    <ul class="panel__links">${sources
+      .map(
+        (source) =>
+          `<li><a href="#" data-open="${escapeHtml(source.id)}">${escapeHtml(source.label)}
+            <small>${escapeHtml(citationLine(source) || hostOf(source.url))}</small></a></li>`,
+      )
+      .join('')}</ul>`;
+  panel.classList.add('is-open');
+}
 
 function showRecord(node) {
   if (!node) {
@@ -165,7 +227,7 @@ function showRecord(node) {
            <ul class="panel__links">${related
              .map(
                ({ other, shared }) =>
-                 `<li><a href="#" data-focus="${escapeHtml(other.id)}">${escapeHtml(other.label)}
+                 `<li><a href="#" data-open="${escapeHtml(other.id)}">${escapeHtml(other.label)}
                    <small>shares ${shared.map((s) => escapeHtml(labelOf(s))).join(', ') || 'related vocabulary'}</small></a></li>`,
              )
              .join('')}</ul>`
@@ -190,16 +252,16 @@ document.addEventListener('click', (event) => {
     load();
     return;
   }
-  const focusLink = event.target.closest('[data-focus]');
-  if (focusLink) {
+  const openLink = event.target.closest('[data-open]');
+  if (openLink) {
     event.preventDefault();
-    map.focus(focusLink.dataset.focus);
+    map.open(openLink.dataset.open);
   }
 });
 
 document.getElementById('panel-close').addEventListener('click', () => {
   panel.classList.remove('is-open');
-  map.select(null);
+  map.reset();
 });
 
 let searchTimer;
@@ -207,7 +269,7 @@ searchInput.addEventListener('input', () => {
   clearTimeout(searchTimer);
   searchTimer = setTimeout(() => {
     state.query = searchInput.value.trim();
-    load({ keepView: false });
+    load();
   }, 260);
 });
 
@@ -215,7 +277,7 @@ clearButton.addEventListener('click', () => {
   state.tags.clear();
   state.query = '';
   searchInput.value = '';
-  load({ keepView: false });
+  load();
 });
 
 resetButton.addEventListener('click', () => map.reset());
@@ -227,7 +289,7 @@ zoomOutButton.addEventListener('click', () => map.zoomBy(1 / 1.4));
 document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape') {
     panel.classList.remove('is-open');
-    map.select(null);
+    map.reset();
   }
   if (event.key === '/' && document.activeElement !== searchInput) {
     event.preventDefault();
@@ -237,4 +299,4 @@ document.addEventListener('keydown', (event) => {
 
 readUrl();
 fillCount();
-load({ keepView: false });
+load();

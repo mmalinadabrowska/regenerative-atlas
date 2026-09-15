@@ -262,6 +262,14 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   font-variant-numeric: tabular-nums;
 }
 
+/* Every page is a column that fills the window, so anything asking for the
+   leftover space — the map, above all — actually gets it. */
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+}
+
 /* --- landing --------------------------------------------------------------
    The drawing and the type share one 1920x1080 frame. The hero is as wide as it
    can be while still fitting the viewport height, so the composition is never

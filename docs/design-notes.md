@@ -55,6 +55,23 @@ tags as asterisks — which drew the eye to the individual paper and left the te
 unreadable. Inverting it made the map answer *what is this region about* before *what is
 this particular thing*, which is the question you have first.
 
+**The map is three views, not one picture.** Opening the page gives you the tags
+alone, clustered into islands by what they are filed alongside, drifting a few pixels
+each on their own slow period so the thing is alive without moving far enough to make
+you chase it. Open a tag and the graph rearranges: that tag at the centre, everything
+filed under it on a ring, and the kinship between those pieces drawn. Open one of those
+pieces and it rearranges again — the piece in the middle, its tags fanned to one side,
+the research it sits beside fanned to the other. Click the empty ground and you are back
+on the islands.
+
+Each view gets the arrangement that suits it rather than one global simulation for all
+three. A ring is the most legible shape there is for *these belong to that*: no crossings,
+even spacing, an unmistakable centre. The fan came second — the source view first used
+two concentric rings, which put the tags inside the relatives and made every line cross
+every other. Splitting it left and right means reading the picture and reading the
+sentence are the same act. Only the islands are simulated, because only they are asking
+a question about the whole library at once; the opened views are composed, and stay put.
+
 **Detail arrives with the zoom.** Fully out, the map names only the tags that carry
 enough of the library to orient by, and no titles at all. Coming closer lowers the bar on
 tags and lets more of each title through, in three steps. The thresholds are expressed

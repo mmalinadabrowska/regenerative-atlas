@@ -35,7 +35,13 @@ through an alias table before it is stored, so `Circular Economy`, `circularity`
 ways. Tags carry a facet — theme, material, method, scale, format, or open — which
 decides how hard they pull on the map. Themes hold territory; formats only tint it.
 
-**A map.** `/map` draws the library as a constellation. Two kinds of node:
+**A map.** `/map` opens on the tags alone — ink blots clustered into islands by what
+they are filed alongside. Open one and the graph rearranges around it: the tag at the
+centre, everything filed under it on a ring, the kinship between those pieces drawn.
+Open one of those pieces and it rearranges again, its tags fanned to one side and the
+research it sits beside to the other. Click the empty ground to come back.
+
+Two kinds of node:
 
 - **ink blobs** are tags, and they grow with use — a tag carrying ten sources is a
   territory, a tag carrying one is a speck. Each blob's shape is derived from its id,
