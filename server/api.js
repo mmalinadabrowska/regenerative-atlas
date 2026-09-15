@@ -8,7 +8,7 @@
 
 import { buildGraph } from './graph.js';
 import { describeUrl } from './metadata.js';
-import { CORE_TAGS, FACETS, FACET_ORDER, resolveTags } from './vocabulary.js';
+import { CORE_TAGS, FACETS, FACET_ORDER, aliasIndex, resolveTags } from './vocabulary.js';
 
 const LIMITS = {
   title: 300,
@@ -79,6 +79,7 @@ export const handlers = {
     return {
       facets: FACET_ORDER.map((key) => ({ key, ...FACETS[key] })),
       tags: CORE_TAGS,
+      aliases: aliasIndex(),
     };
   },
 

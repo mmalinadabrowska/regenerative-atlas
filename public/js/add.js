@@ -21,9 +21,45 @@ const vocabularyBox = document.getElementById('vocabulary');
 const freeTagInput = document.getElementById('free-tag');
 const tagOptions = document.getElementById('tag-options');
 const submitButton = document.getElementById('submit-button');
+const freeTagHint = document.getElementById('free-tag-hint');
+const FREE_TAG_HINT = freeTagHint.textContent;
 
 const chosen = new Set();
 let vocabulary = { facets: [], tags: [] };
+
+/** Loose key for comparing what someone typed against the vocabulary. */
+const loose = (text) => String(text).toLowerCase().replace(/[^a-z0-9]+/g, '');
+
+/** Mirrors slugify() in server/vocabulary.js, which stays the authority. */
+const slugify = (text) =>
+  String(text ?? '')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/&/g, ' and ')
+    .replace(/['\u2019`]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 48);
+
+/**
+ * Fold a written tag onto the vocabulary's own name for it, so the chip says
+ * what will actually be stored. The server canonicalises again on submit and
+ * remains the authority; this only spares the contributor the surprise.
+ * Returns { slug, foldedFrom } — foldedFrom is set when the name changed.
+ */
+function canonicalise(written) {
+  const key = loose(written);
+  if (!key) return null;
+
+  const exact = vocabulary.tags.find((t) => loose(t.slug) === key || loose(t.label) === key);
+  if (exact) return { slug: exact.slug, foldedFrom: null };
+
+  for (const [slug, forms] of Object.entries(vocabulary.aliases ?? {})) {
+    if (forms.some((form) => loose(form) === key)) return { slug, foldedFrom: written };
+  }
+  return { slug: slugify(written), foldedFrom: null };
+}
 
 const labelOf = (slug) =>
   vocabulary.tags.find((t) => t.slug === slug)?.label ??
@@ -165,12 +201,15 @@ freeTagInput.addEventListener('keydown', (event) => {
   event.preventDefault();
   const written = freeTagInput.value.trim();
   if (!written) return;
-  // The server canonicalises properly; this is just so the chip reads right.
-  const known = vocabulary.tags.find(
-    (t) => t.label.toLowerCase() === written.toLowerCase() || t.slug === written.toLowerCase(),
-  );
-  addTag(known?.slug ?? written.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''));
+
+  const resolved = canonicalise(written);
+  if (!resolved) return;
+  addTag(resolved.slug);
   freeTagInput.value = '';
+
+  freeTagHint.textContent = resolved.foldedFrom
+    ? `“${resolved.foldedFrom}” is already in the vocabulary as ${labelOf(resolved.slug)}.`
+    : FREE_TAG_HINT;
 });
 
 /* --- submit ------------------------------------------------------------- */

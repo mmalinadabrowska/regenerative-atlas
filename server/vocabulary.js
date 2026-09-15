@@ -349,6 +349,19 @@ export function resolveTags(inputs) {
   return out;
 }
 
+/**
+ * Canonical slug -> the written forms that fold into it.
+ * Served to the submission form so a contributor sees the tag they will
+ * actually get, rather than being quietly corrected after they press add.
+ */
+export function aliasIndex() {
+  const index = {};
+  for (const [written, canonical] of ALIASES) {
+    (index[canonical] ??= []).push(written);
+  }
+  return index;
+}
+
 export function isCoreTag(slug) {
   return BY_SLUG.has(slug);
 }

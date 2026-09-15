@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { CORE_TAGS, resolveTag, resolveTags, slugify, titleize } from '../server/vocabulary.js';
+import { CORE_TAGS, aliasIndex, resolveTag, resolveTags, slugify, titleize } from '../server/vocabulary.js';
 
 test('slugify flattens punctuation, case and accents', () => {
   assert.equal(slugify('  Circular Economy!  '), 'circular-economy');
@@ -50,6 +50,25 @@ test('no alias target is itself missing from the core', () => {
   for (const tag of CORE_TAGS) {
     assert.equal(resolveTag(tag.slug).slug, tag.slug, `${tag.slug} is aliased away from itself`);
   }
+});
+
+test('the alias index groups every written form under its canonical tag', () => {
+  // The submission form uses this to show the tag you will actually get, so it
+  // has to agree with resolveTag on every entry it publishes.
+  const index = aliasIndex();
+  let checked = 0;
+  for (const [canonical, forms] of Object.entries(index)) {
+    for (const written of forms) {
+      assert.equal(
+        resolveTag(written).slug,
+        canonical,
+        `${written} is indexed under ${canonical} but resolves elsewhere`,
+      );
+      checked++;
+    }
+  }
+  assert.ok(checked > 100, 'the alias table should not have quietly emptied');
+  assert.equal(index.economics.includes('doughnut-economics'), true);
 });
 
 test('titleize is only used where no curated label exists', () => {

@@ -94,6 +94,17 @@ test('the vocabulary endpoint hands back facets in a fixed order', () => {
   assert.ok(tags.length > 40);
 });
 
+test('the vocabulary endpoint ships the alias table for the form to use', () => {
+  const { aliases } = handlers.vocabulary();
+  assert.ok(aliases.economics.includes('doughnut-economics'));
+  assert.ok(aliases['life-cycle-assessment'].includes('lca'));
+  // Every canonical key must be a tag that actually exists.
+  const slugs = new Set(handlers.vocabulary().tags.map((t) => t.slug));
+  for (const canonical of Object.keys(aliases)) {
+    assert.ok(slugs.has(canonical), `${canonical} is an alias target but not a tag`);
+  }
+});
+
 test('the tags endpoint groups by facet and drops unused vocabulary', () => {
   const { tags, facets } = handlers.tags(seeded());
   assert.deepEqual(new Set(tags.map((t) => t.slug)), new Set(['timber', 'paper', 'carbon', 'soil', 'book']));
