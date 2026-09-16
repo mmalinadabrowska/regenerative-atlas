@@ -192,12 +192,12 @@ function showTag(node) {
             <small>${escapeHtml(citationLine(source) || hostOf(source.url))}</small></a></li>`,
       )
       .join('')}</ul>`;
-  panel.classList.add('is-open');
+  openPanel();
 }
 
 function showRecord(node) {
   if (!node) {
-    panel.classList.remove('is-open');
+    closePanel();
     return;
   }
   const related = (state.graph?.links ?? [])
@@ -234,13 +234,175 @@ function showRecord(node) {
         : ''
     }
     ${node.contributor ? `<h4>Added by</h4><p class="panel__meta">${escapeHtml(node.contributor)}</p>` : ''}`;
-  panel.classList.add('is-open');
+  openPanel();
 }
 
 const labelOf = (slug) =>
   vocabulary.find((t) => t.slug === slug)?.label ??
   state.graph?.nodes.find((n) => n.slug === slug)?.label ??
   slug;
+
+/* --- the panel, which on a phone is a bottom sheet ----------------------- */
+
+const grip = document.getElementById('sheet-grip');
+
+// The sheet layout is the one that gives the grip a box, so asking the grip is
+// the same question the stylesheet answers and the two cannot drift apart.
+const isSheet = () => getComputedStyle(grip).display !== 'none';
+
+function cssLength(value) {
+  const length = parseFloat(value);
+  if (!Number.isFinite(length)) return 0;
+  return value.trim().endsWith('rem')
+    ? length * parseFloat(getComputedStyle(document.documentElement).fontSize)
+    : length;
+}
+
+// How much of the sheet stands above the fold while it is only peeking, and how
+// far it has left to climb before it is all the way up.
+const peekHeight = () => cssLength(getComputedStyle(panel).getPropertyValue('--sheet-peek'));
+const travel = () => Math.max(panel.offsetHeight - peekHeight(), 0);
+
+function setSheet(next) {
+  panel.dataset.sheet = next;
+  grip.setAttribute('aria-expanded', String(next === 'open'));
+}
+
+function openPanel() {
+  // A record always arrives as a preview — the name and the line under it. The
+  // map keeps the screen until you ask for the rest.
+  panel.style.transform = '';
+  setSheet('peek');
+  panel.classList.add('is-open');
+}
+
+function closePanel() {
+  panel.style.transform = '';
+  panel.classList.remove('is-open');
+  setSheet('peek');
+}
+
+// Coming back down hands the map its room back, so whatever you opened is
+// framed in the strip above the sheet. Going up is left alone: there would be
+// nothing worth fitting into what is left.
+panel.addEventListener('transitionend', (event) => {
+  if (event.propertyName !== 'transform' || event.target !== panel) return;
+  if (isSheet() && panel.classList.contains('is-open') && panel.dataset.sheet === 'peek') map.fit();
+});
+
+/* Drag — from the grip at any time, from anywhere on the sheet while it peeks,
+   since nothing is scrolling under your thumb then. */
+
+let drag = null;
+let suppressClick = false;
+
+function draggableFrom(event) {
+  if (!isSheet() || !panel.classList.contains('is-open')) return false;
+  if (event.pointerType === 'mouse' && event.button !== 0) return false;
+  if (event.target.closest('.panel__close')) return false;
+  return Boolean(event.target.closest('.sheet-grip')) || panel.dataset.sheet === 'peek';
+}
+
+panel.addEventListener('pointerdown', (event) => {
+  if (!draggableFrom(event)) return;
+  const distance = travel();
+  const from = panel.dataset.sheet === 'open' ? 0 : distance;
+  drag = {
+    id: event.pointerId,
+    y: event.clientY,
+    lastY: event.clientY,
+    lastAt: event.timeStamp,
+    moved: 0,
+    base: from,
+    offset: from,
+    travel: distance,
+    captured: false,
+  };
+  // The finger leaves the sheet within the first few pixels of dragging it up,
+  // so the rest of the gesture is followed from the window rather than from the
+  // element it started on.
+  window.addEventListener('pointermove', onMove);
+  window.addEventListener('pointerup', endDrag);
+  window.addEventListener('pointercancel', endDrag);
+});
+
+function onMove(event) {
+  if (!drag || event.pointerId !== drag.id) return;
+  const dy = event.clientY - drag.y;
+  drag.moved = Math.max(drag.moved, Math.abs(dy));
+  if (drag.moved < 4) return;
+  if (!drag.captured) {
+    // Captured only once this is really a drag. Capture keeps the map from
+    // taking the rest of the gesture — and it retargets the click that follows
+    // to the sheet, which a tap on a link inside the sheet could not survive.
+    panel.setPointerCapture(event.pointerId);
+    drag.captured = true;
+  }
+  panel.classList.add('is-dragging');
+  // Below the peek line the sheet keeps going, because a shove downwards is how
+  // you put a record away.
+  drag.offset = Math.min(Math.max(drag.base + dy, 0), drag.travel + peekHeight());
+  drag.lastY = event.clientY;
+  drag.lastAt = event.timeStamp;
+  panel.style.transform = `translateY(${drag.offset}px)`;
+}
+
+function endDrag(event) {
+  if (!drag || event.pointerId !== drag.id) return;
+  const gesture = drag;
+  drag = null;
+  window.removeEventListener('pointermove', onMove);
+  window.removeEventListener('pointerup', endDrag);
+  window.removeEventListener('pointercancel', endDrag);
+  panel.classList.remove('is-dragging');
+  panel.style.transform = '';
+  if (gesture.moved < 4) return; // a tap: the click handler below has it
+
+  // A drag that ends over the sheet would otherwise land as a click on whatever
+  // is under the finger. Only the click of this gesture is swallowed — a drag
+  // that ends without one must not eat the next tap.
+  suppressClick = true;
+  setTimeout(() => { suppressClick = false; }, 0);
+  const elapsed = Math.max(event.timeStamp - gesture.lastAt, 1);
+  const velocity = (event.clientY - gesture.lastY) / elapsed; // px/ms, downwards positive
+  const peek = peekHeight();
+
+  if (gesture.offset > gesture.travel + peek * 0.4 || (velocity > 0.5 && gesture.offset >= gesture.travel)) {
+    closePanel();
+    map.reset();
+    return;
+  }
+  // A flick decides on its own; a slow drag is decided by where it was let go.
+  if (velocity < -0.35) setSheet('open');
+  else if (velocity > 0.35) setSheet('peek');
+  else setSheet(gesture.offset < gesture.travel * 0.5 ? 'open' : 'peek');
+}
+
+/* Tap — the grip toggles, and a peeking sheet opens wherever you touch it. The
+   same two moves as the drag, for anyone who would rather not drag. */
+
+panel.addEventListener('click', (event) => {
+  if (suppressClick) {
+    event.preventDefault();
+    event.stopPropagation();
+    return;
+  }
+  if (!isSheet() || event.target.closest('.panel__close')) return;
+  if (event.target.closest('.sheet-grip')) {
+    setSheet(panel.dataset.sheet === 'open' ? 'peek' : 'open');
+    return;
+  }
+  if (panel.dataset.sheet !== 'open' && !event.target.closest('a, button')) setSheet('open');
+});
+
+// The sheet is a phone arrangement; crossing back to the desktop one leaves it
+// with a half-dragged transform and an expanded state that mean nothing there.
+window.addEventListener('resize', () => {
+  if (!isSheet()) {
+    panel.style.transform = '';
+    setSheet('peek');
+  }
+});
 
 /* --- events ------------------------------------------------------------- */
 
@@ -260,7 +422,7 @@ document.addEventListener('click', (event) => {
 });
 
 document.getElementById('panel-close').addEventListener('click', () => {
-  panel.classList.remove('is-open');
+  closePanel();
   map.reset();
 });
 
@@ -288,7 +450,7 @@ zoomOutButton.addEventListener('click', () => map.zoomBy(1 / 1.4));
 
 document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape') {
-    panel.classList.remove('is-open');
+    closePanel();
     map.reset();
   }
   if (event.key === '/' && document.activeElement !== searchInput) {

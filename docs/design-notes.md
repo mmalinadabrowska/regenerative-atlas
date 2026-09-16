@@ -133,6 +133,18 @@ viewport makes the map collapse in a short window and drift in a tall one.
 rebuilds the graph from those sources only, so clusters re-form around what is left.
 You are looking at a smaller atlas, not the same atlas with most of it greyed out.
 
+**On a phone the record is a sheet, not a wall.** The panel comes up from the bottom
+showing only the title and the citation line — a preview two lines deep, clipped there
+by hiding everything past the meta line rather than by letting the next paragraph run
+off the edge half-read. Drag the grip up, or tap anywhere on the preview, and it climbs
+to full height; drag it down, tap the grip, or shove it past the peek line and it goes
+back or away. The map is fitted to the strip above the peeking sheet, so opening
+something still leaves you looking mostly at the map. Two details that took a rewrite:
+the pointer is captured only once a gesture has really moved, because capturing on
+pointerdown retargets the click that follows to the sheet and kills every link inside
+it; and the drag is followed from the window, because the first few pixels of dragging
+the sheet upwards take the finger off the sheet entirely.
+
 ## Buttons
 
 Every button is an outline at rest and fills black when it is the one you are on or

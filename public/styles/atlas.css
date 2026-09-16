@@ -700,6 +700,9 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 .panel.is-open { transform: none; }
 .panel[hidden] { display: block; }
 
+/* Only a bottom sheet has a grip. */
+.sheet-grip { display: none; }
+
 .panel__close {
   float: right;
   border: 0;
@@ -765,16 +768,87 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 /* --- responsive ---------------------------------------------------------- */
 
 @media (max-width: 46rem) {
+  /* On a phone the record is a sheet at the bottom of the map rather than a
+     wall down the side of it: it comes up showing the title and the line under
+     it, and you drag or tap it open when you want the rest. The map keeps the
+     screen, which is the thing you are actually navigating. */
   .panel {
+    --sheet-peek: 7.25rem;
     width: 100%;
     z-index: 4;
+    top: auto;
+    bottom: 0;
+    height: min(78svh, 32rem);
     border-left: 0;
     border-top: 1px solid var(--ink-32);
-    top: auto;
-    height: 70%;
+    border-radius: 1.1rem 1.1rem 0 0;
+    padding: 0 1.15rem 1.25rem;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
     transform: translateY(100%);
+    transition: transform 280ms cubic-bezier(0.22, 0.61, 0.36, 1);
+    touch-action: none;
   }
-  .panel.is-open { transform: none; }
+
+  .panel.is-open { transform: translateY(calc(100% - var(--sheet-peek))); }
+  .panel.is-open[data-sheet='open'] { transform: translateY(0); }
+  .panel.is-dragging { transition: none; }
+
+  .sheet-grip {
+    display: block;
+    flex: 0 0 auto;
+    width: 100%;
+    padding: 0.7rem 0 0.55rem;
+    margin: 0;
+    background: none;
+    border: 0;
+    cursor: grab;
+  }
+
+  .sheet-grip__bar {
+    display: block;
+    width: 2.6rem;
+    height: 4px;
+    margin: 0 auto;
+    border-radius: 999px;
+    background: var(--ink-32);
+  }
+
+  .panel.is-dragging .sheet-grip { cursor: grabbing; }
+
+  /* Peeked, the sheet shows the name and the line under it and no more: a
+     preview that ends on a whole line rather than on a clipped one. */
+  .panel[data-sheet='peek'] #panel-body > * { display: none; }
+  .panel[data-sheet='peek'] #panel-body > .panel__meta { display: block; }
+
+  .panel[data-sheet='peek'] #panel-body > h3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  #panel-body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+  }
+
+  .panel[data-sheet='peek'] #panel-body { overflow: hidden; touch-action: none; }
+
+  /* Room at the end of the title for the close button sitting over it. */
+  .panel h3 { margin-top: 0; padding-right: 2.2rem; }
+  /* The close button rides the grip row instead of pushing the record down
+     the sheet — floated, it would have stolen the grip's own line. */
+  .panel__close {
+    position: absolute;
+    top: 0.45rem;
+    right: 0.8rem;
+    float: none;
+    padding: 0.3rem 0.45rem;
+  }
 
   /* One scrolling row of filters rather than five wrapped ones over the map,
      on its own band of paper so it never sits on top of the drawing. */
