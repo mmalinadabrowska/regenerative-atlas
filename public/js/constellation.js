@@ -231,11 +231,26 @@ export function createConstellation(canvas, options = {}) {
    */
   function frameOf({ targets = false, padding = 90 } = {}) {
     if (nodes.length === 0) return null;
+    const gap = inset();
+    const frame = {
+      left: gap.left ?? 0,
+      top: gap.top ?? 0,
+      width: Math.max(width - (gap.left ?? 0) - (gap.right ?? 0), 120),
+      height: Math.max(height - (gap.top ?? 0) - (gap.bottom ?? 0), 120),
+    };
+
+    // With a record open on a phone there is a band of map left rather than a
+    // page of it. The orbit is the widest thing on screen and the quietest, so
+    // in a band that shallow it is left out of the reckoning: what you opened
+    // and what it is joined to get the room instead.
+    const shallow = frame.height < 260;
+    const framed = shallow ? nodes.filter((node) => !node.isHalo) : nodes;
+
     let minX = Infinity;
     let minY = Infinity;
     let maxX = -Infinity;
     let maxY = -Infinity;
-    for (const node of nodes) {
+    for (const node of framed.length ? framed : nodes) {
       const nx = targets ? node.tx ?? node.x : node.x;
       const ny = targets ? node.ty ?? node.y : node.y;
       minX = Math.min(minX, nx - node.radius);
@@ -245,14 +260,6 @@ export function createConstellation(canvas, options = {}) {
     }
     const spanX = Math.max(maxX - minX, 1);
     const spanY = Math.max(maxY - minY, 1);
-
-    const gap = inset();
-    const frame = {
-      left: gap.left ?? 0,
-      top: gap.top ?? 0,
-      width: Math.max(width - (gap.left ?? 0) - (gap.right ?? 0), 120),
-      height: Math.max(height - (gap.top ?? 0) - (gap.bottom ?? 0), 120),
-    };
 
     // Margin scales with the frame: ninety pixels is breathing room on a laptop
     // and a third of a phone.
@@ -1318,7 +1325,11 @@ export function createConstellation(canvas, options = {}) {
       return;
     }
     selected = node.type === 'source' ? node : null;
-    onSelect(selected);
+    // Only a source is a selection. Opening a tag clears one, but saying so
+    // would tell the page there is nothing to show — and the page would put the
+    // record away a frame before the tag's own record arrives. What is open is
+    // announced by the focus below either way.
+    if (selected) onSelect(selected);
     setFocus(node);
   }
 
@@ -1354,7 +1365,7 @@ export function createConstellation(canvas, options = {}) {
       const node = allById.get(id);
       if (!node) return;
       selected = node.type === 'source' ? node : null;
-      onSelect(selected);
+      if (selected) onSelect(selected);
       setFocus(node);
     },
     /** What is currently open, or null for the islands. */

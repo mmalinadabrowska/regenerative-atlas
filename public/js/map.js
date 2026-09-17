@@ -34,22 +34,28 @@ const map = createConstellation(canvas, {
   // The record panel covers the right of the canvas; the map is fitted to what
   // is left rather than to the whole frame.
   inset() {
-    if (!panel.classList.contains('is-open')) return {};
     const canvasBox = canvas.getBoundingClientRect();
+    // The controls float on a band of paper over the top of the canvas, so the
+    // map does not begin until they end. On a wide screen there is enough room
+    // for this not to matter; in the strip left above an open drawer it is the
+    // difference between the arrangement being on screen and being under the
+    // search field.
+    const controls = controlsRow.getBoundingClientRect();
+    const gap = { top: Math.max(controls.bottom - canvasBox.top, 0) };
+
+    if (!panel.classList.contains('is-open')) return gap;
     const panelBox = panel.getBoundingClientRect();
-    if (panelBox.left >= canvasBox.right) return {};
+    if (panelBox.left >= canvasBox.right) return gap;
     // On a narrow screen the panel rises from the bottom across the full width;
     // on a wide one it sits against the right edge. Which one it is has to be
     // read from where it actually is, not from where it starts vertically —
     // the desktop panel is inset from the top too.
     const fullWidth = panelBox.left <= canvasBox.left + 2;
-    if (!fullWidth) return { right: Math.max(canvasBox.right - panelBox.left, 0) };
-    // The sheet is framed for its preview however far it happens to be open, so
-    // the map keeps one arrangement whether you are reading a record or not —
-    // pulling the drawer up does not squeeze the drawing into the strip left
-    // above it, and letting it back down needs no second rearrangement.
-    const covered = Math.min(Math.max(canvasBox.bottom - panelBox.top, 0), peekHeight());
-    return { bottom: covered };
+    if (!fullWidth) return { ...gap, right: Math.max(canvasBox.right - panelBox.left, 0) };
+    // Whatever the sheet covers is not map either. Framed against a
+    // preview-sized sheet, an open drawer would sit over the very thing you
+    // opened.
+    return { ...gap, bottom: Math.max(canvasBox.bottom - panelBox.top, 0) };
   },
   avoid() {
     const canvasBox = canvas.getBoundingClientRect();
@@ -425,12 +431,12 @@ function closePanel() {
   map.highlight(null);
 }
 
-// Coming back down hands the map its room back, so whatever you opened is
-// framed in the strip above the sheet. Going up is left alone: there would be
-// nothing worth fitting into what is left.
+// Whenever the sheet settles, the map reframes into whatever is left of it —
+// down for the room it gets back, up so that what you opened stays on screen in
+// the band above the drawer rather than disappearing behind it.
 panel.addEventListener('transitionend', (event) => {
   if (event.propertyName !== 'transform' || event.target !== panel) return;
-  if (isSheet() && panel.classList.contains('is-open') && panel.dataset.sheet === 'peek') map.fit();
+  if (isSheet() && panel.classList.contains('is-open')) map.fit();
 });
 
 /* Drag — from the grip at any time, from anywhere on the sheet while it peeks,

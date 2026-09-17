@@ -166,10 +166,16 @@ under your finger reads as broken.
 An open drawer stays open. Opening something else from the map, or from the record
 you are reading, is a change of subject rather than a reason to put the drawer away
 and start again, so the record swaps and the sheet keeps the height you left it at.
-The map behind is framed for the preview however far the sheet happens to be open,
-which keeps one arrangement whether you are reading or not: pulling the drawer up
-does not squeeze the drawing into the strip above it, and letting it back down needs
-no second rearrangement. The map is fitted to the strip above the peeking sheet, so opening
+Opening a tag does clear the selected source, but the map no longer announces that
+as a cleared selection: saying so told the page there was nothing to show, and the
+page put the drawer away a frame before the tag's own record arrived.
+The map reframes into whatever is left of it every time the sheet settles, so
+what you opened stays on screen in the band above the drawer instead of sitting
+behind it. Two things make that band usable: the controls are counted as cover, since
+they float on a band of paper over the top of the canvas and the map does not begin
+until they end; and in a band that shallow the orbit of second-order marks — the
+widest thing on screen and the quietest — is left out of the framing, so what you
+opened and what it is joined to get the room. The map is fitted to the strip above the peeking sheet, so opening
 something still leaves you looking mostly at the map. Two details that took a rewrite:
 the pointer is captured only once a gesture has really moved, because capturing on
 pointerdown retargets the click that follows to the sheet and kills every link inside
