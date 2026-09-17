@@ -157,7 +157,11 @@ showing only the title and the citation line — a preview two lines deep, clipp
 by hiding everything past the meta line rather than by letting the next paragraph run
 off the edge half-read. Drag the grip up, or tap anywhere on the preview, and it climbs
 to full height; drag it down, tap the grip, or shove it past the peek line and it goes
-back or away. The map is fitted to the strip above the peeking sheet, so opening
+back or away. Pulled above its open position it stretches rather than travelling —
+anchored to the bottom of the screen it can grow upwards without opening a gap under
+itself — and the give is resisted and runs out, so the top of the record reads as the
+top of the record rather than as somewhere left to go. A sheet that simply stops dead
+under your finger reads as broken. The map is fitted to the strip above the peeking sheet, so opening
 something still leaves you looking mostly at the map. Two details that took a rewrite:
 the pointer is captured only once a gesture has really moved, because capturing on
 pointerdown retargets the click that follows to the sheet and kills every link inside

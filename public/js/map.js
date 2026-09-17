@@ -451,6 +451,7 @@ panel.addEventListener('pointerdown', (event) => {
     base: from,
     offset: from,
     travel: distance,
+    height: panel.offsetHeight,
     captured: false,
   };
   // The finger leaves the sheet within the first few pixels of dragging it up,
@@ -476,11 +477,26 @@ function onMove(event) {
   panel.classList.add('is-dragging');
   // Below the peek line the sheet keeps going, because a shove downwards is how
   // you put a record away.
-  drag.offset = Math.min(Math.max(drag.base + dy, 0), drag.travel + peekHeight());
+  const raw = drag.base + dy;
+  drag.offset = Math.min(raw, drag.travel + peekHeight());
   drag.lastY = event.clientY;
   drag.lastAt = event.timeStamp;
+
+  if (drag.offset < 0) {
+    // Pulled above its open position the sheet grows upwards instead of
+    // travelling: anchored to the bottom of the screen, it can stretch without
+    // opening a gap under itself. The give is resisted and runs out, so it
+    // reads as the top of the record rather than as somewhere left to go.
+    panel.style.transform = 'translateY(0px)';
+    panel.style.height = `${Math.round(drag.height + rubber(-drag.offset))}px`;
+    return;
+  }
+  panel.style.height = '';
   panel.style.transform = `translateY(${drag.offset}px)`;
 }
+
+/** Resisted give: distance short of `limit`, approaching it and never past. */
+const rubber = (distance, limit = 72) => (distance * limit) / (distance + limit);
 
 function endDrag(event) {
   if (!drag || event.pointerId !== drag.id) return;
@@ -491,6 +507,7 @@ function endDrag(event) {
   window.removeEventListener('pointercancel', endDrag);
   panel.classList.remove('is-dragging');
   panel.style.transform = '';
+  panel.style.height = '';
   if (gesture.moved < 4) return; // a tap: the click handler below has it
 
   // A drag that ends over the sheet would otherwise land as a click on whatever
