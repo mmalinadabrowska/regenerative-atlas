@@ -17,14 +17,14 @@
  * drawn ink. Lines bow a little.
  */
 
-import { blobPoints, crossInCircle, inkLine, rng, seedOf, traceBlob } from './ink.js';
+import { INK, blobPoints, crossInCircle, inkLine, rng, seedOf, traceBlob, washFor } from './ink.js';
 
 /** Long enough to read as the map turning over rather than a cut. */
 const TRANSITION_MS = 3000;
 
 const THEME = {
   paper: '#f2ecdf',
-  ink: '#100f0d',
+  ink: INK,
   accents: ['#c2372a', '#2c4a8c', '#dda32f'],
 };
 
@@ -313,6 +313,17 @@ export function createConstellation(canvas, options = {}) {
       })),
     };
     allById = new Map(library.nodes.map((n) => [n.id, n]));
+
+    // Every tag gets its own wash, the way a geological sheet gives every
+    // formation its own colour. Alphabetical order only decides who is first in
+    // the queue; the ramp itself puts consecutive tags most of a wheel apart, so
+    // no two blots on screen are the same colour or close to it.
+    library.nodes
+      .filter((node) => node.type === 'tag')
+      .sort((a, b) => a.slug.localeCompare(b.slug))
+      .forEach((node, index) => {
+        node.wash = washFor(index);
+      });
 
     sourcesOfTag = new Map();
     tagsOfSource = new Map();
@@ -972,7 +983,8 @@ export function createConstellation(canvas, options = {}) {
       ctx.globalAlpha = muted ? 0.16 : orbiting ? 0.3 : 1;
 
       if (node.type === 'tag') {
-        ctx.fillStyle = THEME.ink;
+        const wash = node.wash ?? THEME.ink;
+        ctx.fillStyle = wash;
         traceBlob(ctx, node.blob, x, y, radius);
         ctx.fill();
         if (active) {
@@ -982,10 +994,11 @@ export function createConstellation(canvas, options = {}) {
           ctx.stroke();
         }
 
-        // A Miró accent on the tag that names its cluster.
+        // An ink dot on the tag that names its cluster — ink, now that the blot
+        // under it carries a colour of its own.
         const cluster = clusters[node.cluster ?? -1];
         if (cluster && cluster.tags?.[0] === node.slug) {
-          ctx.fillStyle = THEME.accents[(node.cluster ?? 0) % THEME.accents.length];
+          ctx.fillStyle = THEME.ink;
           ctx.beginPath();
           ctx.arc(x + radius * 0.82, y - radius * 0.72, Math.max(radius * 0.2, 2.5), 0, Math.PI * 2);
           ctx.fill();

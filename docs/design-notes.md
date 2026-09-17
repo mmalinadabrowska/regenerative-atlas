@@ -145,6 +145,31 @@ pointerdown retargets the click that follows to the sheet and kills every link i
 it; and the drag is followed from the window, because the first few pixels of dragging
 the sheet upwards take the finger off the sheet entirely.
 
+## Colour
+
+The Atlas was ink on paper for its first few weeks, which was right for the marks
+and wrong for the map: forty-seven identical black blots are a field, not a
+territory. The colour comes from Greenough's 1820 geological map of England and
+Wales — a survey sheet is drawn in ink and coloured in washes, and it is legible
+across a room because every formation has its own colour.
+
+So every ink shape carries its own wash, and nothing else does. The ramp in
+`js/ink.js` walks once around the wheel through that palette's family — slate
+blue, sea green, sage, olive, ochre, terracotta, brick, dusty rose, mauve, moor
+purple — mid-toned and unsaturated, because a pale wash disappears on this paper
+and a saturated one stops being a wash. Lightness is corrected by hue so the
+yellows land as ochre rather than as highlighter.
+
+Shapes take their wash by index, stepped by 1/φ, so consecutive marks sit most of
+a wheel apart: two blots that end up next to each other on the map, or two marks
+that sit side by side in the drawing, can never be the same colour or close to
+it. On the map the index is the tag's place in the alphabet — arbitrary, and
+only there to give the ramp an order.
+
+Everything that is not a tag stays ink: the sources, the lines between them, the
+labels, the buttons, and the lines that join the landing drawing up. Colour means
+one thing on this site, which is *this is a subject*.
+
 ## Buttons
 
 Every button is an outline at rest and fills black when it is the one you are on or

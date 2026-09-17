@@ -13,21 +13,34 @@
 import { writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { brushStroke } from '../public/js/ink.js';
+import { INK, brushStroke, washFor } from '../public/js/ink.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
 const marks = [];
 
+/**
+ * Every mark is washed in its own colour, in the order it is drawn — the ramp in
+ * ink.js puts consecutive marks most of a wheel apart, so neighbours on the page
+ * never rhyme. Pass `wash: INK` for a mark that should stay ink; the lines that
+ * join the drawing up are ink either way.
+ */
+const paint = (attrs, { wash, ...options }) => [
+  `  <path fill="${wash ?? washFor(marks.length)}"${attrs}`,
+  options,
+];
+
 /** An open brush mark: a centreline, tapered at both ends unless told otherwise. */
-const mark = (points, options = {}) =>
-  marks.push(`  <path d="${brushStroke(points, options)}"/>`);
+const mark = (points, options = {}) => {
+  const [open, brush] = paint('', options);
+  marks.push(`${open} d="${brushStroke(points, brush)}"/>`);
+};
 
 /** A closed brush mark: a hollow ring, the blob shapes of the drawing. */
-const ring = (points, options = {}) =>
-  marks.push(
-    `  <path fill-rule="evenodd" d="${brushStroke(points, { closed: true, ...options })}"/>`,
-  );
+const ring = (points, options = {}) => {
+  const [open, brush] = paint(' fill-rule="evenodd"', options);
+  marks.push(`${open} d="${brushStroke(points, { closed: true, ...brush })}"/>`);
+};
 
 /**
  * A closed contour: one radius per step around a centre. Uneven radii are the
@@ -145,10 +158,9 @@ const lines = [
   '  <path d="M 348 688 L 354 720" stroke-dasharray="2 9"/>',
 ];
 
-// The drawing is loaded as an <img>, which cannot inherit currentColor, so the
-// ink is baked in. The Atlas has one ink colour and this is it.
-const INK = '#100f0d';
-
+// The drawing is loaded as an <img>, which cannot inherit currentColor, so both
+// the ink and the washes are baked in. Ink is the group's default; a mark with a
+// wash carries its own fill.
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" fill="none" role="presentation">
 <g stroke="${INK}" stroke-width="2.2" stroke-linecap="round">
 ${lines.join('\n')}

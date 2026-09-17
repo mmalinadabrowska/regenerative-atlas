@@ -8,6 +8,57 @@
  * derived from a seed, so a source keeps the same body every time you visit.
  */
 
+/**
+ * The washes.
+ *
+ * Taken from Greenough's 1820 geological map of England and Wales — the hand-
+ * coloured survey palette of slate blue, sage, ochre, terracotta and dusty rose
+ * laid over cream paper, with the ink drawing left on top. The anchors below
+ * walk once around the wheel through that family; they are mid-toned and
+ * unsaturated on purpose, because a pale wash disappears on this paper and a
+ * saturated one stops being a wash. Lightness is corrected by hue — the yellows
+ * sit darker so they read as ochre rather than highlighter.
+ *
+ * Hues are stored unwrapped, decreasing, so interpolating between neighbours is
+ * plain arithmetic and the last anchor closes back onto the first.
+ */
+export const INK = '#100f0d';
+
+const RAMP = [
+  [200, 22, 64], // slate blue
+  [152, 16, 60], // sea green
+  [96, 20, 58], //  sage
+  [74, 22, 48], //  olive
+  [45, 42, 56], //  ochre
+  [24, 40, 54], //  terracotta
+  [6, 34, 58], //   brick
+  [-12, 30, 66], // dusty rose
+  [-60, 14, 62], // mauve
+  [-110, 16, 62], // moor purple
+];
+
+/** 1/φ — successive indices land far apart on the ramp and never repeat early. */
+const STEP = 0.6180339887498949;
+
+/**
+ * The wash for the index-th shape: its own colour, drawn from the ramp above.
+ * Neighbouring indices are most of a wheel apart, so shapes that sit next to
+ * each other never end up in the same wash.
+ */
+export function washFor(index) {
+  const n = RAMP.length;
+  const t = (((index * STEP) % 1) + 1) % 1;
+  const at = t * n;
+  const i = Math.floor(at);
+  const f = at - i;
+  const [h1, s1, l1] = RAMP[i];
+  const [h2, s2, l2] = i + 1 < n ? RAMP[i + 1] : [RAMP[0][0] - 360, RAMP[0][1], RAMP[0][2]];
+  const hue = ((h1 + (h2 - h1) * f) % 360 + 360) % 360;
+  const sat = s1 + (s2 - s1) * f;
+  const light = l1 + (l2 - l1) * f;
+  return `hsl(${hue.toFixed(1)} ${sat.toFixed(1)}% ${light.toFixed(1)}%)`;
+}
+
 /** Deterministic 32-bit hash of a string — a node's id becomes its seed. */
 export function seedOf(text) {
   let h = 2166136261;
