@@ -190,7 +190,11 @@ function renderLegend(graph, opened = map.opened?.()) {
 
 /* --- the record panel --------------------------------------------------- */
 
-/** The mark a piece of research wears everywhere: on the map, and in a list. */
+/**
+ * The mark a piece of research wears everywhere: on the map, and in a list. The
+ * ring is drawn only where the mark stands for the record you have open — in a
+ * list it is there but unstroked, and fills in as a disc when you point at it.
+ */
 const CROSSHAIR = `<svg class="crosshair" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
   <circle cx="12" cy="12" r="9"/><path d="M12 4.6 V19.4 M4.6 12 H19.4"/></svg>`;
 
@@ -316,6 +320,25 @@ const labelOf = (slug) =>
   state.graph?.nodes.find((n) => n.slug === slug)?.label ??
   slug;
 
+/* The card's own scrollbar: a hairline down the edge of the record with a dot at
+   your place in it. It is hidden the moment there is nothing to scroll. */
+
+const rail = document.getElementById('scroll-rail');
+const railDot = document.getElementById('scroll-dot');
+
+function trackScroll() {
+  const room = panelBody.scrollHeight - panelBody.clientHeight;
+  const live = room > 2;
+  rail.classList.toggle('is-live', live);
+  if (!live) return;
+  const travel = Math.max(rail.clientHeight - railDot.offsetHeight, 0);
+  railDot.style.transform = `translateY(${Math.round((panelBody.scrollTop / room) * travel)}px)`;
+}
+
+panelBody.addEventListener('scroll', trackScroll, { passive: true });
+window.addEventListener('resize', trackScroll);
+if (window.ResizeObserver) new ResizeObserver(trackScroll).observe(panelBody);
+
 /* Running down the list points at the map: the row's mark fills in, and so does
    the same piece of research out on the map. */
 
@@ -353,6 +376,10 @@ const travel = () => Math.max(panel.offsetHeight - peekHeight(), 0);
 function setSheet(next) {
   panel.dataset.sheet = next;
   grip.setAttribute('aria-expanded', String(next === 'open'));
+  // The preview hides most of the record, so how much there is to scroll
+  // changes with the state — and it changes without the sheet's box changing,
+  // which is the one thing the observer below would have noticed.
+  trackScroll();
 }
 
 function openPanel() {
@@ -362,6 +389,8 @@ function openPanel() {
   setSheet('peek');
   measurePeek();
   panel.classList.add('is-open');
+  panelBody.scrollTop = 0;
+  trackScroll();
 }
 
 /**
@@ -372,7 +401,12 @@ function openPanel() {
 function measurePeek() {
   const head = document.getElementById('panel-head');
   const meta = panelBody.querySelector('.panel__meta');
-  const peek = grip.offsetHeight + head.offsetHeight + (meta ? meta.offsetHeight + 14 : 8) + 10;
+  // Measured to the bottom edge of the last thing in the preview: the title bar
+  // for a tag, the citation line for a piece of research. Anything beyond that
+  // is a band of empty paper under the colour.
+  const top = panel.getBoundingClientRect().top;
+  const last = (meta ?? head).getBoundingClientRect().bottom;
+  const peek = last - top + (meta ? 14 : 0);
   if (peek > 0) panel.style.setProperty('--sheet-peek', `${Math.round(peek)}px`);
 }
 

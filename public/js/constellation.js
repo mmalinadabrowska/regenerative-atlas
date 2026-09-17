@@ -17,7 +17,7 @@
  * drawn ink. Lines bow a little.
  */
 
-import { INK, blobPoints, crossInCircle, inkLine, rng, seedOf, traceBlob, washFor } from './ink.js';
+import { INK, blobPoints, cross, crossInCircle, inkLine, rng, seedOf, traceBlob, washFor } from './ink.js';
 
 /** Long enough to read as the map turning over rather than a cut. */
 const TRANSITION_MS = 3000;
@@ -1110,8 +1110,12 @@ export function createConstellation(canvas, options = {}) {
           ctx.fill();
         }
       } else {
-        // Pointed at, a piece of research fills in: the crosshair goes to paper
-        // on an ink disc, which is the same swap the list in the panel makes.
+        // A piece of research is a cross. The one you have open is the same
+        // cross ringed — the ring is what tells the point the map is about from
+        // the points it is showing you.
+        const opened = selected === node || focused === node;
+        // Pointed at, it fills in: the mark goes to paper on an ink disc, which
+        // is the same swap the list in the record card makes.
         if (lit) {
           ctx.fillStyle = THEME.ink;
           ctx.beginPath();
@@ -1120,15 +1124,9 @@ export function createConstellation(canvas, options = {}) {
         }
         ctx.strokeStyle = lit ? THEME.paper : THEME.ink;
         ctx.lineWidth = Math.max((active ? 1.9 : 1.3) * Math.min(view.k, 1.4), 1);
-        crossInCircle(ctx, x, y, radius);
+        if (opened) crossInCircle(ctx, x, y, lit ? radius * 0.72 : radius);
+        else cross(ctx, x, y, radius * (lit ? 0.6 : 0.95));
         ctx.stroke();
-        if (selected === node) {
-          ctx.strokeStyle = THEME.ink;
-          ctx.beginPath();
-          ctx.arc(x, y, radius + 5 * view.k, 0, Math.PI * 2);
-          ctx.lineWidth = 1.2;
-          ctx.stroke();
-        }
       }
       ctx.globalAlpha = 1;
 

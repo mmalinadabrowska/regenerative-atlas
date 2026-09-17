@@ -742,7 +742,8 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 }
 
 .panel__glyph svg { display: block; width: 100%; height: auto; }
-.panel__glyph .crosshair circle, .panel__glyph .crosshair path { fill: none; stroke: currentColor; stroke-width: 1.6; }
+.panel__glyph .crosshair circle,
+.panel__glyph .crosshair path { fill: none; stroke: currentColor; stroke-width: 1.6; }
 .panel__glyph .blot { fill: var(--ink); }
 
 .panel__close {
@@ -762,11 +763,61 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 
 /* --- the record itself ---------------------------------------------------- */
 
+.panel__scroll {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+}
+
 #panel-body {
   flex: 1 1 auto;
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 1.1rem 1.15rem 1.5rem;
+  /* The card draws its own scrollbar; see .scroll-rail. */
+  scrollbar-width: none;
+}
+
+#panel-body::-webkit-scrollbar { display: none; }
+
+/* The card's scrollbar, drawn rather than borrowed: one hairline the height of
+   the record and a single ink dot at your place in it. Every browser draws its
+   native bar differently and a phone draws a slab over the content; this is the
+   same delicate mark everywhere, and it is never in the way. */
+.scroll-rail {
+  position: absolute;
+  top: 0.9rem;
+  bottom: 0.9rem;
+  right: 0.42rem;
+  width: 9px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease;
+}
+
+.scroll-rail::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  margin-left: -0.5px;
+  background: var(--ink-14);
+}
+
+.scroll-rail.is-live { opacity: 1; }
+
+.scroll-rail__dot {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  margin-left: -3.5px;
+  border-radius: 50%;
+  background: var(--ink);
 }
 
 .panel__meta { font-size: 0.85rem; color: var(--ink-55); margin: 0 0 1rem; }
@@ -817,7 +868,11 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   overflow: visible;
 }
 
-.crosshair circle { fill: none; stroke: var(--ink); stroke-width: 1.6; transition: fill 120ms ease; }
+/* In a list a piece of research is a bare cross, the way it is on the map; its
+   ring appears only where the mark stands for the record you have open, which
+   is the panel's own title bar. Pointed at, the ring fills in behind the cross
+   as an ink disc — the same swap the map makes. */
+.crosshair circle { fill: none; stroke: none; transition: fill 120ms ease; }
 .crosshair path { fill: none; stroke: var(--ink); stroke-width: 1.6; transition: stroke 120ms ease; }
 
 .panel__links a:hover .crosshair circle,
@@ -829,6 +884,56 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
    colours you just saw around it on the map. */
 .tag--wash { background: var(--chip, transparent); }
 .tag--wash:hover { background: var(--ink); color: var(--paper); }
+
+/* --- scrollbars ----------------------------------------------------------- */
+
+/* A scrollbar here is a measurement, not a slab: one hairline down the track
+   and a single ink dot riding it. The dot is painted at the centre of the
+   thumb, so where it sits is where you are in the list.
+   
+   Only browsers that expose the scrollbar's parts can be given this. Setting
+   the standard `scrollbar-color` anywhere would switch those parts off, so it
+   is kept to the two cases that cannot draw the dot at all — see below. */
+::-webkit-scrollbar { width: 11px; height: 11px; }
+
+::-webkit-scrollbar-track {
+  background: linear-gradient(
+    to right,
+    transparent calc(50% - 0.5px),
+    var(--ink-14) calc(50% - 0.5px),
+    var(--ink-14) calc(50% + 0.5px),
+    transparent calc(50% + 0.5px)
+  );
+}
+
+::-webkit-scrollbar-track:horizontal {
+  background: linear-gradient(
+    to bottom,
+    transparent calc(50% - 0.5px),
+    var(--ink-14) calc(50% - 0.5px),
+    var(--ink-14) calc(50% + 0.5px),
+    transparent calc(50% + 0.5px)
+  );
+}
+
+::-webkit-scrollbar-thumb {
+  min-height: 26px;
+  min-width: 26px;
+  background: radial-gradient(circle at center, var(--ink) 0 3.2px, transparent 3.4px) center / 11px 11px
+    no-repeat;
+}
+
+::-webkit-scrollbar-corner { background: transparent; }
+
+/* Firefox has no parts to style, and a touch browser draws its own overlay bar
+   and ignores them. Both get the thin native bar, in ink, instead. */
+@supports (-moz-appearance: none) {
+  * { scrollbar-width: thin; scrollbar-color: var(--ink-32) transparent; }
+}
+
+@media (pointer: coarse) {
+  * { scrollbar-width: thin; scrollbar-color: var(--ink-32) transparent; }
+}
 
 /* --- notices ------------------------------------------------------------- */
 
@@ -869,8 +974,9 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
     right: 0;
     bottom: 0;
     height: min(78svh, 32rem);
-    border: 0;
-    border-top: var(--stroke) solid var(--ink);
+    /* One continuous stroke round the whole sheet: a top border alone stopped
+       dead where the corners turn. */
+    border: var(--stroke) solid var(--ink);
     border-radius: 1.1rem 1.1rem 0 0;
     transform: translateY(100%);
     transition: transform 280ms cubic-bezier(0.22, 0.61, 0.36, 1);
@@ -923,6 +1029,7 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 
   #panel-body { touch-action: pan-y; padding: 0.9rem 1.05rem 1.4rem; }
   .panel[data-sheet='peek'] #panel-body { overflow: hidden; touch-action: none; }
+  .panel[data-sheet='peek'] .scroll-rail { display: none; }
 
   /* One scrolling row of filters rather than five wrapped ones over the map,
      on its own band of paper so it never sits on top of the drawing. */
