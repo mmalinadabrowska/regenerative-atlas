@@ -124,6 +124,22 @@ skipped until you zoom in. A constellation with every name printed over every ot
 name is unreadable, and a map that hides some names is more honest than one that
 prints them all illegibly.
 
+**A rearrangement is a dissolve, and the camera travels once.** Clicking swaps one
+arrangement for another, and the first version of that swap cut: every connection in
+the new view appeared in the frame you clicked in, which read as a different map
+rather than as this one turning over. Now what is leaving fades out over the first
+third, while everything is still near where you last saw it, and what is arriving
+fades up over the last half, once the movement is nearly done — the marks that are in
+both views carry the eye across in between. The names dissolve on the same principle
+and a little ahead of it.
+
+The camera aims at the destination, never at the journey. Framing the arrangement
+as it moved meant the outbound marks pushed the frame wide and then dragged it back
+in — an over-bounce on every click. The frame is now computed from where the marks
+are *going*, and the view is interpolated from where it started to there on the same
+easing as the marks, so it moves once. Anything clipped on the way is fine; it is
+where it settles that has to be right.
+
 **The camera fits the layout, not the other way round.** The simulation runs at a
 fixed scale in its own coordinate space; the view is then fitted to what it settles
 into, with a floor on the zoom so marks never shrink into dust. Tying the layout to the

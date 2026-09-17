@@ -686,7 +686,9 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 .panel {
   --head: var(--ink);
   position: absolute;
-  top: 4.25rem;
+  /* Measured in map.js: the filter row wraps to two lines on a narrow window,
+     and a fixed top would put the card over the tags. */
+  top: var(--panel-top, 4.25rem);
   z-index: 2;
   right: 0.85rem;
   bottom: 0.85rem;

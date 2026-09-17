@@ -146,6 +146,8 @@ export function createConstellation(canvas, options = {}) {
   let byId = new Map();
   let neighbours = new Map();
   let drawLinks = true;
+  /** The marks the last arrangement had and this one does not, fading out. */
+  let leaving = { nodes: [], links: [] };
 
   let transition = null;      // { at, until } while the graph is rearranging
   let drifting = false;
@@ -220,18 +222,26 @@ export function createConstellation(canvas, options = {}) {
   /** True once the reader has panned or zoomed — after that we stop reframing. */
   let userAdjusted = false;
 
-  /** Frame everything with a margin, so no part of the constellation is lost. */
-  function fit(padding = 90) {
-    if (nodes.length === 0) return;
+  /**
+   * Where the camera would sit to frame the constellation with a margin, so no
+   * part of it is lost. `targets` reads the arrangement being travelled to
+   * rather than the one on screen: during a rearrangement the destination is
+   * the only stable thing to aim at, and framing the journey is what made the
+   * camera swing wide and come back.
+   */
+  function frameOf({ targets = false, padding = 90 } = {}) {
+    if (nodes.length === 0) return null;
     let minX = Infinity;
     let minY = Infinity;
     let maxX = -Infinity;
     let maxY = -Infinity;
     for (const node of nodes) {
-      minX = Math.min(minX, node.x - node.radius);
-      minY = Math.min(minY, node.y - node.radius);
-      maxX = Math.max(maxX, node.x + node.radius);
-      maxY = Math.max(maxY, node.y + node.radius);
+      const nx = targets ? node.tx ?? node.x : node.x;
+      const ny = targets ? node.ty ?? node.y : node.y;
+      minX = Math.min(minX, nx - node.radius);
+      minY = Math.min(minY, ny - node.radius);
+      maxX = Math.max(maxX, nx + node.radius);
+      maxY = Math.max(maxY, ny + node.radius);
     }
     const spanX = Math.max(maxX - minX, 1);
     const spanY = Math.max(maxY - minY, 1);
@@ -259,10 +269,22 @@ export function createConstellation(canvas, options = {}) {
     // The islands are allowed to fill the frame: the blots are the content
     // there, not a summary of it. The floor only stops the marks becoming dust —
     // it must never be what keeps the map from fitting on a small screen.
-    view.k = Math.min(focused ? 1.7 : 2.8, Math.max(0.25, ideal));
-    overview = view.k;
-    view.x = frame.left + frame.width / 2 - ((minX + maxX) / 2) * view.k;
-    view.y = frame.top + frame.height / 2 - ((minY + maxY) / 2) * view.k;
+    const k = Math.min(focused ? 1.7 : 2.8, Math.max(0.25, ideal));
+    return {
+      k,
+      x: frame.left + frame.width / 2 - ((minX + maxX) / 2) * k,
+      y: frame.top + frame.height / 2 - ((minY + maxY) / 2) * k,
+    };
+  }
+
+  /** Frame what is on screen now. */
+  function fit(padding = 90) {
+    const next = frameOf({ padding });
+    if (!next) return;
+    view.k = next.k;
+    view.x = next.x;
+    view.y = next.y;
+    overview = next.k;
     draw();
   }
 
@@ -482,10 +504,16 @@ export function createConstellation(canvas, options = {}) {
     });
   }
 
+  /** A link's identity, for telling a link that is staying from one arriving. */
+  const linkKey = (link) => `${link.a.id}>${link.b.id}:${link.kind}`;
+
   /** What is on screen, given what is open. */
   function compose({ animate = true } = {}) {
     const from = new Map(nodes.map((n) => [n.id, { x: n.x, y: n.y }]));
     const previouslyPlaced = new Set(nodes.map((n) => n.id));
+    const wasDrawn = drawLinks ? links : [];
+    const wasShown = nodes;
+    const heldKeys = new Set(wasDrawn.map(linkKey));
 
     if (!focused) {
       nodes = library.nodes.filter((n) => n.type === 'tag');
@@ -549,6 +577,18 @@ export function createConstellation(canvas, options = {}) {
     }
 
     byId = new Map(nodes.map((n) => [n.id, n]));
+
+    // What this rearrangement adds, and what it takes away. Everything arriving
+    // fades up over the second half and everything leaving fades down over the
+    // first, so a click is a dissolve rather than a cut: the old picture is
+    // never replaced in the frame you clicked in.
+    for (const node of nodes) node.arriving = !previouslyPlaced.has(node.id);
+    for (const link of links) link.arriving = !heldKeys.has(linkKey(link));
+    leaving = {
+      nodes: wasShown.filter((n) => !byId.has(n.id)),
+      links: wasDrawn.filter((l) => !links.some((k) => linkKey(k) === linkKey(l))),
+    };
+
     neighbours = new Map(nodes.map((n) => [n.id, new Set()]));
     for (const link of links) {
       neighbours.get(link.a.id)?.add(link.b.id);
@@ -571,7 +611,12 @@ export function createConstellation(canvas, options = {}) {
         node.x = start.x;
         node.y = start.y;
       }
-      transition = { at: performance.now(), until: TRANSITION_MS };
+      transition = { at: performance.now(), until: TRANSITION_MS, fromView: { ...view } };
+      // Set here as well as in the tick, so the frame between composing and the
+      // first animation frame is the old picture rather than a flash of the new.
+      enterFade = 0;
+      exitFade = 1;
+      labelFade = 1;
       run();
     } else {
       for (const node of nodes) {
@@ -579,6 +624,7 @@ export function createConstellation(canvas, options = {}) {
         node.y = node.ty;
       }
       transition = null;
+      leaving = { nodes: [], links: [] };
       fitWhenSettled = true;
       if (!focused) reheat(1);
       else {
@@ -724,22 +770,49 @@ export function createConstellation(canvas, options = {}) {
     return (t - 0.62) / 0.38;
   }
 
+  /**
+   * The same dissolve, for the marks themselves. What is leaving goes out while
+   * everything is still near where you last saw it; what is arriving comes up
+   * once the movement is nearly done. In between, the marks that are staying
+   * carry the eye across on their own.
+   */
+  const smooth = (t) => t * t * (3 - 2 * t);
+  const clamp01 = (t) => Math.min(Math.max(t, 0), 1);
+  const exitOpacity = (t) => smooth(clamp01(1 - t / 0.34));
+  const enterOpacity = (t) => smooth(clamp01((t - 0.52) / 0.48));
+
   let labelFade = 1;
+  let enterFade = 1;
+  let exitFade = 0;
 
   function tick(now = performance.now()) {
     if (transition) {
       const t = Math.min((now - transition.at) / transition.until, 1);
       const eased = easeInOut(t);
       labelFade = labelOpacity(t);
+      enterFade = enterOpacity(t);
+      exitFade = exitOpacity(t);
       for (const node of nodes) {
         node.x = node.fromX + (node.tx - node.fromX) * eased;
         node.y = node.fromY + (node.ty - node.fromY) * eased;
       }
-      // Reframe as it moves, so the arrangement is never half off the edge.
-      fit();
+      // The camera travels to where the arrangement is going, on the same
+      // easing as the marks — not to where it happens to be part way there.
+      // Aimed at the journey it swung wide and came back; aimed at the
+      // destination it moves once. Anything clipped on the way is fine.
+      const target = frameOf({ targets: true });
+      if (target) {
+        view.k = transition.fromView.k + (target.k - transition.fromView.k) * eased;
+        view.x = transition.fromView.x + (target.x - transition.fromView.x) * eased;
+        view.y = transition.fromView.y + (target.y - transition.fromView.y) * eased;
+        overview = view.k;
+      }
       if (t >= 1) {
         transition = null;
+        leaving = { nodes: [], links: [] };
         labelFade = 1;
+        enterFade = 1;
+        exitFade = 0;
         if (!focused) reheat(0.7);
       }
     } else if (!focused) {
@@ -949,12 +1022,18 @@ export function createConstellation(canvas, options = {}) {
 
     // Lines first, so the ink sits on top of them. The islands have none: the
     // tags are laid out by their affinities, but drawing every one of those
-    // would be the hairball this view exists to avoid.
-    for (const link of drawLinks ? links : []) {
+    // would be the hairball this view exists to avoid. The lines the last
+    // arrangement had go under the ones this one is bringing up.
+    for (const link of leaving.links) paintLink(link, exitFade);
+    for (const link of drawLinks ? links : []) paintLink(link, link.arriving ? enterFade : 1);
+
+    function paintLink(link, alpha) {
+      if (alpha < 0.01) return;
       const muted = isMuted(link.a) || isMuted(link.b);
       const lit = focus && focus.has(link.a.id) && focus.has(link.b.id);
       const a = toScreen(link.a);
       const b = toScreen(link.b);
+      ctx.globalAlpha = alpha;
 
       // Line weight follows the zoom only so far. Past that the lines stop
       // being connections and start being the picture.
@@ -971,21 +1050,27 @@ export function createConstellation(canvas, options = {}) {
       }
       inkLine(ctx, a.x, a.y, b.x, b.y, link.kind === 'kin' ? 0.05 : 0.02);
       ctx.stroke();
+      ctx.globalAlpha = 1;
     }
 
-    // Glyphs.
+    // Glyphs. What is on its way out is drawn first and underneath, at whatever
+    // is left of it.
     const labelQueue = [];
 
-    for (const node of nodes) {
+    for (const node of leaving.nodes) paintNode(node, exitFade, null);
+    for (const node of nodes) paintNode(node, node.arriving ? enterFade : 1, labelQueue);
+
+    function paintNode(node, alpha, queue) {
+      if (alpha < 0.01) return;
       const { x, y } = toScreen(node);
       const radius = (node.isHalo ? Math.min(node.radius * 0.66, 15) : node.radius) * view.k;
-      if (x < -160 || y < -160 || x > width + 160 || y > height + 160) continue;
+      if (x < -160 || y < -160 || x > width + 160 || y > height + 160) return;
 
       const muted = isMuted(node);
       const lit = hovered === node || highlighted === node;
       const active = lit || selected === node || focused === node;
       const orbiting = node.isHalo && !active;
-      ctx.globalAlpha = muted ? 0.16 : orbiting ? 0.3 : 1;
+      ctx.globalAlpha = (muted ? 0.16 : orbiting ? 0.3 : 1) * alpha;
 
       if (node.type === 'tag') {
         const wash = node.wash ?? THEME.ink;
@@ -1035,10 +1120,11 @@ export function createConstellation(canvas, options = {}) {
       }
       ctx.globalAlpha = 1;
 
+      if (!queue) return;
       const nearFocus = Boolean(focus && focus.has(node.id));
       const policy = muted ? null : labelPolicy(node, active, nearFocus);
       if (policy) {
-        labelQueue.push({
+        queue.push({
           node,
           policy,
           x,

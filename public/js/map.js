@@ -75,6 +75,23 @@ const map = createConstellation(canvas, {
   },
 });
 
+/**
+ * The card starts under the controls, wherever they end. The filter row wraps
+ * to a second line on a narrow window and grows as tags are added to it, so
+ * where it ends is measured rather than assumed.
+ */
+const controlsRow = filterBox.closest('.map-controls');
+
+function placePanel() {
+  const shell = canvas.parentElement;
+  const top = controlsRow.getBoundingClientRect().bottom - shell.getBoundingClientRect().top;
+  panel.style.setProperty('--panel-top', `${Math.max(Math.round(top + 12), 12)}px`);
+}
+
+if (window.ResizeObserver) new ResizeObserver(placePanel).observe(controlsRow);
+window.addEventListener('resize', placePanel);
+placePanel();
+
 /* --- state in the address bar, so a view of the map is shareable --------- */
 
 function readUrl() {
