@@ -868,11 +868,9 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   overflow: visible;
 }
 
-/* In a list a piece of research is a bare cross, the way it is on the map; its
-   ring appears only where the mark stands for the record you have open, which
-   is the panel's own title bar. Pointed at, the ring fills in behind the cross
-   as an ink disc — the same swap the map makes. */
-.crosshair circle { fill: none; stroke: none; transition: fill 120ms ease; }
+/* The mark a piece of research wears on the map, worn again in the list — and
+   pointed at, its circle fills in here exactly as it fills in out there. */
+.crosshair circle { fill: none; stroke: var(--ink); stroke-width: 1.6; transition: fill 120ms ease; }
 .crosshair path { fill: none; stroke: var(--ink); stroke-width: 1.6; transition: stroke 120ms ease; }
 
 .panel__links a:hover .crosshair circle,
@@ -884,6 +882,10 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
    colours you just saw around it on the map. */
 .tag--wash { background: var(--chip, transparent); }
 .tag--wash:hover { background: var(--ink); color: var(--paper); }
+
+/* The map is a single screen: the page under it never scrolls, so nothing can
+   reserve a strip at its edge for a scrollbar. */
+.page--map { overflow: hidden; }
 
 /* --- scrollbars ----------------------------------------------------------- */
 
@@ -925,13 +927,11 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 
 ::-webkit-scrollbar-corner { background: transparent; }
 
-/* Firefox has no parts to style, and a touch browser draws its own overlay bar
-   and ignores them. Both get the thin native bar, in ink, instead. */
+/* Firefox has no parts to style; it gets the thin native bar, in ink, instead.
+   A touch browser is deliberately left alone: asking it for a colour makes it
+   swap its overlay bar for one that takes a column of the page, and that column
+   came out of the map — a strip of bare paper down the side of everything. */
 @supports (-moz-appearance: none) {
-  * { scrollbar-width: thin; scrollbar-color: var(--ink-32) transparent; }
-}
-
-@media (pointer: coarse) {
   * { scrollbar-width: thin; scrollbar-color: var(--ink-32) transparent; }
 }
 

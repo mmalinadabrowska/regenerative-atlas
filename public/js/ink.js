@@ -139,24 +139,11 @@ export function blobPath(seed, scale = 10, options) {
 }
 
 /**
- * A cross: the mark for one piece of research.
+ * A cross in a circle: the mark for one piece of research.
  *
  * Deliberately plain and near-uniform in size. Research is the thing being
  * indexed, not the thing organising the map, so it reads as a plotted point
  * against the drawn ink of the tags. The caller strokes it.
- */
-export function cross(ctx, cx, cy, radius) {
-  ctx.beginPath();
-  ctx.moveTo(cx - radius, cy);
-  ctx.lineTo(cx + radius, cy);
-  ctx.moveTo(cx, cy - radius);
-  ctx.lineTo(cx, cy + radius);
-}
-
-/**
- * The same cross, ringed: the mark for the piece of research you have open. The
- * ring is the whole difference between a point on the map and the point the map
- * is currently about.
  */
 export function crossInCircle(ctx, cx, cy, radius) {
   // The arms stop short of the ring, or at small sizes the cross closes the

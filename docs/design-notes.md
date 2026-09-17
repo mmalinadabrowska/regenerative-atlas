@@ -223,16 +223,18 @@ what it is **tagged** with — chips in the same washes the blots wear — and i
 also filed under, the strongest dozen. A research row is the same row in both
 places, mark and all: it is the same thing being listed, and the mark is how you
 find it on the map — which only holds if the mark on the map is the same mark. A
-piece of research is a bare cross; the one you have open is that cross ringed, in
-the card's title bar as much as on the map, and the ring is the whole difference
-between a point on the map and the point the map is currently about. The glyph has
-a floor of seven pixels, because below that a stroked mark closes up into a dot.
+piece of research is a crosshair in a circle wherever it appears, and the one you
+have open carries a second ring outside its own. The glyph has a floor of seven
+pixels, because below that a stroked mark closes up into a dot.
 
 The card draws its own scrollbar rather than borrowing one: a hairline down the
 edge of the record with a single ink dot at your place in it. Every browser draws
 its native bar differently, a phone draws a slab over the content, and the parts
 that can be styled cannot be styled everywhere — one drawn mark is the same
-everywhere and never in the way. The card is the only thing that scrolls — lists that
+everywhere and never in the way. Asking a touch browser for a scrollbar colour is
+worse than leaving it alone: it swaps its overlay bar for one that takes a column
+of the page, and that column came out of the map as a strip of bare paper down the
+side of everything. The card is the only thing that scrolls — lists that
 scrolled inside it put a second scrollbar against the first, and nested scrollers
 are a trap for a wheel and worse for a thumb.
 

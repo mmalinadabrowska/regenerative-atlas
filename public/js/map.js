@@ -200,11 +200,7 @@ function renderLegend(graph, opened = map.opened?.()) {
 
 /* --- the record panel --------------------------------------------------- */
 
-/**
- * The mark a piece of research wears everywhere: on the map, and in a list. The
- * ring is drawn only where the mark stands for the record you have open — in a
- * list it is there but unstroked, and fills in as a disc when you point at it.
- */
+/** The mark a piece of research wears everywhere: on the map, and in a list. */
 const CROSSHAIR = `<svg class="crosshair" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
   <circle cx="12" cy="12" r="9"/><path d="M12 4.6 V19.4 M4.6 12 H19.4"/></svg>`;
 
