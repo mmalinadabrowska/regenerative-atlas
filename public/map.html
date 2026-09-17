@@ -40,7 +40,15 @@
       <span class="sheet-grip__bar" aria-hidden="true"></span>
       <span class="visually-hidden">Expand the details</span>
     </button>
-    <button class="panel__close" id="panel-close" type="button" aria-label="Close">×</button>
+    <header class="panel__head" id="panel-head">
+      <span class="panel__glyph" id="panel-glyph" aria-hidden="true"></span>
+      <h3 class="panel__title" id="panel-title"></h3>
+      <button class="panel__close" id="panel-close" type="button" aria-label="Close">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M5 5 L19 19 M19 5 L5 19"/>
+        </svg>
+      </button>
+    </header>
     <div id="panel-body"></div>
   </aside>
 </div>

@@ -680,49 +680,91 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 
 .map-legend b { color: var(--ink); font-weight: 500; }
 
-/* The record panel slides in beneath the controls rather than over them, so
-   filtering stays available while you are reading a record. */
+/* The record is a card laid on the map rather than a wall built beside it: it
+   floats clear of every edge, outlined in ink, and the map keeps running
+   underneath it. --head is the colour of its title bar, set per record. */
 .panel {
+  --head: var(--ink);
   position: absolute;
-  top: 3.5rem;
+  top: 4.25rem;
   z-index: 2;
-  right: 0;
-  bottom: 0;
-  width: min(27rem, 100%);
+  right: 0.85rem;
+  bottom: 0.85rem;
+  width: min(25rem, calc(100% - 1.7rem));
   background: var(--paper);
-  border-left: 1px solid var(--ink-32);
-  padding: 1.5rem 1.5rem 2.5rem;
-  overflow-y: auto;
-  transform: translateX(100%);
+  border: var(--stroke) solid var(--ink);
+  border-radius: 0.9rem;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(calc(100% + 1rem));
   transition: transform 220ms cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
 .panel.is-open { transform: none; }
-.panel[hidden] { display: block; }
+.panel[hidden] { display: flex; }
 
 /* Only a bottom sheet has a grip. */
 .sheet-grip { display: none; }
 
-.panel__close {
-  float: right;
-  border: 0;
-  background: none;
-  font: inherit;
-  font-size: 1.4rem;
-  line-height: 1;
-  cursor: pointer;
-  color: var(--ink-55);
-  padding: 0 0 0 1rem;
+/* --- the title bar -------------------------------------------------------- */
+
+.panel__head {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  padding: 0.85rem 0.9rem 0.9rem 1rem;
+  background: var(--head);
+  color: var(--ink);
 }
 
-.panel__close:hover { color: var(--ink); }
+/* A piece of research is ink; a tag wears the colour it is drawn in. */
+.panel[data-kind='source'] .panel__head { color: var(--paper); }
 
-.panel h3 {
+.panel__title {
   font-family: var(--display);
   font-weight: 400;
-  font-size: 1.5rem;
-  line-height: 1.15;
-  margin: 0.25rem 0 0.6rem;
+  font-size: 1.35rem;
+  line-height: 1.12;
+  margin: 0;
+  flex: 1 1 auto;
+  color: inherit;
+}
+
+.panel__glyph {
+  flex: 0 0 auto;
+  display: block;
+  width: 1.7rem;
+  margin-top: 0.1rem;
+}
+
+.panel__glyph svg { display: block; width: 100%; height: auto; }
+.panel__glyph .crosshair circle, .panel__glyph .crosshair path { fill: none; stroke: currentColor; stroke-width: 1.6; }
+.panel__glyph .blot { fill: var(--ink); }
+
+.panel__close {
+  flex: 0 0 auto;
+  border: 0;
+  background: none;
+  padding: 0.15rem;
+  margin: 0;
+  width: 1.6rem;
+  cursor: pointer;
+  color: inherit;
+  opacity: 0.75;
+}
+
+.panel__close svg { display: block; width: 100%; height: auto; fill: none; stroke: currentColor; stroke-width: 2; }
+.panel__close:hover { opacity: 1; }
+
+/* --- the record itself ---------------------------------------------------- */
+
+#panel-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 1.1rem 1.15rem 1.5rem;
 }
 
 .panel__meta { font-size: 0.85rem; color: var(--ink-55); margin: 0 0 1rem; }
@@ -737,10 +779,58 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   font-weight: 500;
 }
 
-.panel__links { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.55rem; }
-.panel__links a { text-decoration: none; border-bottom: 1px solid var(--ink-14); padding-bottom: 0.35rem; display: block; }
-.panel__links a:hover { border-color: var(--ink); }
+#panel-body > :first-child { margin-top: 0; }
+
+/* A long library is not a long panel: each list keeps to its own share of the
+   card and scrolls inside it, so the section under it is always reachable. */
+.panel__links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+  max-height: 21rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.panel__links a {
+  text-decoration: none;
+  border-bottom: 1px solid var(--ink-14);
+  padding-bottom: 0.4rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+}
+
+.panel__links a:hover, .panel__links a:focus-visible { border-color: var(--ink); }
 .panel__links small { display: block; color: var(--ink-55); font-size: 0.78rem; }
+.thread__name { flex: 1 1 auto; }
+
+/* The mark a piece of research wears on the map, worn again in the list — and
+   pointed at, it fills in here exactly as it fills in out there. */
+.crosshair {
+  flex: 0 0 auto;
+  width: 1.05rem;
+  height: 1.05rem;
+  margin-top: 0.12rem;
+  overflow: visible;
+}
+
+.crosshair circle { fill: none; stroke: var(--ink); stroke-width: 1.6; transition: fill 120ms ease; }
+.crosshair path { fill: none; stroke: var(--ink); stroke-width: 1.6; transition: stroke 120ms ease; }
+
+.panel__links a:hover .crosshair circle,
+.panel__links a:focus-visible .crosshair circle { fill: var(--ink); }
+.panel__links a:hover .crosshair path,
+.panel__links a:focus-visible .crosshair path { stroke: var(--paper); }
+
+.tag-cloud--wash { max-height: 9.5rem; overflow-y: auto; overscroll-behavior: contain; }
+
+/* A tag chip carries its blot's colour, so a record's tags are the same five
+   colours you just saw around it on the map. */
+.tag--wash { background: var(--chip, transparent); }
+.tag--wash:hover { background: var(--ink); color: var(--paper); }
 
 /* --- notices ------------------------------------------------------------- */
 
@@ -769,23 +859,21 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 
 @media (max-width: 46rem) {
   /* On a phone the record is a sheet at the bottom of the map rather than a
-     wall down the side of it: it comes up showing the title and the line under
-     it, and you drag or tap it open when you want the rest. The map keeps the
+     card beside it: it comes up showing its title bar and the line under it,
+     and you drag or tap it open when you want the rest. The map keeps the
      screen, which is the thing you are actually navigating. */
   .panel {
-    --sheet-peek: 7.25rem;
+    --sheet-peek: 9rem;
     width: 100%;
     z-index: 4;
     top: auto;
+    left: 0;
+    right: 0;
     bottom: 0;
     height: min(78svh, 32rem);
-    border-left: 0;
-    border-top: 1px solid var(--ink-32);
+    border: 0;
+    border-top: var(--stroke) solid var(--ink);
     border-radius: 1.1rem 1.1rem 0 0;
-    padding: 0 1.15rem 1.25rem;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
     transform: translateY(100%);
     transition: transform 280ms cubic-bezier(0.22, 0.61, 0.36, 1);
     touch-action: none;
@@ -795,13 +883,15 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   .panel.is-open[data-sheet='open'] { transform: translateY(0); }
   .panel.is-dragging { transition: none; }
 
+  /* The grip rides on the title bar rather than on a strip of paper above it,
+     so the colour runs all the way to the sheet's rounded top edge. */
   .sheet-grip {
     display: block;
     flex: 0 0 auto;
     width: 100%;
-    padding: 0.7rem 0 0.55rem;
+    padding: 0.55rem 0 0.15rem;
     margin: 0;
-    background: none;
+    background: var(--head);
     border: 0;
     cursor: grab;
   }
@@ -815,40 +905,30 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
     background: var(--ink-32);
   }
 
+  .panel[data-kind='source'] .sheet-grip__bar { background: rgba(242, 236, 223, 0.5); }
+
   .panel.is-dragging .sheet-grip { cursor: grabbing; }
 
-  /* Peeked, the sheet shows the name and the line under it and no more: a
+  .panel__head { padding: 0.5rem 0.85rem 0.8rem 0.95rem; }
+
+  /* Peeked, the sheet shows the title bar and the line under it and no more: a
      preview that ends on a whole line rather than on a clipped one. */
   .panel[data-sheet='peek'] #panel-body > * { display: none; }
-  .panel[data-sheet='peek'] #panel-body > .panel__meta { display: block; }
+  .panel[data-sheet='peek'] #panel-body > .panel__meta { display: block; margin: 0; }
 
-  .panel[data-sheet='peek'] #panel-body > h3 {
+  .panel[data-sheet='peek'] .panel__title {
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
 
-  #panel-body {
-    flex: 1 1 auto;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    touch-action: pan-y;
-  }
-
+  #panel-body { touch-action: pan-y; padding: 0.9rem 1.05rem 1.4rem; }
   .panel[data-sheet='peek'] #panel-body { overflow: hidden; touch-action: none; }
 
-  /* Room at the end of the title for the close button sitting over it. */
-  .panel h3 { margin-top: 0; padding-right: 2.2rem; }
-  /* The close button rides the grip row instead of pushing the record down
-     the sheet — floated, it would have stolen the grip's own line. */
-  .panel__close {
-    position: absolute;
-    top: 0.45rem;
-    right: 0.8rem;
-    float: none;
-    padding: 0.3rem 0.45rem;
-  }
+  /* The lists have the whole sheet to scroll in; capping them here would only
+     put a second scrollbar inside the first. */
+  .panel__links, .tag-cloud--wash { max-height: none; overflow: visible; }
 
   /* One scrolling row of filters rather than five wrapped ones over the map,
      on its own band of paper so it never sits on top of the drawing. */

@@ -164,6 +164,9 @@ export function createConstellation(canvas, options = {}) {
   const view = { x: 0, y: 0, k: 1 };
   let hovered = null;
   let selected = null;
+  // Set by the record panel while you run down its list of research, so the
+  // page and the map point at the same thing.
+  let highlighted = null;
   let dragging = null;
   let panning = null;
   let dimmed = new Set();
@@ -555,6 +558,7 @@ export function createConstellation(canvas, options = {}) {
     drifting = false;
     userAdjusted = false;
     hovered = null;
+    highlighted = null;
 
     if (animate && !reducedMotion) {
       // Anything new arrives from where you clicked, so the rearrangement
@@ -978,7 +982,8 @@ export function createConstellation(canvas, options = {}) {
       if (x < -160 || y < -160 || x > width + 160 || y > height + 160) continue;
 
       const muted = isMuted(node);
-      const active = hovered === node || selected === node;
+      const lit = hovered === node || highlighted === node;
+      const active = lit || selected === node || focused === node;
       const orbiting = node.isHalo && !active;
       ctx.globalAlpha = muted ? 0.16 : orbiting ? 0.3 : 1;
 
@@ -987,10 +992,14 @@ export function createConstellation(canvas, options = {}) {
         ctx.fillStyle = wash;
         traceBlob(ctx, node.blob, x, y, radius);
         ctx.fill();
+        // Pointed at or opened, a shape is drawn round in ink — an outline on
+        // the shape itself rather than a halo around it, so it reads as the
+        // same blot picked out rather than a second mark.
         if (active) {
           ctx.strokeStyle = THEME.ink;
-          ctx.lineWidth = 1.2;
-          traceBlob(ctx, node.blob, x, y, radius + 6 * view.k);
+          ctx.lineWidth = Math.max(2 * view.k, 1.2);
+          ctx.lineJoin = 'round';
+          traceBlob(ctx, node.blob, x, y, radius);
           ctx.stroke();
         }
 
@@ -1004,11 +1013,20 @@ export function createConstellation(canvas, options = {}) {
           ctx.fill();
         }
       } else {
-        ctx.strokeStyle = THEME.ink;
+        // Pointed at, a piece of research fills in: the crosshair goes to paper
+        // on an ink disc, which is the same swap the list in the panel makes.
+        if (lit) {
+          ctx.fillStyle = THEME.ink;
+          ctx.beginPath();
+          ctx.arc(x, y, radius, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.strokeStyle = lit ? THEME.paper : THEME.ink;
         ctx.lineWidth = Math.max((active ? 2.2 : 1.4) * view.k, 0.8);
         crossInCircle(ctx, x, y, radius);
         ctx.stroke();
-        if (active) {
+        if (selected === node) {
+          ctx.strokeStyle = THEME.ink;
           ctx.beginPath();
           ctx.arc(x, y, radius + 5 * view.k, 0, Math.PI * 2);
           ctx.lineWidth = 1.2;
@@ -1211,6 +1229,17 @@ export function createConstellation(canvas, options = {}) {
     setGraph,
     resize,
     fit,
+    /** The colour a tag is drawn in, so the panel can carry the same one. */
+    washOf(id) {
+      return allById.get(id)?.wash ?? null;
+    },
+    /** Point at a node from outside — the panel's list, running down it. */
+    highlight(id) {
+      const next = id ? allById.get(id) ?? null : null;
+      if (next === highlighted) return;
+      highlighted = next;
+      draw();
+    },
     reheat,
     select(id) {
       selected = id ? byId.get(id) ?? null : null;

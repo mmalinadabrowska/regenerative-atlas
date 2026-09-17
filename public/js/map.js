@@ -2,6 +2,7 @@
 
 import { api, citationLine, escapeHtml, fillCount, hostOf } from './api.js';
 import { createConstellation } from './constellation.js';
+import { blobPath, seedOf } from './ink.js';
 
 const canvas = document.getElementById('constellation');
 const searchInput = document.getElementById('map-search');
@@ -13,6 +14,8 @@ const zoomOutButton = document.getElementById('map-out');
 const legend = document.getElementById('map-legend');
 const panel = document.getElementById('panel');
 const panelBody = document.getElementById('panel-body');
+const panelGlyph = document.getElementById('panel-glyph');
+const panelTitle = document.getElementById('panel-title');
 
 const state = {
   tags: new Set(),
@@ -170,6 +173,47 @@ function renderLegend(graph, opened = map.opened?.()) {
 
 /* --- the record panel --------------------------------------------------- */
 
+/** The mark a piece of research wears everywhere: on the map, and in a list. */
+const CROSSHAIR = `<svg class="crosshair" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+  <circle cx="12" cy="12" r="9"/><path d="M12 4.6 V19.4 M4.6 12 H19.4"/></svg>`;
+
+/** A tag's own blot, drawn at label size from the same seed the map uses. */
+const blotMark = (id) =>
+  `<svg class="blot" viewBox="-13 -13 26 26" aria-hidden="true" focusable="false">
+    <path d="${blobPath(seedOf(id), 11, { lobes: 8, wobble: 0.85 })}"/></svg>`;
+
+/**
+ * The head is the panel's identity: a piece of research is ink, a tag is the
+ * colour it is drawn in on the map. Whichever it is, the same colour is on
+ * screen twice — in the head and under your cursor — so the panel and the map
+ * are plainly about the same thing.
+ */
+function setHead(kind, title, glyph, wash) {
+  panel.dataset.kind = kind;
+  panel.style.setProperty('--head', wash || 'var(--ink)');
+  panelGlyph.innerHTML = glyph;
+  panelTitle.textContent = title;
+}
+
+const washOfTag = (slug) => map.washOf(`t:${slug}`);
+
+const tagChips = (slugs) =>
+  `<div class="tag-cloud tag-cloud--wash">${slugs
+    .map((slug) => {
+      const wash = washOfTag(slug);
+      return `<button class="tag tag--wash" type="button" data-tag="${escapeHtml(slug)}"${
+        wash ? ` style="--chip: ${wash}"` : ''
+      }>${escapeHtml(labelOf(slug))}</button>`;
+    })
+    .join('')}</div>`;
+
+/** One row of the research list: the mark, the name, and what it is to you. */
+const threadRow = (node, under, { mark = true } = {}) =>
+  `<li><a href="#" data-open="${escapeHtml(node.id)}">
+    ${mark ? CROSSHAIR : ''}
+    <span class="thread__name">${escapeHtml(node.label)}
+      <small>${under}</small></span></a></li>`;
+
 function showTag(node) {
   const sources = (state.graph?.links ?? [])
     .filter((l) => l.kind === 'tagged' && (l.source === node.id || l.target === node.id))
@@ -177,21 +221,30 @@ function showTag(node) {
     .filter((n) => n?.type === 'source')
     .sort((a, b) => (b.year ?? 0) - (a.year ?? 0) || a.label.localeCompare(b.label));
 
+  // What else the research under this tag is filed under — the threads leading
+  // out of this island, counted so the strongest ones come first.
+  const alongside = new Map();
+  for (const source of sources) {
+    for (const slug of source.tags ?? []) {
+      if (slug !== node.slug) alongside.set(slug, (alongside.get(slug) ?? 0) + 1);
+    }
+  }
+  const connected = [...alongside.entries()]
+    .sort((a, b) => b[1] - a[1] || labelOf(a[0]).localeCompare(labelOf(b[0])))
+    .slice(0, 12)
+    .map(([slug]) => slug);
+
+  setHead('tag', node.label, blotMark(node.id), washOfTag(node.slug));
   panelBody.innerHTML = `
-    <h3>${escapeHtml(node.label)}</h3>
-    <p class="panel__meta">${plural(sources.length, 'source')}${
-      node.facet && node.facet !== 'open' ? ` · ${escapeHtml(node.facet)}` : ''
-    }</p>
     ${node.note ? `<p class="panel__summary">${escapeHtml(node.note)}</p>` : ''}
     <p><button class="label label--small" type="button" data-tag="${escapeHtml(node.slug)}">Filter the library to this</button></p>
-    <h4>What sits here</h4>
-    <ul class="panel__links">${sources
-      .map(
-        (source) =>
-          `<li><a href="#" data-open="${escapeHtml(source.id)}">${escapeHtml(source.label)}
-            <small>${escapeHtml(citationLine(source) || hostOf(source.url))}</small></a></li>`,
+    <h4>Research threads</h4>
+    <ul class="panel__links panel__links--marked">${sources
+      .map((source) =>
+        threadRow(source, escapeHtml(citationLine(source) || hostOf(source.url))),
       )
-      .join('')}</ul>`;
+      .join('')}</ul>
+    ${connected.length ? `<h4>Connected tags</h4>${tagChips(connected)}` : ''}`;
   openPanel();
 }
 
@@ -211,24 +264,24 @@ function showRecord(node) {
     .sort((a, b) => b.shared.length - a.shared.length)
     .slice(0, 6);
 
+  setHead('source', node.label, CROSSHAIR, null);
   panelBody.innerHTML = `
-    <h3>${escapeHtml(node.label)}</h3>
     <p class="panel__meta">${escapeHtml(citationLine(node)) || escapeHtml(hostOf(node.url))}</p>
     ${node.summary ? `<p class="panel__summary">${escapeHtml(node.summary)}</p>` : ''}
     ${node.note ? `<p class="record__note">${escapeHtml(node.note)}</p>` : ''}
     <p><a class="label label--small" href="${escapeHtml(node.url)}" target="_blank" rel="noopener noreferrer">Read the source ↗</a></p>
     <h4>Tagged</h4>
-    <div class="tag-cloud">${(node.tags ?? [])
-      .map((slug) => `<button class="tag" type="button" data-tag="${escapeHtml(slug)}">${escapeHtml(labelOf(slug))}</button>`)
-      .join('')}</div>
+    ${tagChips(node.tags ?? [])}
     ${
       related.length
-        ? `<h4>Read alongside</h4>
+        ? `<h4>Research threads</h4>
            <ul class="panel__links">${related
-             .map(
-               ({ other, shared }) =>
-                 `<li><a href="#" data-open="${escapeHtml(other.id)}">${escapeHtml(other.label)}
-                   <small>shares ${shared.map((s) => escapeHtml(labelOf(s))).join(', ') || 'related vocabulary'}</small></a></li>`,
+             .map(({ other, shared }) =>
+               threadRow(
+                 other,
+                 `shares ${shared.map((slug) => escapeHtml(labelOf(slug))).join(', ') || 'related vocabulary'}`,
+                 { mark: false },
+               ),
              )
              .join('')}</ul>`
         : ''
@@ -241,6 +294,19 @@ const labelOf = (slug) =>
   vocabulary.find((t) => t.slug === slug)?.label ??
   state.graph?.nodes.find((n) => n.slug === slug)?.label ??
   slug;
+
+/* Running down the list points at the map: the row's mark fills in, and so does
+   the same piece of research out on the map. */
+
+const pointAt = (event) => {
+  const row = event.target.closest?.('[data-open]');
+  map.highlight(row ? row.dataset.open : null);
+};
+
+panelBody.addEventListener('pointerover', pointAt);
+panelBody.addEventListener('focusin', pointAt);
+panelBody.addEventListener('pointerleave', () => map.highlight(null));
+panelBody.addEventListener('focusout', () => map.highlight(null));
 
 /* --- the panel, which on a phone is a bottom sheet ----------------------- */
 
@@ -269,17 +335,31 @@ function setSheet(next) {
 }
 
 function openPanel() {
-  // A record always arrives as a preview — the name and the line under it. The
-  // map keeps the screen until you ask for the rest.
+  // A record always arrives as a preview — its title bar and the line under it.
+  // The map keeps the screen until you ask for the rest.
   panel.style.transform = '';
   setSheet('peek');
+  measurePeek();
   panel.classList.add('is-open');
+}
+
+/**
+ * How much sheet the preview needs, measured rather than guessed: a tag has no
+ * citation line under its name and a piece of research does, and one fixed
+ * height would leave one of them showing a band of empty paper.
+ */
+function measurePeek() {
+  const head = document.getElementById('panel-head');
+  const meta = panelBody.querySelector('.panel__meta');
+  const peek = grip.offsetHeight + head.offsetHeight + (meta ? meta.offsetHeight + 14 : 8) + 10;
+  if (peek > 0) panel.style.setProperty('--sheet-peek', `${Math.round(peek)}px`);
 }
 
 function closePanel() {
   panel.style.transform = '';
   panel.classList.remove('is-open');
   setSheet('peek');
+  map.highlight(null);
 }
 
 // Coming back down hands the map its room back, so whatever you opened is

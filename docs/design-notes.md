@@ -170,6 +170,29 @@ Everything that is not a tag stays ink: the sources, the lines between them, the
 labels, the buttons, and the lines that join the landing drawing up. Colour means
 one thing on this site, which is *this is a subject*.
 
+## The record card
+
+Opening something gives you a card laid on the map, not a wall built beside it:
+outlined in ink, clear of every edge, with the map still running underneath.
+Its title bar is the piece that does the work — ink for a piece of research,
+carrying its crosshair in paper; the tag's own colour for a tag, carrying the
+tag's own blot. Whatever you opened, its colour is on screen twice, in the bar
+and out on the map, so the two are plainly about the same thing.
+
+Under it: what the record is, one action, and then its relations. A source lists
+what it is **tagged** with — chips in the same washes the blots wear — and its
+**research threads**, each named by what it shares with this one. A tag lists the
+**research threads** filed under it and the **connected tags** its research is
+also filed under, the strongest dozen. Each list scrolls inside its own share of
+the card, so a tag with forty sources never buries the section below it.
+
+Running down a list points at the map. The row's crosshair fills with ink and
+its cross goes to paper, and the same piece of research does exactly that out on
+the map — the list and the drawing are one instrument. Pointing at a shape
+directly, or opening it, draws it round in ink: an outline on the blot itself
+rather than a halo around it, so it reads as that blot picked out rather than as
+a second mark.
+
 ## Buttons
 
 Every button is an outline at rest and fills black when it is the one you are on or
