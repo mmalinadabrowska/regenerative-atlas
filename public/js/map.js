@@ -215,7 +215,7 @@ function setHead(kind, title, glyph, wash) {
 const washOfTag = (slug) => map.washOf(`t:${slug}`);
 
 const tagChips = (slugs) =>
-  `<div class="tag-cloud tag-cloud--wash">${slugs
+  `<div class="tag-cloud">${slugs
     .map((slug) => {
       const wash = washOfTag(slug);
       return `<button class="tag tag--wash" type="button" data-tag="${escapeHtml(slug)}"${
@@ -224,10 +224,15 @@ const tagChips = (slugs) =>
     })
     .join('')}</div>`;
 
-/** One row of the research list: the mark, the name, and what it is to you. */
-const threadRow = (node, under, { mark = true } = {}) =>
+/**
+ * One row of the research list: the mark, the name, and what it is to you. The
+ * row is the same wherever research is listed — under a tag it is named by its
+ * citation, under another piece of research by what the two share — because it
+ * is the same thing being listed, and the mark is how you find it on the map.
+ */
+const threadRow = (node, under) =>
   `<li><a href="#" data-open="${escapeHtml(node.id)}">
-    ${mark ? CROSSHAIR : ''}
+    ${CROSSHAIR}
     <span class="thread__name">${escapeHtml(node.label)}
       <small>${under}</small></span></a></li>`;
 
@@ -256,7 +261,7 @@ function showTag(node) {
     ${node.note ? `<p class="panel__summary">${escapeHtml(node.note)}</p>` : ''}
     <p><button class="label label--small" type="button" data-tag="${escapeHtml(node.slug)}">Filter the library to this</button></p>
     <h4>Research threads</h4>
-    <ul class="panel__links panel__links--marked">${sources
+    <ul class="panel__links">${sources
       .map((source) =>
         threadRow(source, escapeHtml(citationLine(source) || hostOf(source.url))),
       )
@@ -297,7 +302,6 @@ function showRecord(node) {
                threadRow(
                  other,
                  `shares ${shared.map((slug) => escapeHtml(labelOf(slug))).join(', ') || 'related vocabulary'}`,
-                 { mark: false },
                ),
              )
              .join('')}</ul>`

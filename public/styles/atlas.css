@@ -783,17 +783,15 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 
 #panel-body > :first-child { margin-top: 0; }
 
-/* A long library is not a long panel: each list keeps to its own share of the
-   card and scrolls inside it, so the section under it is always reachable. */
+/* The card is the one thing that scrolls. A list long enough to need scrolling
+   inside it put a second scrollbar against the first, and nested scrollers are
+   a trap for a wheel and worse for a thumb. */
 .panel__links {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
   gap: 0.55rem;
-  max-height: 21rem;
-  overflow-y: auto;
-  overscroll-behavior: contain;
 }
 
 .panel__links a {
@@ -826,8 +824,6 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 .panel__links a:focus-visible .crosshair circle { fill: var(--ink); }
 .panel__links a:hover .crosshair path,
 .panel__links a:focus-visible .crosshair path { stroke: var(--paper); }
-
-.tag-cloud--wash { max-height: 9.5rem; overflow-y: auto; overscroll-behavior: contain; }
 
 /* A tag chip carries its blot's colour, so a record's tags are the same five
    colours you just saw around it on the map. */
@@ -927,10 +923,6 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 
   #panel-body { touch-action: pan-y; padding: 0.9rem 1.05rem 1.4rem; }
   .panel[data-sheet='peek'] #panel-body { overflow: hidden; touch-action: none; }
-
-  /* The lists have the whole sheet to scroll in; capping them here would only
-     put a second scrollbar inside the first. */
-  .panel__links, .tag-cloud--wash { max-height: none; overflow: visible; }
 
   /* One scrolling row of filters rather than five wrapped ones over the map,
      on its own band of paper so it never sits on top of the drawing. */

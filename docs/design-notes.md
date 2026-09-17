@@ -202,8 +202,11 @@ Under it: what the record is, one action, and then its relations. A source lists
 what it is **tagged** with — chips in the same washes the blots wear — and its
 **research threads**, each named by what it shares with this one. A tag lists the
 **research threads** filed under it and the **connected tags** its research is
-also filed under, the strongest dozen. Each list scrolls inside its own share of
-the card, so a tag with forty sources never buries the section below it.
+also filed under, the strongest dozen. A research row is the same row in both
+places, crosshair and all: it is the same thing being listed, and the mark is how
+you find it on the map. The card is the only thing that scrolls — lists that
+scrolled inside it put a second scrollbar against the first, and nested scrollers
+are a trap for a wheel and worse for a thumb.
 
 Running down a list points at the map. The row's crosshair fills with ink and
 its cross goes to paper, and the same piece of research does exactly that out on
