@@ -161,7 +161,15 @@ back or away. Pulled above its open position it stretches rather than travelling
 anchored to the bottom of the screen it can grow upwards without opening a gap under
 itself — and the give is resisted and runs out, so the top of the record reads as the
 top of the record rather than as somewhere left to go. A sheet that simply stops dead
-under your finger reads as broken. The map is fitted to the strip above the peeking sheet, so opening
+under your finger reads as broken.
+
+An open drawer stays open. Opening something else from the map, or from the record
+you are reading, is a change of subject rather than a reason to put the drawer away
+and start again, so the record swaps and the sheet keeps the height you left it at.
+The map behind is framed for the preview however far the sheet happens to be open,
+which keeps one arrangement whether you are reading or not: pulling the drawer up
+does not squeeze the drawing into the strip above it, and letting it back down needs
+no second rearrangement. The map is fitted to the strip above the peeking sheet, so opening
 something still leaves you looking mostly at the map. Two details that took a rewrite:
 the pointer is captured only once a gesture has really moved, because capturing on
 pointerdown retargets the click that follows to the sheet and kills every link inside

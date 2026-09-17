@@ -43,9 +43,13 @@ const map = createConstellation(canvas, {
     // read from where it actually is, not from where it starts vertically —
     // the desktop panel is inset from the top too.
     const fullWidth = panelBox.left <= canvasBox.left + 2;
-    return fullWidth
-      ? { bottom: Math.max(canvasBox.bottom - panelBox.top, 0) }
-      : { right: Math.max(canvasBox.right - panelBox.left, 0) };
+    if (!fullWidth) return { right: Math.max(canvasBox.right - panelBox.left, 0) };
+    // The sheet is framed for its preview however far it happens to be open, so
+    // the map keeps one arrangement whether you are reading a record or not —
+    // pulling the drawer up does not squeeze the drawing into the strip left
+    // above it, and letting it back down needs no second rearrangement.
+    const covered = Math.min(Math.max(canvasBox.bottom - panelBox.top, 0), peekHeight());
+    return { bottom: covered };
   },
   avoid() {
     const canvasBox = canvas.getBoundingClientRect();
@@ -383,10 +387,14 @@ function setSheet(next) {
 }
 
 function openPanel() {
-  // A record always arrives as a preview — its title bar and the line under it.
-  // The map keeps the screen until you ask for the rest.
+  // A record arrives as a preview — its title bar and the line under it — and
+  // the map keeps the screen until you ask for the rest. But an open drawer
+  // stays open: opening something else from the map while you are reading is a
+  // change of subject, not a reason to put the drawer away and start again.
   panel.style.transform = '';
-  setSheet('peek');
+  panel.style.height = '';
+  const carryOn = panel.classList.contains('is-open') && panel.dataset.sheet === 'open';
+  setSheet(carryOn ? 'open' : 'peek');
   measurePeek();
   panel.classList.add('is-open');
   panelBody.scrollTop = 0;
