@@ -204,7 +204,10 @@ what it is **tagged** with — chips in the same washes the blots wear — and i
 **research threads** filed under it and the **connected tags** its research is
 also filed under, the strongest dozen. A research row is the same row in both
 places, crosshair and all: it is the same thing being listed, and the mark is how
-you find it on the map. The card is the only thing that scrolls — lists that
+you find it on the map — which only holds if the mark on the map is the same mark.
+It has a floor of seven pixels for that reason. Below that a stroked crosshair
+closes up into a dot, so the glyph stops shrinking there while the map goes on
+zooming out, and the cross's arms stop short of its ring. The card is the only thing that scrolls — lists that
 scrolled inside it put a second scrollbar against the first, and nested scrollers
 are a trap for a wheel and worse for a thumb.
 

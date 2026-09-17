@@ -146,7 +146,9 @@ export function blobPath(seed, scale = 10, options) {
  * against the drawn ink of the tags. The caller strokes it.
  */
 export function crossInCircle(ctx, cx, cy, radius) {
-  const arm = radius * 0.92;
+  // The arms stop short of the ring, or at small sizes the cross closes the
+  // circle up and the whole mark reads as a dot.
+  const arm = radius * 0.82;
   ctx.beginPath();
   ctx.arc(cx, cy, radius, 0, Math.PI * 2);
   ctx.moveTo(cx - arm, cy);

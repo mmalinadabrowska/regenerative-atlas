@@ -1071,7 +1071,11 @@ export function createConstellation(canvas, options = {}) {
     function paintNode(node, alpha, queue) {
       if (alpha < 0.01) return;
       const { x, y } = toScreen(node);
-      const radius = (node.isHalo ? Math.min(node.radius * 0.66, 15) : node.radius) * view.k;
+      let radius = (node.isHalo ? Math.min(node.radius * 0.66, 15) : node.radius) * view.k;
+      // A piece of research is a crosshair in a circle — the mark it wears in
+      // the record card — and under about seven pixels a crosshair is a dot.
+      // The glyph stops shrinking there while the map goes on zooming out.
+      if (node.type === 'source') radius = Math.max(radius, node.isHalo ? 5 : 7);
       if (x < -160 || y < -160 || x > width + 160 || y > height + 160) return;
 
       const muted = isMuted(node);
@@ -1115,7 +1119,7 @@ export function createConstellation(canvas, options = {}) {
           ctx.fill();
         }
         ctx.strokeStyle = lit ? THEME.paper : THEME.ink;
-        ctx.lineWidth = Math.max((active ? 2.2 : 1.4) * view.k, 0.8);
+        ctx.lineWidth = Math.max((active ? 1.9 : 1.3) * Math.min(view.k, 1.4), 1);
         crossInCircle(ctx, x, y, radius);
         ctx.stroke();
         if (selected === node) {
