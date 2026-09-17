@@ -131,7 +131,10 @@ rather than as this one turning over. Now what is leaving fades out over the fir
 third, while everything is still near where you last saw it, and what is arriving
 fades up over the last half, once the movement is nearly done — the marks that are in
 both views carry the eye across in between. The names dissolve on the same principle
-and a little ahead of it.
+and a little ahead of it — all but one. The name you were pointing at when you
+clicked stays printed the whole way through, and travels with its mark, so there is
+one fixed thing to read while the rest of the map turns over. Pointing at a row in
+the record card holds that name out on the map the same way.
 
 The camera aims at the destination, never at the journey. Framing the arrangement
 as it moved meant the outbound marks pushed the frame wide and then dragged it back

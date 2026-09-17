@@ -983,6 +983,14 @@ export function createConstellation(canvas, options = {}) {
    *
    * Returns { limit } in characters, or null for "say nothing".
    */
+  /**
+   * The mark you are pointing at, or have just opened. Its name is the one you
+   * were reading when you clicked, so it is the one name that does not dissolve
+   * with the rest: it stays put and the map rearranges around it.
+   */
+  const held = (node) =>
+    node === hovered || node === highlighted || node === selected || node === focused;
+
   function labelPolicy(node, active, nearFocus) {
     const closeness = view.k / (overview || 1);
     if (active) return { limit: node.type === 'tag' ? 30 : 76 };
@@ -1144,9 +1152,10 @@ export function createConstellation(canvas, options = {}) {
      */
     labelQueue.sort((a, b) => b.priority - a.priority);
     const occupied = avoid();
-    // Mid-dissolve there is nothing to place, and placing it would only reserve
-    // space against positions that are still moving.
-    if (labelFade < 0.02) return;
+    // Mid-dissolve the rest of the names are gone, and placing them would only
+    // reserve space against positions that are still moving. The name you are
+    // holding is still placed, and still drawn.
+    const dissolved = labelFade < 0.02;
     const overlaps = (box) =>
       occupied.some(
         (other) =>
@@ -1158,7 +1167,9 @@ export function createConstellation(canvas, options = {}) {
 
     for (const entry of labelQueue) {
       const { node, policy } = entry;
-      const active = hovered === node || selected === node;
+      const stays = held(node);
+      if (dissolved && !stays) continue;
+      const active = stays;
       // A tag's name is sized like the tag: the bigger the territory, the
       // louder it is allowed to be.
       ctx.font =
@@ -1174,7 +1185,7 @@ export function createConstellation(canvas, options = {}) {
       if (!active && overlaps(box)) continue;
       occupied.push(box);
 
-      ctx.globalAlpha = (active ? 1 : 0.85) * labelFade;
+      ctx.globalAlpha = stays ? 1 : 0.85 * labelFade;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
       ctx.lineJoin = 'round';
