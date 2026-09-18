@@ -1,133 +1,165 @@
 /**
  * Draws the landing page's constellation into public/images/hero.svg.
  *
- * The drawing is a fragment of the Atlas, made by the same hand and the same
- * code: ink blots for subjects, crosses in circles for research, and thin ink
- * lines for what is joined to what. The shapes come from public/js/ink.js —
- * the very functions the map draws with — so the page you land on and the map
- * you land in are the same drawing at different scales.
+ * The drawing is the map with the names taken off: ink blots for subjects,
+ * gathered into themes the way the islands gather, and thin lines for what is
+ * joined to what. The shapes come from public/js/ink.js — the very function the
+ * map draws its tags with — so the page you land on and the map you land in are
+ * one drawing. It is ink only: the map earns its colour by being explorable,
+ * and on the landing page colour would be decoration.
  *
- * Positions are kept here as coordinates rather than as path data so the
- * composition stays editable: move a node, run `npm run draw`, and the lines
- * that join it follow.
+ * Nothing here is hand-placed except the themes' anchors and the ground kept
+ * clear for the type. Everything else is generated from a seed, so the file
+ * redraws identically and stays editable as intent rather than as path data.
  *
  * The frame is 1920x1080. index.html overlays its type on the same coordinates,
- * which is why the lines meet the title block and the Atlas button, and why the
- * middle of the frame is left clear.
+ * which is why the middle of the frame is left empty and why lines run to the
+ * title block and the Atlas button.
  */
 
 import { writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { INK, blobPath, rng, seedOf, washFor } from '../public/js/ink.js';
+import { INK, blobPath, rng, seedOf } from '../public/js/ink.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
+/** What the type sits in, kept clear of marks. */
+const reserved = [
+  { x: 470, y: 96, w: 980, h: 360 },   // title, standfirst, blurb
+  { x: 800, y: 640, w: 320, h: 120 },  // the Atlas button
+  { x: 660, y: 780, w: 600, h: 96 },   // the section menu
+];
+
 /**
- * The subjects. `r` is the blot's reach, which stands in for how much sits
- * under it on the map: a big territory and a passing mention are the same mark
- * at different weights.
+ * The themes. Each is an anchor with a spread and a handful of blots — one
+ * territory, a couple of middling subjects and a scatter of small ones, which
+ * is the shape of every island on the real map.
  */
-const blots = {
-  atlas: [250, 358, 74],
-  soil: [138, 566, 32],
-  water: [332, 622, 48],
-  seed: [212, 790, 26],
-  fibre: [424, 872, 40],
-  ground: [604, 512, 30],
-  hub: [958, 566, 62],
-  city: [1302, 556, 44],
-  climate: [1556, 196, 50],
-  energy: [1724, 336, 66],
-  material: [1452, 430, 24],
-  reuse: [1826, 528, 32],
-  commons: [1660, 796, 42],
-  craft: [648, 944, 46],
-  measure: [902, 1004, 22],
-  living: [1256, 922, 58],
-  place: [1486, 982, 30],
-};
-
-/** The research: plotted points on the network, the way the map draws them. */
-const marks = [
-  [470, 462, 13],
-  [556, 706, 11],
-  [1300, 716, 12],
-  [1528, 634, 11],
-  [336, 966, 11],
+const themes = [
+  { at: [248, 334], spread: [142, 152], weights: [42, 27, 20, 15, 12, 10, 8, 7] },
+  { at: [288, 800], spread: [146, 130], weights: [34, 23, 17, 13, 10, 8, 7] },
+  { at: [946, 556], spread: [230, 78], weights: [32, 22, 16, 12, 10, 8, 7, 6] },
+  { at: [1672, 272], spread: [156, 148], weights: [38, 25, 18, 14, 11, 9, 7, 6] },
+  { at: [1598, 636], spread: [138, 114], weights: [28, 20, 15, 11, 9, 7, 6] },
+  { at: [874, 962], spread: [206, 96], weights: [36, 24, 17, 13, 10, 8, 7, 6] },
+  { at: [1446, 918], spread: [144, 102], weights: [30, 21, 15, 12, 9, 7, 6] },
 ];
 
-/** What is joined to what. */
-const joins = [
-  ['atlas', 'soil'], ['atlas', 'water'], ['atlas', 'ground'],
-  ['soil', 'water'], ['water', 'seed'], ['seed', 'fibre'],
-  ['fibre', 'craft'], ['craft', 'measure'], ['measure', 'living'],
-  // The middle of the frame belongs to the buttons: the bottom of the network
-  // is reached down the sides rather than straight through them.
-  ['ground', 'hub'], ['hub', 'city'], ['ground', 'craft'], ['city', 'living'],
-  ['city', 'material'], ['city', 'commons'], ['living', 'place'],
-  ['material', 'climate'], ['climate', 'energy'], ['energy', 'reuse'],
-  ['reuse', 'commons'], ['commons', 'place'], ['city', 'energy'],
+/** Which themes are near enough to have something to do with each other. */
+const bridges = [
+  [0, 2], [0, 1], [1, 5], [2, 3], [2, 4], [4, 6], [5, 6], [3, 4],
 ];
 
-/* --- the drawing ---------------------------------------------------------- */
+/* --- placing the blots ---------------------------------------------------- */
+
+const clear = (x, y, r) =>
+  !reserved.some(
+    (box) => x + r > box.x && x - r < box.x + box.w && y + r > box.y && y - r < box.y + box.h,
+  );
+
+const placed = [];
+
+const islands = themes.map((theme, t) => {
+  const random = rng(seedOf(`island:${t}`));
+  const [ax, ay] = theme.at;
+  const [sx, sy] = theme.spread;
+  const blots = [];
+
+  theme.weights.forEach((r, i) => {
+    for (let attempt = 0; attempt < 60; attempt++) {
+      // The first blot holds the middle; the rest ring it at wandering angles,
+      // pushed out further as they get smaller so the island reads as one thing
+      // with an edge rather than as a pile.
+      const angle = random() * Math.PI * 2;
+      const reach = i === 0 ? random() * 0.12 : 0.3 + random() * 0.7;
+      const x = ax + Math.cos(angle) * sx * reach;
+      const y = ay + Math.sin(angle) * sy * reach;
+      if (!clear(x, y, r + 10)) continue;
+      if (placed.some((p) => Math.hypot(p.x - x, p.y - y) < p.r + r + 10)) continue;
+      const blot = { x, y, r, seed: `blot:${t}:${i}` };
+      blots.push(blot);
+      placed.push(blot);
+      return;
+    }
+  });
+
+  return blots;
+});
+
+/* --- joining them up ------------------------------------------------------ */
 
 const round = (v) => Math.round(v * 10) / 10;
 
-/**
- * A line with a little bow in it. Straight lines between every pair would read
- * as a diagram; a hand does not draw two points without leaning slightly one
- * way. The lean is seeded, so it is the same every time the file is drawn.
- */
+/** A line with a little bow in it — a hand does not join two points straight. */
 function joinPath(a, b, seed) {
   const random = rng(seedOf(seed));
-  const [x1, y1] = a;
-  const [x2, y2] = b;
-  const dx = x2 - x1;
-  const dy = y2 - y1;
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
   const length = Math.hypot(dx, dy) || 1;
-  const lean = (random() - 0.5) * Math.min(length * 0.07, 34);
-  const cx = (x1 + x2) / 2 - (dy / length) * lean;
-  const cy = (y1 + y2) / 2 + (dx / length) * lean;
-  return `M ${round(x1)} ${round(y1)} Q ${round(cx)} ${round(cy)} ${round(x2)} ${round(y2)}`;
+  const lean = (random() - 0.5) * Math.min(length * 0.08, 30);
+  const cx = (a.x + b.x) / 2 - (dy / length) * lean;
+  const cy = (a.y + b.y) / 2 + (dx / length) * lean;
+  return `M ${round(a.x)} ${round(a.y)} Q ${round(cx)} ${round(cy)} ${round(b.x)} ${round(b.y)}`;
 }
 
-/** The lines that reach out of the network to the type it sits around. */
-const reaches = [
-  joinPath(blots.hub, [1392, 436], 'blurb'),
-  joinPath(blots.hub, [958, 664], 'atlas-button'),
-  joinPath([958, 744], [958, 800], 'menu'),
-  joinPath(blots.city, [1074, 702], 'atlas-right'),
-  joinPath(blots.ground, [846, 700], 'atlas-left'),
-];
+const lines = [];
 
-const lines = [
-  ...joins.map(([from, to]) => joinPath(blots[from], blots[to], `${from}-${to}`)),
-  ...reaches,
-];
-
-const shapes = Object.entries(blots).map(([name, [x, y, r]], i) => {
-  const d = blobPath(seedOf(`hero:${name}`), r, { lobes: 8, wobble: 0.85 });
-  return `  <path fill="${washFor(i)}" transform="translate(${x} ${y})" d="${d}"/>`;
+// Inside an island: every blot hangs off the nearest one already joined up, so
+// the island is connected without becoming a mesh.
+islands.forEach((blots, t) => {
+  blots.forEach((blot, i) => {
+    if (i === 0) return;
+    const nearest = blots
+      .slice(0, i)
+      .reduce((best, other) =>
+        Math.hypot(other.x - blot.x, other.y - blot.y) < Math.hypot(best.x - blot.x, best.y - blot.y)
+          ? other
+          : best,
+      );
+    lines.push(joinPath(nearest, blot, `join:${t}:${i}`));
+  });
 });
 
-const crosses = marks.map(([x, y, r]) => {
-  const arm = round(r * 0.82);
-  return (
-    `  <g><circle cx="${x}" cy="${y}" r="${r}"/>` +
-    `<path d="M ${x - arm} ${y} H ${x + arm} M ${x} ${y - arm} V ${y + arm}"/></g>`
-  );
-});
+// Between islands: the shortest pair, which is what a bridge would actually be.
+for (const [from, to] of bridges) {
+  let pair = null;
+  for (const a of islands[from]) {
+    for (const b of islands[to]) {
+      const distance = Math.hypot(a.x - b.x, a.y - b.y);
+      if (!pair || distance < pair.distance) pair = { a, b, distance };
+    }
+  }
+  if (pair) lines.push(joinPath(pair.a, pair.b, `bridge:${from}:${to}`));
+}
+
+// And the lines that reach out of the network to the type it sits around.
+const centre = islands[2][0];
+lines.push(
+  joinPath(centre, { x: 1404, y: 452 }, 'blurb'),
+  joinPath(centre, { x: 958, y: 634 }, 'atlas-button'),
+  joinPath({ x: 958, y: 764 }, { x: 958, y: 792 }, 'menu'),
+  joinPath(islands[4][0], { x: 1124, y: 700 }, 'atlas-right'),
+  joinPath(islands[5][0], { x: 866, y: 762 }, 'atlas-left'),
+);
+
+/* --- the file ------------------------------------------------------------- */
+
+const shapes = placed.map(
+  (blot) =>
+    `  <path transform="translate(${round(blot.x)} ${round(blot.y)})" d="${blobPath(
+      seedOf(blot.seed),
+      blot.r,
+      { lobes: 8, wobble: 0.85 },
+    )}"/>`,
+);
 
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" fill="none" role="presentation">
-<g stroke="${INK}" stroke-width="1.8" stroke-linecap="round">
+<g stroke="${INK}" stroke-width="1.3" stroke-linecap="round">
 ${lines.map((d) => `  <path d="${d}"/>`).join('\n')}
 </g>
-<g>
+<g fill="${INK}">
 ${shapes.join('\n')}
-</g>
-<g stroke="${INK}" stroke-width="2.4" stroke-linecap="round">
-${crosses.join('\n')}
 </g>
 </svg>
 `;
@@ -135,5 +167,5 @@ ${crosses.join('\n')}
 const out = resolve(ROOT, 'public', 'images', 'hero.svg');
 writeFileSync(out, svg);
 console.log(
-  `  drew ${shapes.length} blots, ${crosses.length} marks and ${lines.length} lines into ${out.replace(ROOT + '/', '')}`,
+  `  drew ${shapes.length} blots in ${islands.length} islands and ${lines.length} lines into ${out.replace(ROOT + '/', '')}`,
 );

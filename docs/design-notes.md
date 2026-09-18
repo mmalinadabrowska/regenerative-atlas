@@ -20,27 +20,31 @@ the map nodes are made by the same hand.
 
 ## The landing page
 
-One frame, 1920x1080: the title block in the clearing at the centre, a network of marks
-around it, and `The Atlas` with the three sections in a row beneath, joined into that
-network by its own lines. It is not a picture of the map, it is the map: the blots come
-from `blobPath` and the crosses from `crossInCircle` — the same functions the canvas
-draws with — in the same survey washes, so the page you land on and the map you land in
-are one drawing at two scales. Pressing through is continuous rather than a jump to a
-different idea.
+One frame, 1920x1080: the title block in the clearing at the centre, the map around it,
+and `The Atlas` with the three sections in a row beneath, joined into it by its own lines.
+It is not a picture of the map, it is the map with the names taken off — the blots come
+from `blobPath`, the function the canvas draws its tags with, gathered into islands the
+way the islands gather. Pressing through is continuous rather than a jump to a different
+idea.
 
-What the drawing says is what the map says: subjects are blots, sized by weight; research
-is a cross in a circle; and a thin ink line means these two have something to do with each
-other. The lines are bowed rather than straight — a hand does not draw two points without
-leaning slightly one way — and the lean is seeded, so the file is the same every time it
-is drawn. The middle of the frame is left to the buttons: the bottom of the network is
-reached down the sides rather than straight through them, and one line runs from the Atlas
-button to the section menu so the buttons read as part of the constellation rather than as
-chrome dropped on top of it.
+It is ink only. The map earns its colour by being explorable — a wash there is a
+territory you can open — and on a page you only look at, the same colour would be
+decoration. The lines are bowed rather than straight, because a hand does not join two
+points without leaning slightly one way, and the lean is seeded so the file is the same
+every time it is drawn.
+
+Nothing is hand-placed but the islands' anchors and the ground kept clear for the type.
+Each island is a weight for its biggest blot and a tail of smaller ones, scattered on a
+seed and rejected wherever they would touch another blot or the type; inside an island
+every blot hangs off the nearest one already placed, and between islands the shortest
+pair is bridged. The middle of the frame belongs to the buttons, and one line runs from
+the Atlas button to the section menu so they read as part of the constellation rather
+than as chrome dropped on top of it.
 
 It is generated rather than hand-authored (`scripts/draw-hero.mjs`) so it stays editable
-as geometry: the file holds a list of blots with their positions and reach, and a list of
-what is joined to what. Move a blot, run `npm run draw`, and the lines follow — instead of
-path data nobody can adjust. Type is overlaid as real HTML on the same coordinates, sized in container-query
+as intent: the file holds seven anchors, the weights of the blots each one carries, and
+which islands are near enough to bridge. Move an anchor, run `npm run draw`, and the
+island and every line that meets it follow — instead of path data nobody can adjust. Type is overlaid as real HTML on the same coordinates, sized in container-query
 units so it scales with the drawing and stays on the lines that point at it. Below 48rem
 the frame is too small to read type off, so the composition unstacks: type at ordinary
 sizes first, the drawing kept underneath as a coda.
