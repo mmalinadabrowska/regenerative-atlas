@@ -1,176 +1,139 @@
 /**
  * Draws the landing page's constellation into public/images/hero.svg.
  *
- * The marks are kept here as centrelines rather than as path data so they stay
- * editable — move a point, run `npm run draw`, and the drawing updates. Every
- * mark is a brush stroke from public/js/ink.js, so the landing page and the map
- * are made by the same hand.
+ * The drawing is a fragment of the Atlas, made by the same hand and the same
+ * code: ink blots for subjects, crosses in circles for research, and thin ink
+ * lines for what is joined to what. The shapes come from public/js/ink.js —
+ * the very functions the map draws with — so the page you land on and the map
+ * you land in are the same drawing at different scales.
+ *
+ * Positions are kept here as coordinates rather than as path data so the
+ * composition stays editable: move a node, run `npm run draw`, and the lines
+ * that join it follow.
  *
  * The frame is 1920x1080. index.html overlays its type on the same coordinates,
- * which is why the connecting lines meet the title block and the Map button.
+ * which is why the lines meet the title block and the Atlas button, and why the
+ * middle of the frame is left clear.
  */
 
 import { writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { INK, brushStroke, washFor } from '../public/js/ink.js';
+import { INK, blobPath, rng, seedOf, washFor } from '../public/js/ink.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
-const marks = [];
-
 /**
- * Every mark is washed in its own colour, in the order it is drawn — the ramp in
- * ink.js puts consecutive marks most of a wheel apart, so neighbours on the page
- * never rhyme. Pass `wash: INK` for a mark that should stay ink; the lines that
- * join the drawing up are ink either way.
+ * The subjects. `r` is the blot's reach, which stands in for how much sits
+ * under it on the map: a big territory and a passing mention are the same mark
+ * at different weights.
  */
-const paint = (attrs, { wash, ...options }) => [
-  `  <path fill="${wash ?? washFor(marks.length)}"${attrs}`,
-  options,
+const blots = {
+  atlas: [250, 358, 74],
+  soil: [138, 566, 32],
+  water: [332, 622, 48],
+  seed: [212, 790, 26],
+  fibre: [424, 872, 40],
+  ground: [604, 512, 30],
+  hub: [958, 566, 62],
+  city: [1302, 556, 44],
+  climate: [1556, 196, 50],
+  energy: [1724, 336, 66],
+  material: [1452, 430, 24],
+  reuse: [1826, 528, 32],
+  commons: [1660, 796, 42],
+  craft: [648, 944, 46],
+  measure: [902, 1004, 22],
+  living: [1256, 922, 58],
+  place: [1486, 982, 30],
+};
+
+/** The research: plotted points on the network, the way the map draws them. */
+const marks = [
+  [470, 462, 13],
+  [556, 706, 11],
+  [1300, 716, 12],
+  [1528, 634, 11],
+  [336, 966, 11],
 ];
 
-/** An open brush mark: a centreline, tapered at both ends unless told otherwise. */
-const mark = (points, options = {}) => {
-  const [open, brush] = paint('', options);
-  marks.push(`${open} d="${brushStroke(points, brush)}"/>`);
-};
+/** What is joined to what. */
+const joins = [
+  ['atlas', 'soil'], ['atlas', 'water'], ['atlas', 'ground'],
+  ['soil', 'water'], ['water', 'seed'], ['seed', 'fibre'],
+  ['fibre', 'craft'], ['craft', 'measure'], ['measure', 'living'],
+  // The middle of the frame belongs to the buttons: the bottom of the network
+  // is reached down the sides rather than straight through them.
+  ['ground', 'hub'], ['hub', 'city'], ['ground', 'craft'], ['city', 'living'],
+  ['city', 'material'], ['city', 'commons'], ['living', 'place'],
+  ['material', 'climate'], ['climate', 'energy'], ['energy', 'reuse'],
+  ['reuse', 'commons'], ['commons', 'place'], ['city', 'energy'],
+];
 
-/** A closed brush mark: a hollow ring, the blob shapes of the drawing. */
-const ring = (points, options = {}) => {
-  const [open, brush] = paint(' fill-rule="evenodd"', options);
-  marks.push(`${open} d="${brushStroke(points, { closed: true, ...brush })}"/>`);
-};
+/* --- the drawing ---------------------------------------------------------- */
+
+const round = (v) => Math.round(v * 10) / 10;
 
 /**
- * A closed contour: one radius per step around a centre. Uneven radii are the
- * whole point — an even ring reads as a plotted ellipse, and nothing in Miró is
- * an ellipse.
+ * A line with a little bow in it. Straight lines between every pair would read
+ * as a diagram; a hand does not draw two points without leaning slightly one
+ * way. The lean is seeded, so it is the same every time the file is drawn.
  */
-const contour = (cx, cy, radii, { rotate = 0, squash = 1 } = {}) =>
-  radii.map((r, i) => {
-    const angle = rotate + (i / radii.length) * Math.PI * 2;
-    return [cx + Math.cos(angle) * r, cy + Math.sin(angle) * r * squash];
-  });
+function joinPath(a, b, seed) {
+  const random = rng(seedOf(seed));
+  const [x1, y1] = a;
+  const [x2, y2] = b;
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const length = Math.hypot(dx, dy) || 1;
+  const lean = (random() - 0.5) * Math.min(length * 0.07, 34);
+  const cx = (x1 + x2) / 2 - (dy / length) * lean;
+  const cy = (y1 + y2) / 2 + (dx / length) * lean;
+  return `M ${round(x1)} ${round(y1)} Q ${round(cx)} ${round(cy)} ${round(x2)} ${round(y2)}`;
+}
 
-/** A hollow star: alternating long and short radii, each one a little off. */
-const starContour = (cx, cy, outer, inner, options) =>
-  contour(cx, cy, outer.flatMap((r, i) => [r, inner[i]]), options);
-
-/* — top left: the largest mark on the page ——————————————————————— */
-
-ring(
-  starContour(
-    252,
-    384,
-    [102, 78, 96, 70, 88],
-    [30, 24, 33, 26, 28],
-    { rotate: -1.15 },
-  ),
-  { width: 8 },
-);
-
-/* — left: the crown ————————————————————————————————————————— */
-
-mark(
-  [[302, 646], [296, 592], [300, 552], [318, 532], [336, 546], [340, 590],
-   [346, 546], [360, 538], [368, 566], [360, 612], [352, 648]],
-  { widths: [11, 15, 15, 13, 11, 9, 9, 12, 14, 15, 10] },
-);
-
-/* — left: two small marks below —————————————————————————————— */
-
-ring(contour(199, 774, [22, 17, 21, 16, 20, 18]), { width: 8 });
-mark(
-  [[352, 748], [382, 750], [398, 772], [388, 798], [362, 800], [354, 782]],
-  { widths: [9, 13, 14, 13, 11, 8] },
-);
-
-/* — centre: the hub the Map sits under ————————————————————————— */
-
-ring(
-  starContour(938, 598, [74, 56, 68, 52, 62], [22, 18, 24, 19, 21], { rotate: -0.5 }),
-  { width: 8 },
-);
-mark([[986, 566], [1030, 528], [1062, 516]], { widths: [12, 8, 4] });
-
-/* — upper right: the loose cluster beside the title ————————————— */
-
-mark([[1412, 146], [1424, 176], [1414, 208]], { widths: [7, 12, 6] });
-mark([[1726, 162], [1748, 124], [1786, 114], [1810, 132]], { widths: [7, 14, 14, 8] });
-
-// A hand of upright forms, the densest corner of the drawing.
-mark([[1690, 320], [1682, 272], [1696, 240], [1718, 250], [1720, 292]], { widths: [9, 14, 14, 12, 8] });
-mark([[1780, 246], [1798, 280], [1792, 322], [1770, 332]], { widths: [8, 14, 13, 8] });
-ring(
-  contour(
-    1710,
-    392,
-    // Gentle undulation, not alternation — alternating radii make spikes.
-    [66, 62, 57, 61, 67, 60, 55, 59, 65, 62, 56, 61],
-    { rotate: 0.35, squash: 0.84 },
-  ),
-  { width: 10 },
-);
-mark([[1642, 300], [1636, 268], [1650, 246]], { widths: [7, 11, 6] });
-
-/* — right and below: the scattered small marks ——————————————— */
-
-mark(
-  [[1248, 880], [1256, 818], [1274, 784], [1292, 812], [1302, 876]],
-  { widths: [9, 15, 14, 14, 9] },
-);
-// A zigzag. The points are doubled so the spline turns a corner instead of
-// rounding one off.
-mark(
-  [[1468, 750], [1468, 750], [1524, 726], [1524, 726], [1482, 758], [1482, 758], [1548, 734]],
-  { widths: [5, 5, 8, 8, 8, 8, 5] },
-);
-mark(
-  [[1136, 914], [1112, 914], [1102, 930], [1114, 948], [1136, 946]],
-  { widths: [7, 12, 12, 11, 7] },
-);
-ring(
-  contour(
-    804,
-    958,
-    [70, 66, 58, 50, 47, 51, 60, 67, 65, 57, 50, 52],
-    { rotate: 0.1, squash: 0.66 },
-  ),
-  { width: 10 },
-);
-mark(
-  [[1250, 946], [1282, 936], [1306, 960], [1296, 992], [1264, 996]],
-  { widths: [8, 13, 14, 12, 7] },
-);
-
-/* — the lines that make it a map rather than a scatter ——————————— */
+/** The lines that reach out of the network to the type it sits around. */
+const reaches = [
+  joinPath(blots.hub, [1392, 436], 'blurb'),
+  joinPath(blots.hub, [958, 664], 'atlas-button'),
+  joinPath([958, 744], [958, 800], 'menu'),
+  joinPath(blots.city, [1074, 702], 'atlas-right'),
+  joinPath(blots.ground, [846, 700], 'atlas-left'),
+];
 
 const lines = [
-  '  <path d="M 388 604 L 878 600"/>',
-  '  <path d="M 996 588 C 1120 560, 1260 470, 1378 396"/>',
-  '  <path d="M 878 768 L 877 792"/>',
-  '  <path d="M 1104 748 L 1248 802"/>',
-  '  <path d="M 1276 886 L 1278 940"/>',
-  '  <path d="M 1386 748 L 1452 740"/>',
-  '  <path d="M 348 468 L 356 500"/>',
-  '  <path d="M 262 748 L 288 706"/>',
-  '  <path d="M 348 688 L 354 720" stroke-dasharray="2 9"/>',
+  ...joins.map(([from, to]) => joinPath(blots[from], blots[to], `${from}-${to}`)),
+  ...reaches,
 ];
 
-// The drawing is loaded as an <img>, which cannot inherit currentColor, so both
-// the ink and the washes are baked in. Ink is the group's default; a mark with a
-// wash carries its own fill.
+const shapes = Object.entries(blots).map(([name, [x, y, r]], i) => {
+  const d = blobPath(seedOf(`hero:${name}`), r, { lobes: 8, wobble: 0.85 });
+  return `  <path fill="${washFor(i)}" transform="translate(${x} ${y})" d="${d}"/>`;
+});
+
+const crosses = marks.map(([x, y, r]) => {
+  const arm = round(r * 0.82);
+  return (
+    `  <g><circle cx="${x}" cy="${y}" r="${r}"/>` +
+    `<path d="M ${x - arm} ${y} H ${x + arm} M ${x} ${y - arm} V ${y + arm}"/></g>`
+  );
+});
+
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" fill="none" role="presentation">
-<g stroke="${INK}" stroke-width="2.2" stroke-linecap="round">
-${lines.join('\n')}
+<g stroke="${INK}" stroke-width="1.8" stroke-linecap="round">
+${lines.map((d) => `  <path d="${d}"/>`).join('\n')}
 </g>
-<g fill="${INK}">
-${marks.join('\n')}
+<g>
+${shapes.join('\n')}
+</g>
+<g stroke="${INK}" stroke-width="2.4" stroke-linecap="round">
+${crosses.join('\n')}
 </g>
 </svg>
 `;
 
 const out = resolve(ROOT, 'public', 'images', 'hero.svg');
 writeFileSync(out, svg);
-console.log(`  drew ${marks.length} marks and ${lines.length} lines into ${out.replace(ROOT + '/', '')}`);
+console.log(
+  `  drew ${shapes.length} blots, ${crosses.length} marks and ${lines.length} lines into ${out.replace(ROOT + '/', '')}`,
+);

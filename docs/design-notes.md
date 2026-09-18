@@ -20,23 +20,27 @@ the map nodes are made by the same hand.
 
 ## The landing page
 
-One frame, 1920x1080: the title block in the clearing at the centre, marks scattered
-around it, and thin lines running between them to `The Atlas` sitting under the biggest
-star, with the three sections in a row beneath. It is the map in miniature — the same
-grammar of blobs, marks and connecting lines — so that pressing through is continuous
-with what you find behind it rather than a jump to a different idea. One of the drawing's
-lines runs from the Atlas button down to the section menu, so the buttons read as part of
-the constellation rather than as chrome dropped on top of it.
+One frame, 1920x1080: the title block in the clearing at the centre, a network of marks
+around it, and `The Atlas` with the three sections in a row beneath, joined into that
+network by its own lines. It is not a picture of the map, it is the map: the blots come
+from `blobPath` and the crosses from `crossInCircle` — the same functions the canvas
+draws with — in the same survey washes, so the page you land on and the map you land in
+are one drawing at two scales. Pressing through is continuous rather than a jump to a
+different idea.
 
-The marks are brush strokes: a centreline whose width varies along its length, filled as
-an outline rather than stroked. A pen has a nib and the nib turns, so the line swells
-where the hand pressed and thins where it lifted; that one property is most of what
-separates a drawn mark from a plotted one. Closed centrelines come back as hollow rings,
-which is where the blob shapes come from.
+What the drawing says is what the map says: subjects are blots, sized by weight; research
+is a cross in a circle; and a thin ink line means these two have something to do with each
+other. The lines are bowed rather than straight — a hand does not draw two points without
+leaning slightly one way — and the lean is seeded, so the file is the same every time it
+is drawn. The middle of the frame is left to the buttons: the bottom of the network is
+reached down the sides rather than straight through them, and one line runs from the Atlas
+button to the section menu so the buttons read as part of the constellation rather than as
+chrome dropped on top of it.
 
-They are generated rather than hand-authored (`scripts/draw-hero.mjs`) so they stay
-editable as geometry — points and widths — instead of freezing into path data nobody can
-adjust. Type is overlaid as real HTML on the same coordinates, sized in container-query
+It is generated rather than hand-authored (`scripts/draw-hero.mjs`) so it stays editable
+as geometry: the file holds a list of blots with their positions and reach, and a list of
+what is joined to what. Move a blot, run `npm run draw`, and the lines follow — instead of
+path data nobody can adjust. Type is overlaid as real HTML on the same coordinates, sized in container-query
 units so it scales with the drawing and stays on the lines that point at it. Below 48rem
 the frame is too small to read type off, so the composition unstacks: type at ordinary
 sizes first, the drawing kept underneath as a coda.
