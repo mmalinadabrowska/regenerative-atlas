@@ -147,7 +147,7 @@ export function createConstellation(canvas, options = {}) {
   let neighbours = new Map();
   let drawLinks = true;
   /** The marks the last arrangement had and this one does not, fading out. */
-  let leaving = { nodes: [], links: [] };
+  let leaving = { nodes: [], links: [], islands: false };
 
   let transition = null;      // { at, until } while the graph is rearranging
   let drifting = false;
@@ -176,8 +176,11 @@ export function createConstellation(canvas, options = {}) {
   const settings = {
     repulsion: 260,
     theta: 0.9,
-    linkStrength: { tagged: 0.07, kin: 0.02 },
-    linkDistance: { tagged: 92, kin: 190 },
+    // Affinity is what holds an island together — two tags pulled towards each
+    // other by the research they share. It is the strongest, shortest tie on
+    // the map because a theme has to read as one place from across the room.
+    linkStrength: { tagged: 0.07, kin: 0.02, affinity: 0.1 },
+    linkDistance: { tagged: 92, kin: 190, affinity: 74 },
     clusterGravity: 0.055,
     centreGravity: 0.006,
     decay: 0.78,
@@ -520,6 +523,7 @@ export function createConstellation(canvas, options = {}) {
     const previouslyPlaced = new Set(nodes.map((n) => n.id));
     const wasDrawn = drawLinks ? links : [];
     const wasShown = nodes;
+    const wasIslands = !drawLinks;
     const heldKeys = new Set(wasDrawn.map(linkKey));
 
     if (!focused) {
@@ -594,6 +598,7 @@ export function createConstellation(canvas, options = {}) {
     leaving = {
       nodes: wasShown.filter((n) => !byId.has(n.id)),
       links: wasDrawn.filter((l) => !links.some((k) => linkKey(k) === linkKey(l))),
+      islands: wasIslands,
     };
 
     neighbours = new Map(nodes.map((n) => [n.id, new Set()]));
@@ -631,7 +636,7 @@ export function createConstellation(canvas, options = {}) {
         node.y = node.ty;
       }
       transition = null;
-      leaving = { nodes: [], links: [] };
+      leaving = { nodes: [], links: [], islands: false };
       fitWhenSettled = true;
       if (!focused) reheat(1);
       else {
@@ -816,7 +821,7 @@ export function createConstellation(canvas, options = {}) {
       }
       if (t >= 1) {
         transition = null;
-        leaving = { nodes: [], links: [] };
+        leaving = { nodes: [], links: [], islands: false };
         labelFade = 1;
         enterFade = 1;
         exitFade = 0;
@@ -908,7 +913,7 @@ export function createConstellation(canvas, options = {}) {
     // Cluster and centre gravity.
     for (const node of nodes) {
       const anchor = anchorFor(node.cluster);
-      const pull = node.type === 'tag' ? settings.clusterGravity * 1.9 : settings.clusterGravity;
+      const pull = node.type === 'tag' ? settings.clusterGravity * 3.4 : settings.clusterGravity;
       node.vx += (anchor.x - node.x) * pull * alpha;
       node.vy += (anchor.y - node.y) * pull * alpha;
       node.vx += -node.x * settings.centreGravity * alpha;
@@ -1023,6 +1028,132 @@ export function createConstellation(canvas, options = {}) {
     return set;
   }
 
+  /* --- the ground ------------------------------------------------------- */
+
+  /**
+   * The islands are drawn on ground of their own: one outline round each theme,
+   * hatched the way a survey sheet hatches a formation it has no colour left
+   * for. It says what the layout already says — these tags belong together —
+   * but says it to the eye at a glance, before a single name is read.
+   *
+   * Everything here is deliberately faint. The territories are the bottom layer
+   * of the drawing and must never compete with the blots sitting on them.
+   */
+  const HATCHES = [
+    [45],
+    [135],
+    [45, 135],
+    [90],
+    [0],
+    [22, 112],
+  ];
+
+  /** Andrew's monotone chain. Deterministic, and short enough to keep here. */
+  function hullOf(points) {
+    if (points.length < 3) return points;
+    const sorted = [...points].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+    const cross = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+    const half = (list) => {
+      const out = [];
+      for (const p of list) {
+        while (out.length >= 2 && cross(out[out.length - 2], out[out.length - 1], p) <= 0) out.pop();
+        out.push(p);
+      }
+      out.pop();
+      return out;
+    };
+    return [...half(sorted), ...half(sorted.reverse())];
+  }
+
+  /**
+   * The outline round a theme: every blot in it ringed at arm's length, the
+   * hull of all those rings, and a seeded wobble on each corner so the boundary
+   * reads as drawn rather than computed.
+   */
+  function territoryPath(members, pad) {
+    const points = [];
+    for (const node of members) {
+      const { x, y } = toScreen(node);
+      const reach = node.radius * view.k + pad;
+      for (let i = 0; i < 12; i++) {
+        const angle = (i / 12) * Math.PI * 2;
+        points.push([x + Math.cos(angle) * reach, y + Math.sin(angle) * reach]);
+      }
+    }
+    const hull = hullOf(points);
+    if (hull.length < 3) return null;
+
+    const random = rng(seedOf(`ground:${members[0].cluster}`));
+    const drawn = hull.map(([x, y]) => {
+      const wobble = (random() - 0.5) * pad * 0.55;
+      const lean = (random() - 0.5) * pad * 0.55;
+      return [x + wobble, y + lean];
+    });
+
+    const path = new Path2D();
+    const at = (i) => drawn[((i % drawn.length) + drawn.length) % drawn.length];
+    const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+    const start = mid(at(0), at(1));
+    path.moveTo(start[0], start[1]);
+    for (let i = 1; i <= drawn.length; i++) {
+      const control = at(i);
+      const end = mid(control, at(i + 1));
+      path.quadraticCurveTo(control[0], control[1], end[0], end[1]);
+    }
+    path.closePath();
+    return path;
+  }
+
+  function paintTerritories(alphaOf) {
+    if (alphaOf < 0.01) return;
+
+    const groups = new Map();
+    for (const node of nodes) {
+      if (node.type !== 'tag' || node.cluster == null) continue;
+      if (!groups.has(node.cluster)) groups.set(node.cluster, []);
+      groups.get(node.cluster).push(node);
+    }
+
+    const pad = Math.max(22 * view.k, 14);
+    const step = Math.max(9 * view.k, 6);
+
+    for (const [cluster, members] of groups) {
+      if (members.length < 2) continue;
+      const path = territoryPath(members, pad);
+      if (!path) continue;
+
+      ctx.save();
+      ctx.globalAlpha = alphaOf;
+      ctx.clip(path);
+      ctx.strokeStyle = 'rgba(16,15,13,0.16)';
+      ctx.lineWidth = Math.max(0.55 * view.k, 0.45);
+      // Hatching is drawn as parallel lines across the whole frame and clipped
+      // to the outline: cheaper than a pattern, and it stays put when the map
+      // is panned because it is laid out in screen space with the marks.
+      for (const angle of HATCHES[cluster % HATCHES.length]) {
+        const radians = (angle * Math.PI) / 180;
+        const dx = Math.cos(radians);
+        const dy = Math.sin(radians);
+        const span = Math.hypot(width, height);
+        ctx.beginPath();
+        for (let offset = -span; offset <= span; offset += step) {
+          ctx.moveTo(width / 2 + dx * -span - dy * offset, height / 2 + dy * -span + dx * offset);
+          ctx.lineTo(width / 2 + dx * span - dy * offset, height / 2 + dy * span + dx * offset);
+        }
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      ctx.save();
+      ctx.globalAlpha = alphaOf;
+      ctx.strokeStyle = 'rgba(16,15,13,0.38)';
+      ctx.lineWidth = Math.max(1 * Math.min(view.k, 1.4), 0.8);
+      ctx.lineJoin = 'round';
+      ctx.stroke(path);
+      ctx.restore();
+    }
+  }
+
   function draw() {
     ctx.clearRect(0, 0, width, height);
     ctx.fillStyle = THEME.paper;
@@ -1031,6 +1162,12 @@ export function createConstellation(canvas, options = {}) {
     const focus = focusSet();
     const isMuted = (node) =>
       (focus && !focus.has(node.id)) || (dimmed.size > 0 && dimmed.has(node.id));
+
+    // The themes' ground, under everything, and only on the islands: inside an
+    // opened view you are looking at one thing and its ties, not at territory.
+    // It comes and goes on the same dissolve the islands themselves do.
+    if (!focused) paintTerritories(transition ? enterFade : 1);
+    else if (leaving.islands) paintTerritories(exitFade);
 
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';

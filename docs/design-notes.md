@@ -152,6 +152,22 @@ fixed scale in its own coordinate space; the view is then fitted to what it sett
 into, with a floor on the zoom so marks never shrink into dust. Tying the layout to the
 viewport makes the map collapse in a short window and drift in a tall one.
 
+**The islands are drawn on ground of their own.** Each theme gets an outline round
+its blots and a hatch inside it — diagonal, cross, vertical, horizontal, by cluster —
+the way a survey sheet hatches a formation it has no colour left for. The boundary is
+the hull of the blots at arm's length, wobbled on a seed so it reads as drawn rather
+than computed, and every part of it is faint: the ground is the bottom layer of the
+drawing and must never compete with the marks standing on it. It says what the layout
+already says — these tags belong together — but says it at a glance, before a name is
+read. It belongs to the islands only: inside an opened view you are looking at one
+thing and its ties, not at territory, and the ground comes and goes on the same
+dissolve the islands do.
+
+What holds an island together is affinity — two tags pulled towards each other by the
+research they share — and it is the strongest, shortest tie on the map, because a theme
+has to read as one place from across the room. Cluster gravity is set high for tags for
+the same reason.
+
 **Filtering narrows the map rather than highlighting within it.** Choosing `materials`
 rebuilds the graph from those sources only, so clusters re-form around what is left.
 You are looking at a smaller atlas, not the same atlas with most of it greyed out.
