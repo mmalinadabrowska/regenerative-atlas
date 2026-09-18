@@ -141,7 +141,10 @@ a { color: inherit; }
    one you are on or pointing at. Nothing is filled by default. */
 .label {
   display: inline-block;
-  background: none;
+  text-align: center;
+  /* Opaque, always: a button with the drawing showing through it reads as a
+     line crossing a button rather than as a button. */
+  background: var(--paper);
   color: var(--ink);
   font-family: var(--sans);
   font-weight: 400;
@@ -164,7 +167,7 @@ a.label:focus-visible, button.label:focus-visible,
 
 button.label[disabled] { opacity: 0.4; cursor: progress; }
 
-.label--wide { min-width: min(18rem, 70vw); text-align: left; }
+.label--wide { min-width: min(18rem, 70vw); }
 .label--small { font-size: 0.95rem; padding: 0.32em 0.95em 0.38em; }
 
 /* --- the connected navigation ---------------------------------------------
@@ -186,6 +189,8 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  text-align: center;
+  background: var(--paper);
   padding: 0.34em 1.05em 0.4em;
   border: var(--stroke) solid var(--ink);
   border-radius: 999px;
@@ -196,8 +201,8 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   transition: color 140ms ease;
 }
 
-/* Once the curve is drawn the individual borders would double it. */
-[data-connected-nav].is-connected > a { border-color: transparent; }
+/* Once the curve is drawn the individual borders and grounds would double it. */
+[data-connected-nav].is-connected > a { border-color: transparent; background: none; }
 [data-connected-nav] > a.is-on { color: var(--paper); }
 
 [data-connected-nav]:not(.is-connected) > a[aria-current='page'] {
@@ -221,6 +226,8 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   overflow: visible;
   pointer-events: none;
 }
+
+.connected__ground { fill: var(--paper); stroke: none; }
 
 .connected__outline {
   fill: none;
@@ -394,7 +401,14 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
     height: auto;
     margin: 0;
     transform: translate(-50%, -50%);
-    opacity: 0.2;
+  }
+
+  /* The drawing is the same ink drawing it is on a wide screen, so the words
+     carry their own paper — the halo the map already prints its labels with. */
+  .hero__type {
+    text-shadow:
+      0 0 0.32em var(--paper), 0 0 0.32em var(--paper),
+      0 0 0.7em var(--paper), 0 0 1.1em var(--paper);
   }
 
   /* Relative, to sit over the drawing — so the offsets that place it in the
@@ -486,6 +500,8 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   color: inherit;
   display: inline-flex;
   align-items: baseline;
+  justify-content: center;
+  text-align: center;
   gap: 0.45em;
   text-decoration: none;
   transition: background 120ms ease, border-color 120ms ease, color 120ms ease;

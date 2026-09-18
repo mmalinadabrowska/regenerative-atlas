@@ -52,9 +52,11 @@ island and every line that meets it follow — instead of path data nobody can a
 units so it scales with the drawing and stays on the lines that point at it. Below 48rem
 the frame is too small to read type off, so the composition unstacks: type at ordinary
 sizes, left-aligned in the gutter, with the drawing going behind it as ground — wider
-than the screen so it runs off both edges, and faint enough to read off. A drawing that
-small at the foot of the page was a postage stamp of a map; behind the words it is the
-paper the page is printed on.
+than the screen so it runs off both edges. A drawing that small at the foot of the page
+was a postage stamp of a map; behind the words it is the paper the page is printed on.
+It is the same ink drawing it is on a wide screen rather than a faded one: the words
+carry their own paper instead, as a halo — which is the trick the map already prints its
+labels with, and it keeps one black drawing rather than two greys.
 
 ## Decisions worth knowing about
 
@@ -285,7 +287,11 @@ a second mark.
 
 Every button is an outline at rest and fills black when it is the one you are on or
 pointing at. Nothing is filled by default, so the page has one ink weight and the filled
-shape is always the answer to "where am I".
+shape is always the answer to "where am I". Its label is centred, and its ground is
+paper rather than nothing: a button with the drawing showing through it reads as a line
+crossing a button rather than as a button. The connected nav paints that ground as a
+fourth layer of its one shape — paper, then the per-item fills, then the outline, so the
+stroke is never half-covered by a filled capsule.
 
 Navigation goes further: a row of capsules whose outlines merge into a single continuous
 curve, pinching inward through a concave fillet where two neighbours meet. It is real

@@ -146,7 +146,14 @@ function draw(container) {
   const fills = caps
     .map((cap, i) => `<path class="connected__fill" data-fill="${i}" d="${capsulePath(cap, cy, r)}"/>`)
     .join('');
-  svg.innerHTML = `${fills}<path class="connected__outline" d="${outlinePath(caps, cy, r, r * FILLET)}"/>`;
+  // Three layers to the one shape: paper underneath, so whatever the row is
+  // sitting on does not run through it; the per-item fills; then the outline
+  // on top, where its stroke cannot be half-covered by a filled capsule.
+  const shape = outlinePath(caps, cy, r, r * FILLET);
+  svg.innerHTML =
+    `<path class="connected__ground" d="${shape}"/>` +
+    fills +
+    `<path class="connected__outline" d="${shape}"/>`;
 
   container.classList.add('is-connected');
   sync(container, items);

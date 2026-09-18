@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ask · Regenerative Atlas</title>
+<meta name="description" content="Put a question to the Atlas — not open yet.">
+<link rel="stylesheet" href="/styles/atlas.css">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+</head>
+<body class="page">
+
+<header class="topbar">
+  <a class="topbar__brand" href="/">Regenerative Atlas</a>
+  <nav class="navgroup" data-connected-nav aria-label="Sections of the Atlas">
+    <a class="navgroup__mark" data-connect href="/" aria-label="Atlas home"><svg viewBox="-11 -11 22 22" aria-hidden="true"><path d="M -5 -5 A 5 5 0 0 1 5 -5 A 5 5 0 0 1 5 5 A 5 5 0 0 1 -5 5 A 5 5 0 0 1 -5 -5 Z"/></svg></a>
+    <a data-connect href="/map">Explore</a>
+    <a data-connect href="/themes">Themes</a>
+    <a data-connect href="/add">Add</a>
+  </nav>
+  <span class="topbar__count" data-count></span>
+</header>
+
+<main class="sheet">
+  <div class="masthead masthead--left" style="padding-inline:0">
+    <h1 class="wordmark" style="font-size:clamp(2rem,4.5vw,3.2rem)">Ask</h1>
+    <p class="blurb">A place to put a question to the library rather than to search it —
+      what the Atlas holds on a subject, where a thread leads, what is missing.</p>
+  </div>
+
+  <p class="notice">This part of the Atlas is not open yet. Until it is, the two doors
+    that are: the map answers what is here and what it sits beside, and anyone can add
+    a source that answers a question the library cannot.</p>
+
+  <p style="margin-top:2rem">
+    <a class="label" href="/map">Explore</a>
+    <a class="label" href="/add">Add</a>
+  </p>
+</main>
+
+<script type="module">
+  import { fillCount } from '/js/api.js';
+  fillCount();
+</script>
+<script type="module" src="/js/connected-nav.js"></script>
+</body>
+</html>
