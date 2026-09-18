@@ -283,10 +283,45 @@ directly, or opening it, draws it round in ink: an outline on the blot itself
 rather than a halo around it, so it reads as that blot picked out rather than as
 a second mark.
 
+## Fitting the map on a phone
+
+A map that does not fit is not a map, and the phone was the case where it did not.
+Two things were keeping it small.
+
+The first was the allowance for names. Labels are drawn at a fixed size in screen
+pixels, so the room they need depends on the scale being solved for — which is
+circular, and the old fit cut the knot with a flat reserve of up to fifty-eight
+pixels a side. On a laptop that is breathing room; on a 390-pixel screen it is
+nearly a third of the width, gone before a single blot is placed. `frameOf` now
+measures: it fits the marks, measures the names at that scale, fits again, and
+settles on the third pass. A name is capped at 140 pixels of influence, so one long
+title is allowed to hang over the edge rather than pull the whole arrangement
+smaller — past that the fit would be framing a line of type instead of a map.
+
+The second was the shape of the archipelago. The cluster ring is squashed to the
+frame it sits in, but the squash was capped at 1.5 — near enough square on a screen
+that is nearly twice as tall as it is wide, so the fit was bound by width and left
+the map floating in a band with empty paper above and below it. The cap is 2.2 now:
+a phone gets a tall archipelago and fills its screen.
+
+Zoom and recentre moved with it. In the scrolling row of filters they sat after
+every tag, which on a phone meant they were found by accident or not at all. They
+leave the row and stand on the map instead, bottom right where a thumb already is:
+three round buttons, `fixed` rather than absolute so the row they are written
+inside cannot scroll them away or clip them, riding above the drawer on the peek
+height the sheet publishes and stepping aside altogether when the drawer is all the
+way up and there is no map left to steer. Recentre keeps its word on a wide screen
+and becomes a frame-and-dot mark on a narrow one, where the word would cost more
+room than the map can spare. The label pass keeps clear of them, so no name is
+printed underneath a button.
+
 ## Buttons
 
 Every button is an outline at rest and fills black when it is the one you are on or
-pointing at. Nothing is filled by default, so the page has one ink weight and the filled
+pointing at — where pointing is something the device can actually do. A touchscreen
+has no hover to leave, so `:hover` sticks there after a tap and leaves a button
+looking switched on when it is nothing of the kind; the fill is `@media (hover:
+hover)` for pointers and `:active` for thumbs. Nothing is filled by default, so the page has one ink weight and the filled
 shape is always the answer to "where am I". One button breaks that rule on purpose: `The Atlas` on the landing page is filled at
 rest, because it is the way in and the page should not need a second look to find it.
 Pointing at it cannot fill it any further, so it breathes instead — a slow scale between

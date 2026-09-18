@@ -5,6 +5,7 @@ import { createConstellation } from './constellation.js';
 import { blobPath, seedOf } from './ink.js';
 
 const canvas = document.getElementById('constellation');
+const zoomCluster = document.querySelector('.map-zoom');
 const searchInput = document.getElementById('map-search');
 const filterBox = document.getElementById('map-filters');
 const clearButton = document.getElementById('map-clear');
@@ -68,6 +69,19 @@ const map = createConstellation(canvas, {
         y: 0,
         w: canvasBox.width,
         h: Math.max(controls.bottom - canvasBox.top + 6, 0),
+      });
+    }
+
+    // Names should not print under the floating zoom cluster either. On a wide
+    // screen it is `display: contents` and has no box at all, so an empty rect
+    // is the same question as "is this a phone".
+    const zoomBox = zoomCluster.getBoundingClientRect();
+    if (zoomBox.height > 0) {
+      keepClear.push({
+        x: zoomBox.left - canvasBox.left - 8,
+        y: zoomBox.top - canvasBox.top - 8,
+        w: zoomBox.width + 16,
+        h: zoomBox.height + 16,
       });
     }
 
@@ -417,7 +431,12 @@ function measurePeek() {
   const top = panel.getBoundingClientRect().top;
   const last = (meta ?? head).getBoundingClientRect().bottom;
   const peek = last - top + (meta ? 14 : 0);
-  if (peek > 0) panel.style.setProperty('--sheet-peek', `${Math.round(peek)}px`);
+  if (peek <= 0) return;
+  panel.style.setProperty('--sheet-peek', `${Math.round(peek)}px`);
+  // The floating zoom cluster rides above the drawer, and it is a cousin of the
+  // sheet rather than a child of it, so the measurement is published on the
+  // shell where both can read it.
+  panel.parentElement.style.setProperty('--sheet-peek', `${Math.round(peek)}px`);
 }
 
 function closePanel() {

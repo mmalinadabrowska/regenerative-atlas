@@ -249,43 +249,98 @@ export function createConstellation(canvas, options = {}) {
     const shallow = frame.height < 260;
     const framed = shallow ? nodes.filter((node) => !node.isHalo) : nodes;
 
-    let minX = Infinity;
-    let minY = Infinity;
-    let maxX = -Infinity;
-    let maxY = -Infinity;
-    for (const node of framed.length ? framed : nodes) {
-      const nx = targets ? node.tx ?? node.x : node.x;
-      const ny = targets ? node.ty ?? node.y : node.y;
-      minX = Math.min(minX, nx - node.radius);
-      minY = Math.min(minY, ny - node.radius);
-      maxX = Math.max(maxX, nx + node.radius);
-      maxY = Math.max(maxY, ny + node.radius);
-    }
-    const spanX = Math.max(maxX - minX, 1);
-    const spanY = Math.max(maxY - minY, 1);
-
     // Margin scales with the frame: ninety pixels is breathing room on a laptop
     // and a third of a phone.
     const margin = Math.min(padding, frame.width * 0.08, frame.height * 0.08);
-    // Names run out to either side of the mark they belong to, and the bounding
-    // box above only knows about the marks. Without an allowance for the text
-    // the outermost labels are the part that gets cut off.
-    const labelRoom = Math.min(58, frame.width * 0.14);
-    const ideal = Math.min(
-      (frame.width - (margin + labelRoom) * 2) / spanX,
-      (frame.height - margin * 2) / spanY,
-    );
+    const ceiling = focused ? 1.7 : 2.8;
 
-    // The islands are allowed to fill the frame: the blots are the content
-    // there, not a summary of it. The floor only stops the marks becoming dust —
-    // it must never be what keeps the map from fitting on a small screen.
-    const k = Math.min(focused ? 1.7 : 2.8, Math.max(0.25, ideal));
+    // What the marks and their names occupy, at a given scale. Names are drawn
+    // at a fixed size in screen pixels, so how much of the world they cover
+    // depends on the very scale being solved for — hence the passes below.
+    function boundsAt(k) {
+      let minX = Infinity;
+      let minY = Infinity;
+      let maxX = -Infinity;
+      let maxY = -Infinity;
+      for (const node of framed.length ? framed : nodes) {
+        const nx = targets ? node.tx ?? node.x : node.x;
+        const ny = targets ? node.ty ?? node.y : node.y;
+        minX = Math.min(minX, nx - node.radius);
+        minY = Math.min(minY, ny - node.radius);
+        maxX = Math.max(maxX, nx + node.radius);
+        maxY = Math.max(maxY, ny + node.radius);
+        const name = k > 0 ? labelExtent(node) : null;
+        if (!name) continue;
+        minX = Math.min(minX, nx - name.width / 2 / k);
+        maxX = Math.max(maxX, nx + name.width / 2 / k);
+        maxY = Math.max(maxY, ny + node.radius + name.drop / k);
+      }
+      return { minX, minY, maxX, maxY };
+    }
+
+    // Fit the marks, then fit them again knowing how much room their names took
+    // at that scale, and once more to settle it. A measured allowance beats a
+    // fixed one: a flat reserve wide enough for a long name on a laptop is a
+    // third of a phone, which is what used to leave the map adrift in the middle
+    // of a small screen.
+    let bounds = boundsAt(0);
+    let k = ceiling;
+    for (let pass = 0; pass < 3; pass++) {
+      const spanX = Math.max(bounds.maxX - bounds.minX, 1);
+      const spanY = Math.max(bounds.maxY - bounds.minY, 1);
+      // The islands are allowed to fill the frame: the blots are the content
+      // there, not a summary of it. The floor only stops the marks becoming
+      // dust — it must never be what keeps the map from fitting on a small
+      // screen.
+      k = Math.min(
+        ceiling,
+        Math.max(
+          0.25,
+          Math.min((frame.width - margin * 2) / spanX, (frame.height - margin * 2) / spanY),
+        ),
+      );
+      bounds = boundsAt(k);
+    }
+
     return {
       k,
-      x: frame.left + frame.width / 2 - ((minX + maxX) / 2) * k,
-      y: frame.top + frame.height / 2 - ((minY + maxY) / 2) * k,
+      x: frame.left + frame.width / 2 - ((bounds.minX + bounds.maxX) / 2) * k,
+      y: frame.top + frame.height / 2 - ((bounds.minY + bounds.maxY) / 2) * k,
     };
   }
+
+  /**
+   * How wide a node's name is drawn, and how far below the mark it hangs — in
+   * screen pixels, since that is how names are drawn. Measured once per node
+   * and kept: the text and its font only change when the library does.
+   */
+  const labelSizes = new Map();
+  function labelExtent(node) {
+    const policy = labelPolicy(node, node === focused, false);
+    if (!policy) return null;
+    const key = `${node.id}|${policy.limit}`;
+    const known = labelSizes.get(key);
+    if (known) return known;
+    ctx.save();
+    ctx.font = labelFont(node);
+    const text = node.label.length > policy.limit
+      ? `${node.label.slice(0, policy.limit - 1)}\u2026`
+      : node.label;
+    // A long name is allowed to hang over the edge a little rather than pull the
+    // whole arrangement smaller: past a point the fit would be framing a line of
+    // type instead of a map.
+    const size = { width: Math.min(ctx.measureText(text).width, 140), drop: 22 };
+    ctx.restore();
+    labelSizes.set(key, size);
+    return size;
+  }
+
+  // A tag's name is sized like the tag: the bigger the territory, the louder it
+  // is allowed to be. Shared so the fit measures the type the drawing will use.
+  const labelFont = (node) =>
+    node.type === 'tag'
+      ? `${Math.max(11, Math.min(18, 10.5 + (node.count ?? 1) * 0.5))}px "Tremplin", "Century Gothic", system-ui, sans-serif`
+      : '12px "EB Garamond", Georgia, serif';
 
   /** Frame what is on screen now. */
   function fit(padding = 90) {
@@ -311,7 +366,7 @@ export function createConstellation(canvas, options = {}) {
     // way instead of leaving half of it empty.
     const squash = focused
       ? Math.min(1, Math.max(0.5, height / Math.max(width, 1)))
-      : Math.min(1.5, Math.max(0.7, (height / Math.max(width, 1)) * 1.25));
+      : Math.min(2.2, Math.max(0.7, (height / Math.max(width, 1)) * 1.25));
     return { x: Math.cos(angle) * radius, y: Math.sin(angle) * radius * squash };
   }
 
@@ -1322,12 +1377,7 @@ export function createConstellation(canvas, options = {}) {
       const stays = held(node);
       if (dissolved && !stays) continue;
       const active = stays;
-      // A tag's name is sized like the tag: the bigger the territory, the
-      // louder it is allowed to be.
-      ctx.font =
-        node.type === 'tag'
-          ? `${Math.max(11, Math.min(18, 10.5 + (node.count ?? 1) * 0.5))}px "Tremplin", "Century Gothic", system-ui, sans-serif`
-          : '12px "EB Garamond", Georgia, serif';
+      ctx.font = labelFont(node);
 
       const { limit } = policy;
       const text = node.label.length > limit ? `${node.label.slice(0, limit - 1)}…` : node.label;
