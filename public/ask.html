@@ -24,24 +24,29 @@
 <main class="sheet">
   <div class="masthead masthead--left" style="padding-inline:0">
     <h1 class="wordmark" style="font-size:clamp(2rem,4.5vw,3.2rem)">Ask</h1>
-    <p class="blurb">A place to put a question to the library rather than to search it —
-      what the Atlas holds on a subject, where a thread leads, what is missing.</p>
+    <p class="blurb">A question put to the library rather than a search of it. Ask reads what
+      you write, works out which of the Atlas's own subjects you are after, and answers from
+      the sources people have added here — it does not search the web, and where the library
+      has nothing it says so.</p>
   </div>
 
-  <p class="notice">This part of the Atlas is not open yet. Until it is, the two doors
-    that are: the map answers what is here and what it sits beside, and anyone can add
-    a source that answers a question the library cannot.</p>
+  <form id="ask-form" class="ask">
+    <label class="field" for="ask-question">
+      <span>What are you exploring within regenerative practice? Describe what you're
+        exploring and what you'd like to find in a couple of sentences.</span>
+      <textarea id="ask-question" name="question" rows="3" maxlength="600" required
+        placeholder="I'm retrofitting a 1960s school and need embodied carbon benchmarks I can hold the design to…"></textarea>
+    </label>
+    <div class="ask__send">
+      <button class="label" id="ask-send" type="submit">Ask</button>
+      <span class="ask__bounds">Searches <span id="ask-scope">this library</span> — nothing beyond it.</span>
+    </div>
+  </form>
 
-  <p style="margin-top:2rem">
-    <a class="label" href="/map">Explore</a>
-    <a class="label" href="/add">Add</a>
-  </p>
+  <div id="ask-thread" class="ask__thread" aria-live="polite"></div>
 </main>
 
-<script type="module">
-  import { fillCount } from '/js/api.js';
-  fillCount();
-</script>
+<script type="module" src="/js/ask.js"></script>
 <script type="module" src="/js/connected-nav.js"></script>
 </body>
 </html>

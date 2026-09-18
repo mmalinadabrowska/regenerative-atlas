@@ -9,6 +9,7 @@
 import { buildGraph } from './graph.js';
 import { describeUrl } from './metadata.js';
 import { CORE_TAGS, FACETS, FACET_ORDER, aliasIndex, resolveTags } from './vocabulary.js';
+import { ask } from './ask.js';
 
 const LIMITS = {
   title: 300,
@@ -110,6 +111,23 @@ export const handlers = {
       includeTagNodes: params.get('tags') !== 'off',
       minKinship: Number(params.get('kinship')) || undefined,
     });
+  },
+
+  /**
+   * A question in prose, answered from this library and nothing else. It is a
+   * read, not a write: it changes nothing and can be asked as often as you like.
+   */
+  ask(atlas, body) {
+    const question = typeof body === 'string' ? body : body?.question;
+    if (typeof question !== 'string') {
+      throw new ApiError(400, 'Ask a question.', { question: 'Expected a sentence or two.' });
+    }
+    if (question.length > 600) {
+      throw new ApiError(400, 'That is longer than a question.', {
+        question: 'Keep it to a couple of sentences.',
+      });
+    }
+    return ask(atlas, question);
   },
 
   stats(atlas) {

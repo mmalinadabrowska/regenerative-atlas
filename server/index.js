@@ -190,6 +190,12 @@ export function createAtlasServer(atlas) {
             }
             return sendJson(res, 200, await handlers.describe(atlas, body));
           }
+          if (pathname === '/api/ask') {
+            if (!describeLimit(clientKey(req))) {
+              return sendJson(res, 429, { error: 'One question at a time — try again in a moment.' });
+            }
+            return sendJson(res, 200, handlers.ask(atlas, body));
+          }
           if (pathname === '/api/sources') {
             if (!submitLimit(clientKey(req))) {
               return sendJson(res, 429, {

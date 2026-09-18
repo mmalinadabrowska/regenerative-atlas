@@ -997,6 +997,70 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   * { scrollbar-width: thin; scrollbar-color: var(--ink-32) transparent; }
 }
 
+/* --- ask ------------------------------------------------------------------
+   A question and its answer, stacked newest first. The reply is set in the same
+   parts the record card uses — sentences, then subjects, then research — so an
+   answer looks like the Atlas rather than like a chat window.
+   -------------------------------------------------------------------------- */
+
+.ask { max-width: 46rem; margin-top: 2rem; }
+
+/* The prompt is a question, not a form label: set as the question it is. */
+.ask .field > span {
+  font-family: var(--display);
+  font-size: 1.1rem;
+  line-height: 1.45;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink);
+  max-width: 44ch;
+  margin-bottom: 0.7rem;
+}
+
+.ask textarea {
+  width: 100%;
+  font: inherit;
+  font-family: var(--display);
+  font-size: 1.05rem;
+  line-height: 1.5;
+  color: inherit;
+  background: var(--paper);
+  border: var(--stroke) solid var(--ink-32);
+  border-radius: 1rem;
+  padding: 0.85rem 1rem;
+  resize: vertical;
+}
+
+.ask textarea:focus { border-color: var(--ink); outline: none; }
+
+.ask__send {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.9rem;
+  margin-top: -0.4rem;
+}
+
+.ask__bounds { font-size: 0.82rem; color: var(--ink-55); }
+
+.ask__thread { margin-top: 2.5rem; display: grid; gap: 2.5rem; max-width: 46rem; }
+
+.ask__turn { display: grid; gap: 0.9rem; }
+
+.ask__asked {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 1.15rem;
+  line-height: 1.4;
+  padding-left: 0.9rem;
+  border-left: 2px solid var(--ink-32);
+}
+
+.ask__answer > p { margin: 0 0 0.7rem; max-width: 62ch; }
+.ask__answer .tag-cloud { margin: 0.9rem 0; }
+.ask__answer .panel__links { margin-top: 1rem; }
+.ask__onward { margin: 0.2rem 0 0; }
+
 /* --- notices ------------------------------------------------------------- */
 
 .notice {

@@ -308,13 +308,43 @@ measures the rendered items and draws the union outline behind them, so the curv
 exact at any width and in any typeface. Each item keeps its own border until that curve
 is drawn, so with the script blocked the nav is still a row of buttons.
 
+## Ask
+
+Ask is the library answering a question in prose, and it is deliberately not a chatbot:
+there is no model in `server/ask.js` and nothing behind it but this database. A question
+is read the way a librarian reads one. `interpret()` walks the sentence in phrases,
+longest first, so "life cycle assessment" is one subject rather than three, and a word
+swallowed by a tag is not searched again as loose text. Each phrase is put to the curated
+vocabulary, and only a slug the library actually holds counts — `resolveTag` never comes
+back empty (it slugifies whatever it is given), so a direct hit that names no tag here
+must lose to the stemmed form, which is how "retrofitting" reaches Retrofit rather than
+disappearing into the leftover words. The stem is crude on purpose — `-ies`, `-ing`,
+`-ed`, `-es`, `-s`, with the doubled consonant undone — and it is only ever tried after
+the word itself has failed, so it cannot take "building" apart into something the Atlas
+does not mean.
+
+What is left over after the tags is searched as text across title, authors, publisher,
+summary and note. `rank()` weighs a named tag by its IDF and a loose word at 0.6, so a
+question about `straw` is answered by the one source filed under it rather than the ten
+filed under `measurement`. `speak()` then says what it understood and what it found, and
+names what is missing: a subject the vocabulary knows but no source has claimed is called
+out as a gap rather than quietly dropped, and a question the library cannot answer gets
+told so. Every result carries its `why` — which tags it shares, which words it matched —
+because an answer you cannot check is not an answer.
+
+The endpoint is a read: `POST /api/ask` changes nothing and is rate-limited only so one
+script cannot sit on it. It is the one part of the site a static snapshot cannot fake,
+and the client says as much rather than pretending.
+
 ## What is deliberately missing
 
 - **No accounts.** Anyone can add; nobody owns their entries. Rate limiting and the
   merge-on-duplicate rule stand in for moderation, and `status = 'hidden'` exists in
   the schema for when it does not.
-- **No relevance ranking.** Kin lines are symmetric and unranked. The map shows what
-  is related, not what is important — that judgement stays with the reader.
+- **No relevance ranking on the map.** Kin lines are symmetric and unranked. The map
+  shows what is related, not what is important — that judgement stays with the reader.
+  Ask does rank, because a question has an answer; it shows its working so the ranking
+  can be argued with.
 - **No automatic tagging.** The server *suggests* tags from a link's text, and only
   ever from the curated vocabulary, but a person decides. Where a piece sits is the
   contribution.
