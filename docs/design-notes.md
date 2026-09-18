@@ -211,6 +211,11 @@ one thing on this site, which is *this is a subject*.
 
 Opening something gives you a card laid on the map, not a wall built beside it:
 outlined in ink, clear of every edge, with the map still running underneath.
+The card is backed in its title bar's colour and the record paints paper over the
+rest, rather than the other way round: backed in paper, the rounded corners left a
+pale seam between the stroke and the colour wherever the browser composited the
+sheet under a transform.
+
 Its title bar is the piece that does the work — ink for a piece of research,
 carrying its crosshair in paper; the tag's own colour for a tag, carrying the
 tag's own blot. Whatever you opened, its colour is on screen twice, in the bar

@@ -693,7 +693,10 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   right: 0.85rem;
   bottom: 0.85rem;
   width: min(25rem, calc(100% - 1.7rem));
-  background: var(--paper);
+  /* The card is backed in its title bar's colour, and the record paints paper
+     over the rest. Backed in paper, any seam the rounded corners leave under a
+     transform shows as a pale line between the stroke and the colour. */
+  background: var(--head);
   border: var(--stroke) solid var(--ink);
   border-radius: 0.9rem;
   overflow: hidden;
@@ -768,6 +771,7 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   flex: 1 1 auto;
   min-height: 0;
   display: flex;
+  background: var(--paper);
 }
 
 #panel-body {
@@ -998,7 +1002,7 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
     width: 100%;
     padding: 0.55rem 0 0.15rem;
     margin: 0;
-    background: var(--head);
+    background: none;
     border: 0;
     cursor: grab;
   }
