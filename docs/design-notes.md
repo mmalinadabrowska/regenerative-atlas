@@ -287,8 +287,14 @@ a second mark.
 
 Every button is an outline at rest and fills black when it is the one you are on or
 pointing at. Nothing is filled by default, so the page has one ink weight and the filled
-shape is always the answer to "where am I". Its label is centred, and its ground is
-paper rather than nothing: a button with the drawing showing through it reads as a line
+shape is always the answer to "where am I". One button breaks that rule on purpose: `The Atlas` on the landing page is filled at
+rest, because it is the way in and the page should not need a second look to find it.
+Pointing at it cannot fill it any further, so it breathes instead — a slow scale between
+1.035 and 1.085, stopped outright under `prefers-reduced-motion`, where a breath held at
+0.01ms is a flicker. The centring is done with `translate` so the pulse has `scale` to
+itself and does not need to know how the button is placed.
+
+Every other button's label is centred, and its ground is paper rather than nothing: a button with the drawing showing through it reads as a line
 crossing a button rather than as a button. The connected nav paints that ground as a
 fourth layer of its one shape — paper, then the per-item fills, then the outline, so the
 stroke is never half-covered by a filled capsule.
