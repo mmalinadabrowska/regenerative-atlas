@@ -378,19 +378,32 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
     aspect-ratio: auto;
     display: flex;
     flex-direction: column;
-    padding: 2.5rem var(--gutter) 0;
+    padding: 2.5rem var(--gutter) 3rem;
+    /* The drawing is wider than the phone and is meant to run off both edges. */
+    overflow: hidden;
   }
 
+  /* The map goes behind the words rather than under them: wider than the screen
+     so it runs off both edges as ground, and faint enough to read type off. */
   .hero__drawing {
-    position: static;
-    order: 3;
+    position: absolute;
+    order: 0;
+    top: 50%;
+    left: 50%;
+    width: 155vw;
     height: auto;
-    margin: 2.5rem -0.5rem 0;
-    opacity: 0.9;
+    margin: 0;
+    transform: translate(-50%, -50%);
+    opacity: 0.2;
   }
 
+  /* Relative, to sit over the drawing — so the offsets that place it in the
+     frame on a wide screen have to be undone rather than left inert. */
   .hero__type {
-    position: static;
+    position: relative;
+    z-index: 1;
+    top: auto;
+    left: auto;
     width: auto;
     text-align: left;
   }
@@ -400,7 +413,10 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   .hero .blurb { font-size: 1rem; margin-top: 1.4rem; }
 
   .hero__atlas {
-    position: static;
+    position: relative;
+    z-index: 1;
+    top: auto;
+    left: auto;
     order: 2;
     transform: none;
     align-self: flex-start;
@@ -413,6 +429,7 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
     /* Stays relative: it is the containing block for the curve drawn behind it,
        and going static would anchor that SVG to the hero instead. */
     position: relative;
+    z-index: 1;
     top: auto;
     left: auto;
     order: 3;
@@ -423,8 +440,6 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   }
 
   .hero__menu > a { font-size: 0.95rem; padding: 0.34em 1.05em 0.4em; }
-
-  .hero__drawing { order: 4; }
 
   .landing-foot { flex-direction: column; gap: 1rem; }
   .landing-foot__curator { text-align: left; }

@@ -37,9 +37,13 @@ Nothing is hand-placed but the islands' anchors and the ground kept clear for th
 Each island is a weight for its biggest blot and a tail of smaller ones, scattered on a
 seed and rejected wherever they would touch another blot or the type; inside an island
 every blot hangs off the nearest one already placed, and between islands the shortest
-pair is bridged. The middle of the frame belongs to the buttons, and one line runs from
-the Atlas button to the section menu so they read as part of the constellation rather
-than as chrome dropped on top of it.
+pair is bridged. The middle of the frame belongs to the words, and no
+line may cross them: every join is walked as a curve and rejected if any point of it
+lands on the title block or a button — a bowed line can miss a box at both ends and
+still go straight through it. Bridges between islands take the shortest pair that keeps
+clear rather than the shortest pair. The few lines that point *at* the type stop on its
+edge, and one runs from the Atlas button to the section menu so the buttons read as part
+of the constellation rather than as chrome dropped on top of it.
 
 It is generated rather than hand-authored (`scripts/draw-hero.mjs`) so it stays editable
 as intent: the file holds seven anchors, the weights of the blots each one carries, and
@@ -47,7 +51,10 @@ which islands are near enough to bridge. Move an anchor, run `npm run draw`, and
 island and every line that meets it follow — instead of path data nobody can adjust. Type is overlaid as real HTML on the same coordinates, sized in container-query
 units so it scales with the drawing and stays on the lines that point at it. Below 48rem
 the frame is too small to read type off, so the composition unstacks: type at ordinary
-sizes first, the drawing kept underneath as a coda.
+sizes, left-aligned in the gutter, with the drawing going behind it as ground — wider
+than the screen so it runs off both edges, and faint enough to read off. A drawing that
+small at the foot of the page was a postage stamp of a map; behind the words it is the
+paper the page is printed on.
 
 ## Decisions worth knowing about
 

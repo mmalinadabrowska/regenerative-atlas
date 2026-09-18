@@ -92,15 +92,37 @@ const islands = themes.map((theme, t) => {
 const round = (v) => Math.round(v * 10) / 10;
 
 /** A line with a little bow in it — a hand does not join two points straight. */
-function joinPath(a, b, seed) {
+function bow(a, b, seed) {
   const random = rng(seedOf(seed));
   const dx = b.x - a.x;
   const dy = b.y - a.y;
   const length = Math.hypot(dx, dy) || 1;
   const lean = (random() - 0.5) * Math.min(length * 0.08, 30);
-  const cx = (a.x + b.x) / 2 - (dy / length) * lean;
-  const cy = (a.y + b.y) / 2 + (dx / length) * lean;
+  return { cx: (a.x + b.x) / 2 - (dy / length) * lean, cy: (a.y + b.y) / 2 + (dx / length) * lean };
+}
+
+function joinPath(a, b, seed) {
+  const { cx, cy } = bow(a, b, seed);
   return `M ${round(a.x)} ${round(a.y)} Q ${round(cx)} ${round(cy)} ${round(b.x)} ${round(b.y)}`;
+}
+
+/**
+ * Does this line run through the type? Nothing may: a line crossing the title
+ * or a button reads as a mistake rather than as a connection, and the whole
+ * point of leaving the middle of the frame empty is that the words sit in a
+ * clearing. The curve is walked rather than its ends tested, because a bowed
+ * line can miss a box at both ends and still go straight through it.
+ */
+function crossesType(a, b, seed, probe = 3) {
+  const { cx, cy } = bow(a, b, seed);
+  for (let i = 0; i <= 28; i++) {
+    const t = i / 28;
+    const u = 1 - t;
+    const x = u * u * a.x + 2 * u * t * cx + t * t * b.x;
+    const y = u * u * a.y + 2 * u * t * cy + t * t * b.y;
+    if (!clear(x, y, probe)) return true;
+  }
+  return false;
 }
 
 const lines = [];
@@ -117,31 +139,47 @@ islands.forEach((blots, t) => {
           ? other
           : best,
       );
-    lines.push(joinPath(nearest, blot, `join:${t}:${i}`));
+    if (!crossesType(nearest, blot, `join:${t}:${i}`)) {
+      lines.push(joinPath(nearest, blot, `join:${t}:${i}`));
+    }
   });
 });
 
 // Between islands: the shortest pair, which is what a bridge would actually be.
 for (const [from, to] of bridges) {
-  let pair = null;
+  const seed = `bridge:${from}:${to}`;
+  const pairs = [];
   for (const a of islands[from]) {
-    for (const b of islands[to]) {
-      const distance = Math.hypot(a.x - b.x, a.y - b.y);
-      if (!pair || distance < pair.distance) pair = { a, b, distance };
-    }
+    for (const b of islands[to]) pairs.push({ a, b, distance: Math.hypot(a.x - b.x, a.y - b.y) });
   }
-  if (pair) lines.push(joinPath(pair.a, pair.b, `bridge:${from}:${to}`));
+  // The shortest crossing that keeps out of the type, rather than the shortest.
+  const pair = pairs
+    .sort((x, y) => x.distance - y.distance)
+    .find(({ a, b }) => !crossesType(a, b, seed));
+  if (pair) lines.push(joinPath(pair.a, pair.b, seed));
 }
 
-// And the lines that reach out of the network to the type it sits around.
+// And the lines that reach out of the network to the type it sits around. These
+// stop at the edge of what they point at: a line that carries on through a
+// button has stopped being a pointer and become a line through a button.
 const centre = islands[2][0];
-lines.push(
-  joinPath(centre, { x: 1404, y: 452 }, 'blurb'),
-  joinPath(centre, { x: 958, y: 634 }, 'atlas-button'),
-  joinPath({ x: 958, y: 764 }, { x: 958, y: 792 }, 'menu'),
-  joinPath(islands[4][0], { x: 1124, y: 700 }, 'atlas-right'),
-  joinPath(islands[5][0], { x: 866, y: 762 }, 'atlas-left'),
-);
+const reaches = [
+  [centre, { x: 1404, y: 466 }, 'blurb'],
+  [centre, { x: 958, y: 634 }, 'atlas-button'],
+  [{ x: 958, y: 768 }, { x: 958, y: 778 }, 'menu'],
+  [islands[4][0], { x: 1126, y: 700 }, 'atlas-right'],
+  [islands[5][0], { x: 900, y: 882 }, 'menu-below'],
+];
+
+for (const [a, b, seed] of reaches) {
+  // The endpoint is on the boundary of the type it points at, so the walk is
+  // taken a hair short of it.
+  // These are allowed to touch what they point at, so the walk stops short of
+  // the endpoint and keeps to the line itself rather than a margin round it.
+  const stop = { x: a.x + (b.x - a.x) * 0.94, y: a.y + (b.y - a.y) * 0.94 };
+  if (crossesType(a, stop, seed, 0)) console.warn(`  the ${seed} line runs through the type`);
+  lines.push(joinPath(a, b, seed));
+}
 
 /* --- the file ------------------------------------------------------------- */
 
