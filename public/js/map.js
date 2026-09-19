@@ -9,6 +9,9 @@ const zoomCluster = document.querySelector('.map-zoom');
 const searchInput = document.getElementById('map-search');
 const filterBox = document.getElementById('map-filters');
 const clearButton = document.getElementById('map-clear');
+const moreButton = document.getElementById('map-more');
+const drawer = document.getElementById('tag-drawer');
+const drawerList = document.getElementById('tag-drawer-list');
 const resetButton = document.getElementById('map-reset');
 const zoomInButton = document.getElementById('map-in');
 const zoomOutButton = document.getElementById('map-out');
@@ -62,8 +65,8 @@ const map = createConstellation(canvas, {
     const canvasBox = canvas.getBoundingClientRect();
     const keepClear = [];
 
-    const controls = filterBox.closest('.map-controls')?.getBoundingClientRect();
-    if (controls && controls.bottom > canvasBox.top) {
+    const controls = chrome.getBoundingClientRect();
+    if (controls.bottom > canvasBox.top) {
       keepClear.push({
         x: 0,
         y: 0,
@@ -105,6 +108,7 @@ const map = createConstellation(canvas, {
  * where it ends is measured rather than assumed.
  */
 const controlsRow = filterBox.closest('.map-controls');
+const chrome = filterBox.closest('.map-chrome');
 
 function placePanel() {
   const shell = canvas.parentElement;
@@ -112,7 +116,12 @@ function placePanel() {
   panel.style.setProperty('--panel-top', `${Math.max(Math.round(top + 12), 12)}px`);
 }
 
-if (window.ResizeObserver) new ResizeObserver(placePanel).observe(controlsRow);
+if (window.ResizeObserver) {
+  new ResizeObserver(placePanel).observe(controlsRow);
+  // How many tags fit is a question about width, so it is asked again whenever
+  // the width changes rather than only when the list does.
+  new ResizeObserver(tuckTags).observe(filterBox);
+}
 window.addEventListener('resize', placePanel);
 placePanel();
 
@@ -165,28 +174,96 @@ async function load() {
 
 let vocabulary = [];
 
+const tagChip = (tag) => `<button class="tag" type="button" data-tag="${escapeHtml(tag.slug)}"
+        aria-pressed="${state.tags.has(tag.slug)}">${escapeHtml(tag.label)}
+        <span class="tag__count">${tag.count}</span></button>`;
+
 async function renderFilters() {
   if (vocabulary.length === 0) {
     const { tags } = await api.tags();
     vocabulary = tags;
   }
-  const top = vocabulary.slice(0, 8);
-  const chosen = [...state.tags].filter((slug) => !top.some((t) => t.slug === slug));
+  // The heaviest tags lead, and whatever you have picked is pulled to the front
+  // of the row so a filter you are using is never the one that got tucked away.
+  const lead = vocabulary.slice(0, 18);
+  const chosen = [...state.tags].filter((slug) => !lead.some((t) => t.slug === slug));
   const shown = [
     ...chosen.map((slug) => vocabulary.find((t) => t.slug === slug) ?? { slug, label: slug, count: 0 }),
-    ...top,
+    ...lead,
   ];
 
-  filterBox.innerHTML = shown
-    .map(
-      (tag) => `<button class="tag" type="button" data-tag="${escapeHtml(tag.slug)}"
-        aria-pressed="${state.tags.has(tag.slug)}">${escapeHtml(tag.label)}
-        <span class="tag__count">${tag.count}</span></button>`,
-    )
-    .join('');
+  filterBox.innerHTML = shown.map(tagChip).join('');
+  drawerList.innerHTML = vocabulary.map(tagChip).join('');
+  tuckTags();
 
   clearButton.hidden = state.tags.size === 0 && !state.query;
 }
+
+/**
+ * Keep the tag bar to one line. Everything past the end of the row is hidden
+ * rather than wrapped: a filter bar that grows downwards as you pick tags moves
+ * the map out from under itself every time. What is hidden is not lost — the
+ * whole vocabulary is a button away, in the drawer.
+ */
+function tuckTags() {
+  const chips = [...filterBox.children];
+  for (const chip of chips) chip.hidden = false;
+  filterBox.style.flexBasis = '';
+  if (filterBox.offsetParent === null) return;
+
+  // How much room the tags have is asked of the row, not of the tag box: the
+  // box is about to be resized to whatever fits, and a box that measures itself
+  // measures the answer to the last question rather than this one.
+  const rowGap = parseFloat(getComputedStyle(controlsRow).columnGap) || 0;
+  const standing = [...controlsRow.children].flatMap((child) =>
+    getComputedStyle(child).display === 'contents' ? [...child.children] : [child],
+  );
+  let taken = 0;
+  for (const item of standing) {
+    if (item === filterBox) continue;
+    const width = item.getBoundingClientRect().width;
+    if (width > 0) taken += width + rowGap;
+  }
+
+  const room = Math.max(controlsRow.clientWidth - taken, 0);
+  const gap = parseFloat(getComputedStyle(filterBox).columnGap) || 0;
+  let used = 0;
+  let full = false;
+  for (const chip of chips) {
+    const width = chip.offsetWidth;
+    if (full || used + width > room) {
+      full = true;
+      chip.hidden = true;
+      continue;
+    }
+    used += width + gap;
+  }
+  // Give the box back the width it actually used, so More stands at the end of
+  // the tags rather than across a gap from them.
+  filterBox.style.flexBasis = `${Math.max(used - gap, 0)}px`;
+}
+
+/* --- the tag drawer ------------------------------------------------------ */
+
+function setDrawer(open) {
+  drawer.hidden = !open;
+  moreButton.setAttribute('aria-expanded', String(open));
+}
+
+const drawerOpen = () => !drawer.hidden;
+
+moreButton.addEventListener('click', (event) => {
+  event.stopPropagation();
+  setDrawer(!drawerOpen());
+});
+
+// Anywhere else is a way out of it — including the map, which is the thing the
+// drawer is standing in front of.
+document.addEventListener('pointerdown', (event) => {
+  if (!drawerOpen()) return;
+  if (event.target.closest('#tag-drawer, #map-more')) return;
+  setDrawer(false);
+});
 
 const plural = (n, word) => `<b>${n}</b> ${word}${n === 1 ? '' : 's'}`;
 
@@ -631,6 +708,7 @@ zoomOutButton.addEventListener('click', () => map.zoomBy(1 / 1.4));
 
 document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape') {
+    if (drawerOpen()) return setDrawer(false);
     closePanel();
     map.reset();
   }

@@ -1094,14 +1094,113 @@ export function createConstellation(canvas, options = {}) {
    * Everything here is deliberately faint. The territories are the bottom layer
    * of the drawing and must never compete with the blots sitting on them.
    */
+  /*
+   * Ten fills, the way a survey sheet distinguishes ten formations it has no
+   * colour left for: rules at four angles, two crossings, a stipple, a dotted
+   * rule, a dot-dash, and one that is a wide rule with a row of dots between.
+   * Distances are in multiples of the hatch spacing, so every one of them keeps
+   * its texture at any zoom.
+   */
   const HATCHES = [
-    [45],
-    [135],
-    [45, 135],
-    [90],
-    [0],
-    [22, 112],
+    { lines: [{ angle: 45 }] },
+    { lines: [{ angle: 135 }] },
+    { lines: [{ angle: 45 }, { angle: 135 }] },
+    { lines: [{ angle: 90 }] },
+    { lines: [{ angle: 0 }] },
+    { lines: [{ angle: 0 }, { angle: 90 }] },
+    { dots: { stagger: true } },
+    { lines: [{ angle: 22, dash: [0, 1.4] }] },
+    { lines: [{ angle: 112, dash: [2, 1, 0, 1] }] },
+    { lines: [{ angle: 68, gap: 2 }], dots: { gap: 2, shift: 1 } },
   ];
+
+  /*
+   * Which theme gets which is shuffled once on a fixed seed rather than taken
+   * in order: neighbouring islands are numbered in sequence, and reading them
+   * off in sequence lays the fills out in a visible progression. Shuffled, the
+   * sheet looks like a sheet — no two neighbours obviously related — and it is
+   * still the same fill for the same theme every time the page is opened.
+   */
+  const HATCH_ORDER = (() => {
+    const order = HATCHES.map((_, i) => i);
+    const random = rng(seedOf('hatches'));
+    for (let i = order.length - 1; i > 0; i--) {
+      const j = Math.floor(random() * (i + 1));
+      [order[i], order[j]] = [order[j], order[i]];
+    }
+    return order;
+  })();
+
+  /**
+   * One fill, laid across the box the outline occupies and clipped to it.
+   *
+   * The lattice is pinned to the middle of the frame rather than to the shape,
+   * so a texture does not crawl while its island drifts; only the range drawn
+   * comes from the shape, which is what keeps a stipple to a few hundred dots
+   * instead of a screenful.
+   */
+  function paintHatch(spec, box, step, weight) {
+    const ox = width / 2;
+    const oy = height / 2;
+    const corners = [
+      [box.x, box.y],
+      [box.x + box.w, box.y],
+      [box.x, box.y + box.h],
+      [box.x + box.w, box.y + box.h],
+    ];
+
+    for (const line of spec.lines ?? []) {
+      const radians = (line.angle * Math.PI) / 180;
+      const dx = Math.cos(radians);
+      const dy = Math.sin(radians);
+      const gap = step * (line.gap ?? 1);
+
+      let alongMin = Infinity;
+      let alongMax = -Infinity;
+      let acrossMin = Infinity;
+      let acrossMax = -Infinity;
+      for (const [px, py] of corners) {
+        const rx = px - ox;
+        const ry = py - oy;
+        const along = rx * dx + ry * dy;
+        const across = rx * -dy + ry * dx;
+        alongMin = Math.min(alongMin, along);
+        alongMax = Math.max(alongMax, along);
+        acrossMin = Math.min(acrossMin, across);
+        acrossMax = Math.max(acrossMax, across);
+      }
+
+      // A rule broken into dots and dashes reads far lighter than a continuous
+      // one of the same weight, so it is given a little back.
+      ctx.setLineDash((line.dash ?? []).map((n) => Math.max(n * step, 0.01)));
+      ctx.lineCap = line.dash ? 'round' : 'butt';
+      ctx.lineWidth = line.dash ? weight * 1.7 : weight;
+      ctx.beginPath();
+      for (let across = Math.ceil(acrossMin / gap) * gap; across <= acrossMax; across += gap) {
+        ctx.moveTo(ox + dx * alongMin - dy * across, oy + dy * alongMin + dx * across);
+        ctx.lineTo(ox + dx * alongMax - dy * across, oy + dy * alongMax + dx * across);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.lineCap = 'butt';
+    }
+
+    if (!spec.dots) return;
+    const gap = step * (spec.dots.gap ?? 1) * 1.2;
+    const radius = Math.max(weight * 1.25, 0.6);
+    const shift = (spec.dots.shift ?? 0) * gap * 0.5;
+    ctx.beginPath();
+    for (let j = Math.floor((box.y - oy) / gap); j <= Math.ceil((box.y + box.h - oy) / gap); j++) {
+      const y = oy + j * gap + shift;
+      const stagger = spec.dots.stagger && Math.abs(j % 2) === 1 ? gap / 2 : 0;
+      for (let i = Math.floor((box.x - ox) / gap); i <= Math.ceil((box.x + box.w - ox) / gap); i++) {
+        const x = ox + i * gap + stagger;
+        ctx.moveTo(x + radius, y);
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+      }
+    }
+    ctx.fill();
+  }
 
   /**
    * The outline round a theme.
@@ -1225,6 +1324,20 @@ export function createConstellation(canvas, options = {}) {
     if (!turnsOneWay(points)) points = outline(0);
     if (points.length < 3) return null;
 
+    // What the fill has to cover. Taken from the points themselves, so it is
+    // the drawn outline it bounds rather than the discs it came from.
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    for (const [x, y] of points) {
+      minX = Math.min(minX, x);
+      minY = Math.min(minY, y);
+      maxX = Math.max(maxX, x);
+      maxY = Math.max(maxY, y);
+    }
+    const box = { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+
     const path = new Path2D();
     const at = (i) => points[((i % points.length) + points.length) % points.length];
     const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
@@ -1236,7 +1349,7 @@ export function createConstellation(canvas, options = {}) {
       path.quadraticCurveTo(control[0], control[1], end[0], end[1]);
     }
     path.closePath();
-    return path;
+    return { path, box };
   }
 
   function paintTerritories(alphaOf) {
@@ -1257,29 +1370,21 @@ export function createConstellation(canvas, options = {}) {
 
     for (const [cluster, members] of groups) {
       if (members.length < 2) continue;
-      const path = territoryPath(members, pad);
-      if (!path) continue;
+      const territory = territoryPath(members, pad);
+      if (!territory) continue;
+      const { path, box } = territory;
 
       ctx.save();
       ctx.globalAlpha = alphaOf;
       ctx.clip(path);
+      // The fill is drawn straight onto the canvas and clipped to the outline:
+      // cheaper than a pattern, and it stays put when the map is panned because
+      // it is laid out in screen space with the marks.
+      const weight = Math.max(0.55 * view.k, 0.45);
       ctx.strokeStyle = 'rgba(16,15,13,0.16)';
-      ctx.lineWidth = Math.max(0.55 * view.k, 0.45);
-      // Hatching is drawn as parallel lines across the whole frame and clipped
-      // to the outline: cheaper than a pattern, and it stays put when the map
-      // is panned because it is laid out in screen space with the marks.
-      for (const angle of HATCHES[cluster % HATCHES.length]) {
-        const radians = (angle * Math.PI) / 180;
-        const dx = Math.cos(radians);
-        const dy = Math.sin(radians);
-        const span = Math.hypot(width, height);
-        ctx.beginPath();
-        for (let offset = -span; offset <= span; offset += step) {
-          ctx.moveTo(width / 2 + dx * -span - dy * offset, height / 2 + dy * -span + dx * offset);
-          ctx.lineTo(width / 2 + dx * span - dy * offset, height / 2 + dy * span + dx * offset);
-        }
-        ctx.stroke();
-      }
+      ctx.fillStyle = 'rgba(16,15,13,0.22)';
+      ctx.lineWidth = weight;
+      paintHatch(HATCHES[HATCH_ORDER[cluster % HATCH_ORDER.length]], box, step, weight);
       ctx.restore();
 
       ctx.save();

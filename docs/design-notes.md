@@ -166,8 +166,17 @@ into, with a floor on the zoom so marks never shrink into dust. Tying the layout
 viewport makes the map collapse in a short window and drift in a tall one.
 
 **The islands are drawn on ground of their own.** Each theme gets an outline round
-its blots and a hatch inside it — diagonal, cross, vertical, horizontal, by cluster —
-the way a survey sheet hatches a formation it has no colour left for. The boundary is
+its blots and a fill inside it, the way a survey sheet distinguishes formations it has
+no colour left for. There are ten: rules at four angles, two crossings, a stipple, a
+dotted rule, a dot-dash, and one that is a wide rule with a row of dots between. Every
+distance in them is a multiple of the hatch spacing, so a texture keeps its texture at
+any zoom. Which theme gets which is shuffled once on a fixed seed rather than taken in
+order — neighbouring islands are numbered in sequence, and read off in sequence the
+fills lay out in a visible progression — so the sheet looks like a sheet, while a theme
+still keeps the same fill every time the page is opened. A fill is drawn straight onto
+the canvas and clipped to the outline rather than built as a pattern, and only across
+the box the outline occupies, which is what keeps a stipple to a few hundred dots
+instead of a screenful. The boundary is
 a coastline rather than a fence: gentle curves throughout, with no corner anywhere and
 nothing that turns tightly.
 
@@ -301,6 +310,26 @@ the map — the list and the drawing are one instrument. Pointing at a shape
 directly, or opening it, draws it round in ink: an outline on the blot itself
 rather than a halo around it, so it reads as that blot picked out rather than as
 a second mark.
+
+## The tag bar
+
+The row above the map is named — **Tags** — because a row of words with counts on them
+is not self-evidently a filter, and it is one row, always. It shows the tags that fit
+and tucks the rest behind **More**, which drops the whole vocabulary out of the bar as a
+drawer. A filter bar that wraps to a second and third line as you pick tags moves the
+map out from under itself every time, which is worse than not seeing all forty-seven at
+once.
+
+How many fit is measured rather than guessed, and measured against the row rather than
+against the tag box — the box is about to be resized to whatever fits, so a box that
+measures itself is answering the last question. What is left over falls between More and
+the zoom controls, which is where the difference between filtering the library and
+moving the camera actually is.
+
+On a phone there is no room for a row of tags at all, so there isn't one: the bar is a
+search field and a **Tags** button, and the same drawer opens under it as a menu the
+width of the band. Picking a tag leaves it open, so you can pick a second; the map, the
+Escape key, or the button closes it.
 
 ## Fitting the map on a phone
 

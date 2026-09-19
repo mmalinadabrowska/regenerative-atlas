@@ -690,20 +690,90 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 #constellation.is-dragging { cursor: grabbing; }
 #constellation.is-over { cursor: pointer; }
 
-.map-controls {
+/* The chrome over the map: the tag bar, and the drawer that drops out of it.
+   One stack, so the drawer always hangs directly off the row it belongs to. */
+.map-chrome {
   position: absolute;
   top: 1rem;
   left: 1rem;
   right: 1rem;
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: stretch;
   gap: 0.5rem;
-  align-items: center;
   pointer-events: none;
   z-index: 3;
 }
 
-.map-controls > * { pointer-events: auto; }
+/* One row, always: the tags that fit are shown and the rest are behind More.
+   A filter bar that grows to three lines as you pick tags moves the map under
+   it every time, which is worse than not seeing every tag at once. */
+.map-controls {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  align-items: center;
+  min-width: 0;
+}
+
+.map-controls > *, .tag-drawer { pointer-events: auto; }
+
+/* The name of the thing, so the row is not a mystery row of words. It carries
+   its own paper like everything else standing on the drawing. */
+.tag-bar__name {
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-55);
+  flex: 0 0 auto;
+  background: var(--paper);
+  border-radius: 999px;
+  padding: 0.3rem 0.5rem;
+}
+
+#map-filters {
+  /* Sized by the script to exactly the tags that fit; until then it simply
+     takes what is left, and the row is still a row. */
+  flex: 0 1 auto;
+  flex-wrap: nowrap;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* Anything the row could not hold is hidden rather than clipped in half. */
+.tag[hidden], .chip[hidden] { display: none !important; }
+
+.chip--more { flex: 0 0 auto; }
+.chip--more__narrow { display: none; }
+
+.chip__caret {
+  width: 0.6rem;
+  height: 0.45rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: rotate 160ms ease;
+}
+[aria-expanded='true'] .chip__caret { rotate: 180deg; }
+
+/* A button holding something open is on, whether or not you are pointing at it. */
+.chip[aria-expanded='true'] { background: var(--ink); color: var(--paper); }
+
+/* The drawer: the whole vocabulary, dropped out of the bar. It is a panel on a
+   wide screen and the tag menu itself on a narrow one. */
+.tag-drawer {
+  background: var(--paper);
+  border: var(--stroke) solid var(--ink);
+  border-radius: 1rem;
+  padding: 0.85rem 0.95rem;
+  max-height: min(24rem, 46vh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.tag-drawer .tag-cloud { gap: 0.4rem; }
 
 .map-search {
   border: 1px solid var(--ink-32);
@@ -713,7 +783,13 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   font: inherit;
   font-size: 0.9rem;
   color: inherit;
+  flex: 0 1 auto;
   min-width: min(16rem, 60vw);
+}
+
+/* Room is room: on a narrower window the search gives some back to the tags. */
+@media (max-width: 78rem) {
+  .map-search { min-width: min(11rem, 40vw); }
 }
 
 .map-search:focus { border-color: var(--ink); outline: none; }
@@ -735,6 +811,10 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
    screen, so it is nothing at all until the phone layout gives it a box. */
 .map-zoom { display: contents; }
 .chip__icon { display: none; }
+
+/* Filters at one end, the view's own controls at the other: the space left over
+   in the row falls between the two, which is where the difference is. */
+.map-zoom > :first-child { margin-left: auto; }
 
 .map-legend {
   position: absolute;
@@ -1171,23 +1251,36 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   .panel[data-sheet='peek'] #panel-body { overflow: hidden; touch-action: none; }
   .panel[data-sheet='peek'] .scroll-rail { display: none; }
 
-  /* One scrolling row of filters rather than five wrapped ones over the map,
-     on its own band of paper so it never sits on top of the drawing. */
-  .map-controls {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    scrollbar-width: none;
+  /* No room for a row of tags on a phone, so there isn't one: the bar is a
+     search field and a Tags menu, on its own band of paper so it never sits on
+     top of the drawing, and the whole vocabulary drops out of it. */
+  .map-chrome {
     top: 0;
     left: 0;
     right: 0;
+    gap: 0;
+  }
+  .map-controls {
     padding: 0.6rem 0.75rem;
     background: var(--paper);
     border-bottom: var(--rule);
   }
-  .map-controls::-webkit-scrollbar { display: none; }
   .map-controls > * { flex: 0 0 auto; }
-  .map-search { min-width: 9rem; }
-  #map-filters { flex-wrap: nowrap; }
+  .map-search { flex: 1 1 auto; min-width: 5rem; }
+  .tag-bar__name, #map-filters { display: none; }
+  .chip--more__wide { display: none; }
+  .chip--more__narrow { display: inline; }
+
+  /* The menu itself: the width of the band it drops from, and the map visible
+     under the rest of the screen rather than a page of tags. */
+  .tag-drawer {
+    border: 0;
+    border-bottom: var(--stroke) solid var(--ink);
+    border-radius: 0;
+    max-height: min(22rem, 45svh);
+    padding: 0.75rem;
+  }
+
   .map-legend { display: none; }
 
   /* Zoom and recentre leave that scrolling row — at the end of it they were
@@ -1199,6 +1292,7 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   .map-zoom {
     display: flex;
     flex-direction: column;
+    margin: 0;
     gap: 0.45rem;
     position: fixed;
     right: 0.75rem;
@@ -1216,6 +1310,8 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
     opacity: 0;
     pointer-events: none;
   }
+
+  .map-zoom > :first-child { margin-left: 0; }
 
   .chip--round {
     width: 2.85rem;

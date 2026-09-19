@@ -24,22 +24,36 @@
 <div class="map-shell">
   <canvas id="constellation" aria-label="Connection map of the Atlas. A list of every source is available on the Themes page."></canvas>
 
-  <div class="map-controls">
-    <input id="map-search" class="map-search" type="search" placeholder="Search the library…" aria-label="Search the library">
-    <div id="map-filters" class="tag-cloud" aria-label="Filter by tag"></div>
-    <button class="chip" id="map-clear" type="button" hidden>Clear</button>
-    <!-- On a phone this cluster leaves the scrolling row and floats over the
-         map, where it can always be reached. -->
-    <div class="map-zoom">
-      <button class="chip chip--round" id="map-out" type="button" title="Zoom out" aria-label="Zoom out">&minus;</button>
-      <button class="chip chip--round" id="map-in" type="button" title="Zoom in" aria-label="Zoom in">+</button>
-      <button class="chip chip--round" id="map-reset" type="button" title="Recentre" aria-label="Recentre the map">
-        <svg class="chip__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/>
-          <circle cx="12" cy="12" r="2.1"/>
-        </svg>
-        <span class="chip__label">Recentre</span>
+  <div class="map-chrome">
+    <div class="map-controls">
+      <input id="map-search" class="map-search" type="search" placeholder="Search the library…" aria-label="Search the library">
+      <span class="tag-bar__name" id="tag-bar-name">Tags</span>
+      <div id="map-filters" class="tag-cloud" aria-labelledby="tag-bar-name"></div>
+      <!-- One button for two jobs: the rest of the tags on a wide screen, and the
+           whole list on a narrow one, where there is no room for a row of them. -->
+      <button class="chip chip--more" id="map-more" type="button" aria-expanded="false" aria-controls="tag-drawer">
+        <span class="chip--more__wide">More</span>
+        <span class="chip--more__narrow">Tags</span>
+        <svg class="chip__caret" viewBox="0 0 12 8" aria-hidden="true" focusable="false"><path d="M1 1.5 6 6.5 11 1.5"/></svg>
       </button>
+      <button class="chip" id="map-clear" type="button" hidden>Clear</button>
+      <!-- On a phone this cluster leaves the scrolling row and floats over the
+           map, where it can always be reached. -->
+      <div class="map-zoom">
+        <button class="chip chip--round" id="map-out" type="button" title="Zoom out" aria-label="Zoom out">&minus;</button>
+        <button class="chip chip--round" id="map-in" type="button" title="Zoom in" aria-label="Zoom in">+</button>
+        <button class="chip chip--round" id="map-reset" type="button" title="Recentre" aria-label="Recentre the map">
+          <svg class="chip__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/>
+            <circle cx="12" cy="12" r="2.1"/>
+          </svg>
+          <span class="chip__label">Recentre</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="tag-drawer" id="tag-drawer" hidden>
+      <div class="tag-cloud" id="tag-drawer-list" aria-label="Every tag in the library"></div>
     </div>
   </div>
 
