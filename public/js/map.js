@@ -554,6 +554,10 @@ panel.addEventListener('pointerdown', (event) => {
     lastY: event.clientY,
     lastAt: event.timeStamp,
     moved: 0,
+    // The same allowance the map gives a tap: a thumb rolls as it lifts, and a
+    // sheet that starts sliding at four pixels turns half the taps on it into
+    // little drags that go nowhere.
+    slop: event.pointerType === 'mouse' ? 4 : 10,
     base: from,
     offset: from,
     travel: distance,
@@ -572,7 +576,7 @@ function onMove(event) {
   if (!drag || event.pointerId !== drag.id) return;
   const dy = event.clientY - drag.y;
   drag.moved = Math.max(drag.moved, Math.abs(dy));
-  if (drag.moved < 4) return;
+  if (drag.moved < drag.slop) return;
   if (!drag.captured) {
     // Captured only once this is really a drag. Capture keeps the map from
     // taking the rest of the gesture — and it retargets the click that follows

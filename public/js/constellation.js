@@ -171,6 +171,9 @@ export function createConstellation(canvas, options = {}) {
   let highlighted = null;
   let dragging = null;
   let panning = null;
+  // The gesture in progress, and whether it has become a drag. A press is a tap
+  // until it has travelled far enough not to be one.
+  let gesture = null;
   let dimmed = new Set();
 
   const settings = {
@@ -1611,13 +1614,26 @@ export function createConstellation(canvas, options = {}) {
   }
 
   canvas.addEventListener('pointermove', (event) => {
+    if (gesture && !gesture.moved) {
+      const travelled = Math.hypot(event.clientX - gesture.x, event.clientY - gesture.y);
+      if (travelled > gesture.slop) gesture.moved = true;
+    }
+
     if (panning) {
+      if (!gesture.moved) return;
+      // The camera stops reframing itself once you have moved it yourself —
+      // which is now the moment you actually move it, not the moment you touch
+      // the glass.
+      userAdjusted = true;
       view.x = panning.viewX + (event.clientX - panning.x);
       view.y = panning.viewY + (event.clientY - panning.y);
       draw();
       return;
     }
     if (dragging) {
+      // Nothing moves until the press has become a drag, so a tap that wobbles
+      // a pixel or two leaves the map exactly as it found it.
+      if (!gesture.moved) return;
       const rect = canvas.getBoundingClientRect();
       dragging.x = (event.clientX - rect.left - view.x) / view.k;
       dragging.y = (event.clientY - rect.top - view.y) / view.k;
@@ -1635,32 +1651,53 @@ export function createConstellation(canvas, options = {}) {
 
   canvas.addEventListener('pointerdown', (event) => {
     canvas.setPointerCapture(event.pointerId);
+    // A thumb is not a mouse: it lands on a wider spot and rolls as it lifts,
+    // so it is allowed more travel before the press stops being a tap.
+    gesture = {
+      x: event.clientX,
+      y: event.clientY,
+      slop: event.pointerType === 'mouse' ? 4 : 10,
+      moved: false,
+    };
     const found = nodeAt(event.clientX, event.clientY);
     if (found) {
       dragging = found;
-      dragging.moved = false;
     } else {
       panning = { x: event.clientX, y: event.clientY, viewX: view.x, viewY: view.y };
       canvas.classList.add('is-dragging');
-      userAdjusted = true;
     }
   });
 
   canvas.addEventListener('pointerup', (event) => {
     canvas.releasePointerCapture?.(event.pointerId);
     const wasDragging = dragging;
-    const moved = panning && Math.hypot(event.clientX - panning.x, event.clientY - panning.y) > 4;
+    const wasPanning = panning;
+    const moved = gesture?.moved ?? false;
     dragging = null;
     panning = null;
+    gesture = null;
     canvas.classList.remove('is-dragging');
 
+    // A drag is a drag and nothing else. Dragging a blot used to open it as
+    // well, because the blot follows your finger and so is still under it when
+    // you let go — which made every drag a tap, and left you reading a record
+    // you did not ask for.
     if (wasDragging) {
-      reheat(0.25);
+      if (moved) return reheat(0.25);
       const found = nodeAt(event.clientX, event.clientY);
       if (found === wasDragging) choose(found);
       return;
     }
-    if (!moved) choose(null);
+    if (wasPanning && !moved) choose(null);
+  });
+
+  // A gesture the system takes away — a scroll it decided was a page gesture, a
+  // second finger — is over, and it was not a tap.
+  canvas.addEventListener('pointercancel', () => {
+    dragging = null;
+    panning = null;
+    gesture = null;
+    canvas.classList.remove('is-dragging');
   });
 
   canvas.addEventListener('pointerleave', () => {

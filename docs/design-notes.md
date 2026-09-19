@@ -311,6 +311,24 @@ directly, or opening it, draws it round in ink: an outline on the blot itself
 rather than a halo around it, so it reads as that blot picked out rather than as
 a second mark.
 
+## A tap is not a drag
+
+One pointer does three things on the map — open a mark, move a mark, move the camera —
+so the map has to know which one is happening, and the answer is distance. A press is a
+tap until it has travelled past a slop, and the slop depends on what is pressing: four
+pixels for a mouse, ten for anything else, because a thumb lands on a wider spot than a
+cursor and rolls as it lifts.
+
+Nothing moves before that threshold is crossed, so a tap that wobbles leaves the map
+exactly as it found it, and nothing opens after it has been: dragging a blot used to open
+it as well, because the blot follows your finger and so is still under it when you let
+go, which made every drag a tap and left you reading a record you had not asked for.
+Panning is the same rule from the other side — a drag across the ground moves the camera,
+a tap on it puts the map back — and the camera stops reframing itself the moment you
+actually move it rather than the moment you touch the glass. The bottom sheet takes the
+same allowance: at four pixels half the taps on it turned into little drags that went
+nowhere.
+
 ## The tag bar
 
 The row above the map is named — **Tags** — because a row of words with counts on them
