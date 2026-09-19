@@ -168,8 +168,27 @@ viewport makes the map collapse in a short window and drift in a tall one.
 **The islands are drawn on ground of their own.** Each theme gets an outline round
 its blots and a hatch inside it — diagonal, cross, vertical, horizontal, by cluster —
 the way a survey sheet hatches a formation it has no colour left for. The boundary is
-the hull of the blots at arm's length, wobbled on a seed so it reads as drawn rather
-than computed, and every part of it is faint: the ground is the bottom layer of the
+a coastline rather than a fence: gentle curves throughout, with no corner anywhere and
+nothing that turns tightly.
+
+Getting that took three things. It is the hull of *discs* rather than of points — the
+blots ringed at arm's length — which is arcs joined by their common tangents and so has
+no corner by construction, where the hull of the points themselves has one at every
+vertex. Before the hull is taken, each blot is drawn in towards the middle of its theme
+and given the same distance back as radius: the island keeps its reach, since the
+outermost blot's far edge has not moved, but every turn the outline makes is now about
+a third of the island across rather than as tight as whichever small tag happened to sit
+on the edge. And it is built from the support function — how far the boundary stands
+from the centre in each of ninety-six directions — then reassembled by intersecting
+neighbouring tangents, which is what lets the hand's unevenness be added as a single
+slow lean of the whole outline rather than as a jitter per corner. That matters more
+than it sounds: a sway of frequency *k* takes (k² − 1) times its amplitude out of the
+radius of curvature, so a fast wobble either flattens the outline or, past the budget
+the rounding bought, turns it inside out into spikes. The lean is one term, capped at a
+tenth of the roundness, and an outline that somehow still turned back on itself is
+redrawn without it.
+
+Every part of it is faint: the ground is the bottom layer of the
 drawing and must never compete with the marks standing on it. It says what the layout
 already says — these tags belong together — but says it at a glance, before a name is
 read. It belongs to the islands only: inside an opened view you are looking at one

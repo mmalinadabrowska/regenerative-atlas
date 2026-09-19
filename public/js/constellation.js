@@ -1103,54 +1103,134 @@ export function createConstellation(canvas, options = {}) {
     [22, 112],
   ];
 
-  /** Andrew's monotone chain. Deterministic, and short enough to keep here. */
-  function hullOf(points) {
-    if (points.length < 3) return points;
-    const sorted = [...points].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
-    const cross = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
-    const half = (list) => {
-      const out = [];
-      for (const p of list) {
-        while (out.length >= 2 && cross(out[out.length - 2], out[out.length - 1], p) <= 0) out.pop();
-        out.push(p);
-      }
-      out.pop();
-      return out;
-    };
-    return [...half(sorted), ...half(sorted.reverse())];
-  }
-
   /**
-   * The outline round a theme: every blot in it ringed at arm's length, the
-   * hull of all those rings, and a seeded wobble on each corner so the boundary
-   * reads as drawn rather than computed.
+   * The outline round a theme.
+   *
+   * It is the convex hull of the blots in it, each one ringed at arm's length —
+   * but drawn as the hull of *discs* rather than of points, which is the whole
+   * difference: the hull of a set of points has a corner at every vertex, while
+   * the hull of a set of discs is arcs joined by their common tangents and has
+   * no corner anywhere. Nothing it draws can turn tighter than the smallest
+   * ringed blot on its edge.
+   *
+   * It is built from the support function h(θ) — how far the boundary stands
+   * from the origin in direction θ — sampled all the way round and reassembled
+   * by intersecting neighbouring tangent lines. A hand's unevenness is added to
+   * h as two slow sine terms rather than as a jitter per corner: a low
+   * frequency can only ever bend the outline, where the old per-corner wobble
+   * pulled neighbouring points apart and left the kinks this is rid of.
    */
-  function territoryPath(members, pad) {
-    const points = [];
-    for (const node of members) {
-      const { x, y } = toScreen(node);
-      const reach = node.radius * view.k + pad;
-      for (let i = 0; i < 12; i++) {
-        const angle = (i / 12) * Math.PI * 2;
-        points.push([x + Math.cos(angle) * reach, y + Math.sin(angle) * reach]);
-      }
-    }
-    const hull = hullOf(points);
-    if (hull.length < 3) return null;
+  const TERRITORY_STEPS = 96;
 
-    const random = rng(seedOf(`ground:${members[0].cluster}`));
-    const drawn = hull.map(([x, y]) => {
-      const wobble = (random() - 0.5) * pad * 0.55;
-      const lean = (random() - 0.5) * pad * 0.55;
-      return [x + wobble, y + lean];
+  function territoryPath(members, pad) {
+    const discs = members.map((node) => {
+      const { x, y } = toScreen(node);
+      return { x, y, r: node.radius * view.k + pad };
     });
+    if (discs.length === 0) return null;
+
+    /*
+     * The hull of the blots would have a corner wherever two of them sit on it,
+     * and the corner would be as tight as the blot that made it — a small tag
+     * on the edge of a big theme pulls the outline to a point. So the corners
+     * are cut before the hull is taken: every blot is drawn in toward the middle
+     * of its theme and given back the same distance as radius. The island keeps
+     * its reach, since the outermost blot's far edge has not moved, and every
+     * turn the outline makes is now at least that distance across.
+     */
+    const centre = discs.reduce(
+      (sum, disc) => ({ x: sum.x + disc.x / discs.length, y: sum.y + disc.y / discs.length }),
+      { x: 0, y: 0 },
+    );
+    const spread = Math.max(
+      ...discs.map((disc) => Math.hypot(disc.x - centre.x, disc.y - centre.y) + disc.r),
+      1,
+    );
+    const ease = Math.max(spread * 0.26, pad * 0.6);
+    for (const disc of discs) {
+      const dx = disc.x - centre.x;
+      const dy = disc.y - centre.y;
+      const away = Math.hypot(dx, dy);
+      if (away > 0.001) {
+        const pull = Math.min(ease, away);
+        disc.x -= (dx / away) * pull;
+        disc.y -= (dy / away) * pull;
+      }
+      // A shade less than it was pulled in, so rounding the corners does not
+      // quietly inflate the theme into its neighbours.
+      disc.r += ease * 0.88;
+    }
+
+    // How tight the outline is allowed to turn: the smallest ringed blot on it.
+    // Everything below is measured against that, because it is the whole budget
+    // the shape has for bending.
+    const roundness = Math.min(...discs.map((disc) => disc.r));
+
+    // Seeded off the theme, so an island's coastline is its own and keeps it.
+    // One slow term only, and a small one. A sway of frequency k takes
+    // (k² − 1) × its amplitude out of the radius of curvature, so anything
+    // faster than a single lean either flattens the outline or — past the
+    // budget — turns it inside out into the spikes this is written to avoid.
+    // At a tenth of the roundness the tightest bend left is still half a blot
+    // wide. k = 1 is free but useless: it only slides the shape sideways.
+    const random = rng(seedOf(`ground:${members[0].cluster}`));
+    const sway = {
+      k: 2,
+      amp: roundness * (0.1 + random() * 0.06),
+      phase: random() * Math.PI * 2,
+    };
+
+    const outline = (lean) => {
+      const lines = [];
+      for (let i = 0; i < TERRITORY_STEPS; i++) {
+        const angle = (i / TERRITORY_STEPS) * Math.PI * 2;
+        const ux = Math.cos(angle);
+        const uy = Math.sin(angle);
+        let h = -Infinity;
+        for (const disc of discs) h = Math.max(h, disc.x * ux + disc.y * uy + disc.r);
+        h += Math.sin(angle * sway.k + sway.phase) * sway.amp * lean;
+        lines.push({ ux, uy, h });
+      }
+
+      // Where two neighbouring tangents cross is a point on the outline.
+      // Sampled this finely the polygon turns less than four degrees at a time,
+      // so the curve through it is gentle before any smoothing is asked of it.
+      const made = [];
+      for (let i = 0; i < TERRITORY_STEPS; i++) {
+        const a = lines[i];
+        const b = lines[(i + 1) % TERRITORY_STEPS];
+        const det = a.ux * b.uy - a.uy * b.ux;
+        if (Math.abs(det) < 1e-9) continue;
+        made.push([(a.h * b.uy - b.h * a.uy) / det, (a.ux * b.h - b.ux * a.h) / det]);
+      }
+      return made;
+    };
+
+    // Belt and braces: an outline that turns back on itself anywhere is not an
+    // outline, so it is redrawn without the lean rather than shown with a spike
+    // in it.
+    const turnsOneWay = (ring) =>
+      ring.every((point, i) => {
+        const before = ring[(i - 1 + ring.length) % ring.length];
+        const after = ring[(i + 1) % ring.length];
+        const ax = point[0] - before[0];
+        const ay = point[1] - before[1];
+        const bx = after[0] - point[0];
+        const by = after[1] - point[1];
+        return ax * by - ay * bx >= 0;
+      });
+
+    let points = outline(1);
+    if (points.length < 3) return null;
+    if (!turnsOneWay(points)) points = outline(0);
+    if (points.length < 3) return null;
 
     const path = new Path2D();
-    const at = (i) => drawn[((i % drawn.length) + drawn.length) % drawn.length];
+    const at = (i) => points[((i % points.length) + points.length) % points.length];
     const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
     const start = mid(at(0), at(1));
     path.moveTo(start[0], start[1]);
-    for (let i = 1; i <= drawn.length; i++) {
+    for (let i = 1; i <= points.length; i++) {
       const control = at(i);
       const end = mid(control, at(i + 1));
       path.quadraticCurveTo(control[0], control[1], end[0], end[1]);
@@ -1169,6 +1249,9 @@ export function createConstellation(canvas, options = {}) {
       groups.get(node.cluster).push(node);
     }
 
+    // The padding is also the outline's roundness: the hull of the padded blots
+    // cannot turn tighter than the smallest of them, so a little more of it
+    // buys a gentler coastline everywhere.
     const pad = Math.max(22 * view.k, 14);
     const step = Math.max(9 * view.k, 6);
 
