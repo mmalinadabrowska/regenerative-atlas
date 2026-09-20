@@ -358,6 +358,23 @@ search field and a **Tags** button, and the same drawer opens under it as a menu
 width of the band. Picking a tag leaves it open, so you can pick a second; the map, the
 Escape key, or the button closes it.
 
+## Taking the reading away
+
+A record is a reading list, and a reading list you cannot take with you is only a screen.
+Each record carries one filled button — the only filled button on the map, because taking
+the reading away is the thing you might not have known you could do — that writes out
+exactly what the drawer is showing: the research listed in it, in the order it is listed.
+Under a tag that is everything filed there; under a piece of research it is that piece
+first and then the ones it sits beside, which is the list the drawer itself shows.
+
+It is plain text, with the title, the citation line, the link and what each piece is filed
+under. Plain text opens everywhere, survives every format after it, and can be pasted
+into whatever a reader actually writes in — where a citation manager's format would have
+to guess which one that is. The licence line the whole-library export carries comes with
+it, since a few records taken out of the Atlas are on the same terms as all of them.
+`/api/export.json` and `/api/export.bib` still take the library whole; this is the same
+courtesy for the part you are looking at.
+
 ## Fitting the map on a phone
 
 A map that does not fit is not a map, and the phone was the case where it did not.

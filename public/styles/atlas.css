@@ -158,11 +158,40 @@ a { color: inherit; }
   transition: background 140ms ease, color 140ms ease;
 }
 
-a.label:hover, button.label:hover,
+/* As everywhere else, the fill follows a pointer that can actually hover; a
+   touchscreen has none to leave, and a tapped button would stay lit. */
+@media (hover: hover) {
+  a.label:hover, button.label:hover { background: var(--ink); color: var(--paper); }
+}
+a.label:active, button.label:active,
 a.label:focus-visible, button.label:focus-visible,
 .label[aria-current='page'], .label.is-on {
   background: var(--ink);
   color: var(--paper);
+}
+
+/* One button in the record is filled at rest: taking the reading away with you
+   is the thing you might not have known you could do, so it is the thing that
+   is visible without being looked for. Pointing at it turns it out rather than
+   in, since it is already as filled as it goes. */
+.label--filled {
+  background: var(--ink);
+  color: var(--paper);
+}
+@media (hover: hover) {
+  .label--filled:hover { background: var(--paper); color: var(--ink); }
+}
+.label--filled:active, .label--filled:focus-visible {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+/* The row of things you can do with a record, at the top of it. */
+.panel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0.9rem 0;
 }
 
 button.label[disabled] { opacity: 0.4; cursor: progress; }

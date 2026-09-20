@@ -337,6 +337,81 @@ const threadRow = (node, under) =>
     <span class="thread__name">${escapeHtml(node.label)}
       <small>${under}</small></span></a></li>`;
 
+/* --- taking the reading away ---------------------------------------------
+   A record is a reading list, and a reading list you cannot take with you is
+   only a screen. The button writes out exactly what the drawer is showing —
+   the research listed in it, in the order it is listed — as plain text,
+   because plain text opens everywhere and outlives every format after it. */
+
+/** What the drawer is showing, kept so the download writes out the same thing. */
+let shown = null;
+
+const DOWNLOAD = `<button class="label label--small label--filled" type="button" data-download>Download bibliography</button>`;
+
+const WHEN = () =>
+  new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+
+/** One entry: what it is, who made it, where to find it, how it is filed. */
+function entry(source, index) {
+  const lines = [`${index}. ${source.label}`];
+  const cited = citationLine(source);
+  if (cited) lines.push(`   ${cited}`);
+  if (source.url) lines.push(`   ${source.url}`);
+  const tags = (source.tags ?? []).map(labelOf);
+  if (tags.length) lines.push(`   Filed under: ${tags.join(', ')}`);
+  return lines.join('\n');
+}
+
+function bibliography() {
+  if (!shown) return '';
+  const { kind, node, sources } = shown;
+  const heading =
+    kind === 'tag'
+      ? [
+          `Regenerative Atlas — ${node.label}`,
+          `${sources.length} ${sources.length === 1 ? 'piece' : 'pieces'} of research filed under this tag.`,
+        ]
+      : [
+          `Regenerative Atlas — ${node.label}`,
+          sources.length > 1
+            ? `This piece of research, and the ${sources.length - 1} it sits beside on the map.`
+            : 'This piece of research.',
+        ];
+
+  return [
+    ...heading,
+    `Taken from the map on ${WHEN()}.`,
+    '',
+    sources.map((source, i) => entry(source, i + 1)).join('\n\n'),
+    '',
+    '—',
+    'Bibliographic records from the Regenerative Atlas are shared under CC0;',
+    'the linked works remain with their authors.',
+    '',
+  ].join('\n');
+}
+
+const fileNameOf = (label) =>
+  `regenerative-atlas-${String(label)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '') || 'reading'}.txt`;
+
+function downloadBibliography() {
+  const text = bibliography();
+  if (!text) return;
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = fileNameOf(shown.node.label);
+  document.body.append(link);
+  link.click();
+  link.remove();
+  // Revoked late: some browsers are still reading the blob as the click returns.
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+
 function showTag(node) {
   const sources = (state.graph?.links ?? [])
     .filter((l) => l.kind === 'tagged' && (l.source === node.id || l.target === node.id))
@@ -358,9 +433,13 @@ function showTag(node) {
     .map(([slug]) => slug);
 
   setHead('tag', node.label, blotMark(node.id), washOfTag(node.slug));
+  shown = { kind: 'tag', node, sources };
   panelBody.innerHTML = `
     ${node.note ? `<p class="panel__summary">${escapeHtml(node.note)}</p>` : ''}
-    <p><button class="label label--small" type="button" data-tag="${escapeHtml(node.slug)}">Filter the library to this</button></p>
+    <p class="panel__actions">
+      <button class="label label--small" type="button" data-tag="${escapeHtml(node.slug)}">Filter the library to this</button>
+      ${sources.length ? DOWNLOAD : ''}
+    </p>
     <h4>Research threads</h4>
     <ul class="panel__links">${sources
       .map((source) =>
@@ -388,11 +467,16 @@ function showRecord(node) {
     .slice(0, 6);
 
   setHead('source', node.label, CROSSHAIR, null);
+  // The record itself leads the reading list it is the middle of.
+  shown = { kind: 'source', node, sources: [node, ...related.map(({ other }) => other)] };
   panelBody.innerHTML = `
     <p class="panel__meta">${escapeHtml(citationLine(node)) || escapeHtml(hostOf(node.url))}</p>
     ${node.summary ? `<p class="panel__summary">${escapeHtml(node.summary)}</p>` : ''}
     ${node.note ? `<p class="record__note">${escapeHtml(node.note)}</p>` : ''}
-    <p><a class="label label--small" href="${escapeHtml(node.url)}" target="_blank" rel="noopener noreferrer">Read the source ↗</a></p>
+    <p class="panel__actions">
+      <a class="label label--small" href="${escapeHtml(node.url)}" target="_blank" rel="noopener noreferrer">Read the source ↗</a>
+      ${DOWNLOAD}
+    </p>
     <h4>Tagged</h4>
     ${tagChips(node.tags ?? [])}
     ${
@@ -669,6 +753,11 @@ window.addEventListener('resize', () => {
 /* --- events ------------------------------------------------------------- */
 
 document.addEventListener('click', (event) => {
+  if (event.target.closest('[data-download]')) {
+    event.preventDefault();
+    downloadBibliography();
+    return;
+  }
   const tagButton = event.target.closest('[data-tag]');
   if (tagButton) {
     event.preventDefault();
