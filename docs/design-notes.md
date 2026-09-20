@@ -329,6 +329,15 @@ actually move it rather than the moment you touch the glass. The bottom sheet ta
 same allowance: at four pixels half the taps on it turned into little drags that went
 nowhere.
 
+A second finger is a fourth thing, and it ends whatever the first one was doing: a blot
+half-dragged towards a pinch is not a drag, and the tap it would otherwise have counted
+as is not a tap either. A pinch zooms about the point between the fingers and carries the
+map along as that point moves, so how close you are and where you are are one gesture,
+which is how a map is read by hand. The finger left on the glass when a pinch ends begins
+nothing — it is the remains of a gesture already had. A trackpad pinch never arrives as
+two pointers at all: the browser sends it as a wheel event holding ctrl, with a much
+smaller delta, so it is scaled up to travel as far as the same gesture would.
+
 ## The tag bar
 
 The row above the map is named — **Tags** — because a row of words with counts on them

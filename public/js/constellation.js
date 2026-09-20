@@ -174,6 +174,9 @@ export function createConstellation(canvas, options = {}) {
   // The gesture in progress, and whether it has become a drag. A press is a tap
   // until it has travelled far enough not to be one.
   let gesture = null;
+  // Every finger currently on the glass, and the pinch two of them make.
+  const touching = new Map();
+  let pinch = null;
   let dimmed = new Set();
 
   const settings = {
@@ -1613,7 +1616,53 @@ export function createConstellation(canvas, options = {}) {
     return best;
   }
 
+  /** The two fingers of a pinch: how far apart, and the point between them. */
+  function spanOf() {
+    const [a, b] = [...touching.values()];
+    return {
+      distance: Math.max(Math.hypot(b.x - a.x, b.y - a.y), 1),
+      x: (a.x + b.x) / 2,
+      y: (a.y + b.y) / 2,
+    };
+  }
+
+  /**
+   * A second finger ends whatever the first one was doing. Nothing it had begun
+   * is worth finishing — a blot half-dragged towards a pinch is not a drag, and
+   * the tap it would otherwise have counted as is not a tap either.
+   */
+  function startPinch() {
+    dragging = null;
+    panning = null;
+    gesture = null;
+    canvas.classList.remove('is-dragging');
+    const span = spanOf();
+    pinch = { ...span, k: view.k, viewX: view.x, viewY: view.y };
+    userAdjusted = true;
+  }
+
   canvas.addEventListener('pointermove', (event) => {
+    if (touching.has(event.pointerId)) {
+      touching.get(event.pointerId).x = event.clientX;
+      touching.get(event.pointerId).y = event.clientY;
+    }
+
+    // Pinching zooms about the point between the fingers, and carries the map
+    // along as that point moves: one gesture for how close you are and where
+    // you are, which is how a map is read by hand.
+    if (pinch && touching.size >= 2) {
+      const rect = canvas.getBoundingClientRect();
+      const span = spanOf();
+      const next = Math.min(4, Math.max(0.25, pinch.k * (span.distance / pinch.distance)));
+      const heldX = (pinch.x - rect.left - pinch.viewX) / pinch.k;
+      const heldY = (pinch.y - rect.top - pinch.viewY) / pinch.k;
+      view.k = next;
+      view.x = span.x - rect.left - heldX * next;
+      view.y = span.y - rect.top - heldY * next;
+      draw();
+      return;
+    }
+
     if (gesture && !gesture.moved) {
       const travelled = Math.hypot(event.clientX - gesture.x, event.clientY - gesture.y);
       if (travelled > gesture.slop) gesture.moved = true;
@@ -1650,7 +1699,16 @@ export function createConstellation(canvas, options = {}) {
   });
 
   canvas.addEventListener('pointerdown', (event) => {
-    canvas.setPointerCapture(event.pointerId);
+    // Capture can be refused for a pointer the browser has already let go of,
+    // and losing it is not a reason to lose the gesture with it.
+    try {
+      canvas.setPointerCapture(event.pointerId);
+    } catch {
+      /* followed without it */
+    }
+    touching.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    if (touching.size >= 2) return startPinch();
+
     // A thumb is not a mouse: it lands on a wider spot and rolls as it lifts,
     // so it is allowed more travel before the press stops being a tap.
     gesture = {
@@ -1669,7 +1727,22 @@ export function createConstellation(canvas, options = {}) {
   });
 
   canvas.addEventListener('pointerup', (event) => {
-    canvas.releasePointerCapture?.(event.pointerId);
+    // Symmetrical with the capture above: a pointer the browser has already
+    // taken back cannot be released, and that is not an error here.
+    try {
+      canvas.releasePointerCapture(event.pointerId);
+    } catch {
+      /* already let go */
+    }
+    touching.delete(event.pointerId);
+    // A pinch ends with the first finger off, and the one still down is not the
+    // beginning of anything: it is the remains of a gesture already had.
+    if (pinch) {
+      if (touching.size < 2) pinch = null;
+      else pinch = { ...spanOf(), k: view.k, viewX: view.x, viewY: view.y };
+      return;
+    }
+
     const wasDragging = dragging;
     const wasPanning = panning;
     const moved = gesture?.moved ?? false;
@@ -1693,7 +1766,9 @@ export function createConstellation(canvas, options = {}) {
 
   // A gesture the system takes away — a scroll it decided was a page gesture, a
   // second finger — is over, and it was not a tap.
-  canvas.addEventListener('pointercancel', () => {
+  canvas.addEventListener('pointercancel', (event) => {
+    touching.delete(event.pointerId);
+    if (touching.size < 2) pinch = null;
     dragging = null;
     panning = null;
     gesture = null;
@@ -1714,7 +1789,10 @@ export function createConstellation(canvas, options = {}) {
       const rect = canvas.getBoundingClientRect();
       const px = event.clientX - rect.left;
       const py = event.clientY - rect.top;
-      const factor = Math.exp(-event.deltaY * 0.0016);
+      // A trackpad pinch arrives here rather than as two pointers, as a wheel
+      // event holding ctrl and carrying a much smaller delta. It is the same
+      // gesture and should move the map as far.
+      const factor = Math.exp(-event.deltaY * (event.ctrlKey ? 0.0075 : 0.0016));
       const next = Math.min(4, Math.max(0.25, view.k * factor));
       view.x = px - ((px - view.x) / view.k) * next;
       view.y = py - ((py - view.y) / view.k) * next;
