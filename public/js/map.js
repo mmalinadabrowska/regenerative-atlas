@@ -208,7 +208,11 @@ async function renderFilters() {
 function tuckTags() {
   const chips = [...filterBox.children];
   for (const chip of chips) chip.hidden = false;
-  filterBox.style.flexBasis = '';
+  // Collapsed to nothing first, so the row is not overflowing while it is
+  // measured: an overflowing row has already squeezed the search field, and
+  // the room left for tags would be read off a width that only exists while
+  // there is no room. The tags keep their own width through this.
+  filterBox.style.flexBasis = '0px';
   if (filterBox.offsetParent === null) return;
 
   // How much room the tags have is asked of the row, not of the tag box: the
@@ -400,11 +404,21 @@ const fileNameOf = (label) =>
 function downloadBibliography() {
   const text = bibliography();
   if (!text) return;
+  const name = fileNameOf(shown.node.label);
+
+  // A page is not always allowed to hand a file over by itself — inside a
+  // sandbox an ordinary download link does nothing at all. A host that has its
+  // own way of doing it leaves it here, and it is used in preference.
+  if (typeof window.__ATLAS_SAVE__ === 'function') {
+    window.__ATLAS_SAVE__(name, text);
+    return;
+  }
+
   const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = fileNameOf(shown.node.label);
+  link.download = name;
   document.body.append(link);
   link.click();
   link.remove();

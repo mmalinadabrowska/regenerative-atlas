@@ -577,10 +577,24 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   color: var(--paper);
 }
 
+/* The count is the tag's weight, not part of its name, and a name pushed off
+   centre by the number beside it reads as a button whose text is not centred —
+   which is what it is. So the number is lifted out of the line and hung in
+   space reserved for it at both ends, and the name sits in the middle of the
+   pill where it belongs. */
+.tag:has(.tag__count) { position: relative; padding-inline: 1.7em; }
+
 .tag__count {
   font-size: 0.72em;
   font-variant-numeric: tabular-nums;
   opacity: 0.6;
+}
+
+.tag:has(.tag__count) .tag__count {
+  position: absolute;
+  right: 0.8em;
+  top: 50%;
+  translate: 0 -50%;
 }
 
 .tag--ghost { border-style: dashed; }
@@ -769,13 +783,26 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   overflow: hidden;
 }
 
+/* The tags keep their own width whatever the box around them is doing, so the
+   script can collapse that box to nothing to take a measurement and still be
+   measuring real tags. */
+#map-filters > * { flex: 0 0 auto; }
+
 /* Anything the row could not hold is hidden rather than clipped in half. */
 .tag[hidden], .chip[hidden] { display: none !important; }
 
-.chip--more { flex: 0 0 auto; }
+/* Same for the caret: it says the button opens something, it is not its name.
+   Written with both classes because .chip sets padding as a shorthand further
+   down the sheet, and a shorthand beats a longhand that came before it. */
+.chip--more { flex: 0 0 auto; position: relative; }
+.chip.chip--more { padding-inline: 1.75em; }
 .chip--more__narrow { display: none; }
 
 .chip__caret {
+  position: absolute;
+  right: 0.7em;
+  top: 50%;
+  translate: 0 -50%;
   width: 0.6rem;
   height: 0.45rem;
   fill: none;

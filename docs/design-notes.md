@@ -367,6 +367,13 @@ exactly what the drawer is showing: the research listed in it, in the order it i
 Under a tag that is everything filed there; under a piece of research it is that piece
 first and then the ones it sits beside, which is the list the drawer itself shows.
 
+The button is also the one place the map has to ask a host for help. A page is not always
+allowed to hand a file to whoever is reading it: inside the artifact viewer's sandbox an
+ordinary download link does nothing at all. So the app looks for a hook a host may have
+left for it, and the artifact build leaves one — the page asks, the viewer confirms, the
+platform saves. Served from the repository there is no host and no hook, and the link is
+used, which is all a page can do on its own.
+
 It is plain text, with the title, the citation line, the link and what each piece is filed
 under. Plain text opens everywhere, survives every format after it, and can be pasted
 into whatever a reader actually writes in — where a citation manager's format would have
@@ -408,6 +415,13 @@ room than the map can spare. The label pass keeps clear of them, so no name is
 printed underneath a button.
 
 ## Buttons
+
+A button's name sits in the middle of its pill, and only its name: a tag's count and the
+More button's caret are lifted out of the line and hung in space reserved for them at
+both ends, so the word is centred on the shape rather than pushed off centre by the
+number beside it. They are not part of the name — one is the tag's weight, the other says
+the button opens something — and a row of pills whose words do not line up centrally
+reads as sloppy long before a reader works out why.
 
 Every button is an outline at rest and fills black when it is the one you are on or
 pointing at — where pointing is something the device can actually do. A touchscreen

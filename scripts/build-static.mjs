@@ -176,6 +176,20 @@ ${mapBody}
   packages, and their licence, are in the
   <a href="https://github.com/mmalinadabrowska/regenerative-atlas">repository</a>.
 </p>
+<script>
+/* The artifact viewer sandboxes the page, and a sandboxed page cannot hand a
+   file to whoever is reading it: an ordinary download link does nothing there.
+   The host offers this instead — the page asks, the viewer confirms, the
+   platform saves — so the hook the record's download button looks for is put
+   in place here, where the host is, rather than in the app itself. If the
+   capability is not granted the hook is never defined and the button falls
+   back to the link, which is all a page can do on its own. */
+window.claude?.use?.('downloads').then((downloads) => {
+  if (!downloads) return;
+  window.__ATLAS_SAVE__ = (filename, data) =>
+    downloads.save({ filename, data }).catch(() => {});
+});
+</script>
 <script type="module">
 window.__ATLAS_SNAPSHOT__ = ${JSON.stringify(snapshot)};
 ${bundle()}
