@@ -174,6 +174,22 @@ first paint, so what was measured in whatever stood in for it is forgotten when 
 and the map is drawn and reframed again — a name measured in a fallback is the wrong
 width for the one that turns up, and the fit would have been framed to it.
 
+**Each island is named, outside its own coastline.** A survey sheet names a region in
+spaced capitals and the places inside it in roman, and that is exactly the distinction the
+map needs: the theme a group of tags is about, against the tags themselves. The name comes
+from the island's subjects rather than from whatever formats and methods happen to sit in
+it — the heaviest theme tag, and the next one after it when the two still read as a name
+rather than as a list ("Economics & Energy", "Ecology & Biodiversity", but "Carbon" on its
+own, because "Carbon & Climate adaptation" is a list).
+
+Where it goes is decided after every coastline is drawn, because it depends on the others:
+six seats are tried — above the outline or below it, centred or pulled to either end — and
+the emptiest wins, counting what it would cover of another island, of a name already
+placed, and of whatever else is standing on the map (which is the same list the tag names
+keep clear of). Nothing can guarantee a clear seat on a phone, where the islands are close
+enough to touch; it can only take the best on offer. The boxes it used are then handed to
+the label pass, so no tag's name is printed across its island's.
+
 **The islands are drawn on ground of their own.** Each theme gets an outline round
 its blots and a fill inside it, the way a survey sheet distinguishes formations it has
 no colour left for. There are ten: rules at four angles, two crossings, a stipple, a

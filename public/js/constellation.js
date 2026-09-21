@@ -1419,6 +1419,7 @@ export function createConstellation(canvas, options = {}) {
     // The padding is also the outline's roundness: the hull of the padded blots
     // cannot turn tighter than the smallest of them, so a little more of it
     // buys a gentler coastline everywhere.
+    const drawn = [];
     const pad = Math.max(22 * view.k, 14);
     const step = Math.max(9 * view.k, 6);
 
@@ -1448,7 +1449,89 @@ export function createConstellation(canvas, options = {}) {
       ctx.lineJoin = 'round';
       ctx.stroke(path);
       ctx.restore();
+
+      drawn.push({ cluster, box });
     }
+
+    // Names last, once every coastline is on the paper: where one goes depends
+    // on where the others are — and on what else is standing on the map, which
+    // is the same list the tag names keep clear of.
+    const chrome = avoid();
+    for (const island of drawn) {
+      nameTerritory(clusters[island.cluster], island.box, alphaOf, drawn, chrome);
+    }
+  }
+
+  /**
+   * The island's own name, written outside its coastline.
+   *
+   * A survey sheet names a region in spaced capitals and the places inside it in
+   * roman, which is how you can tell at a glance which of the two words you are
+   * reading — so the theme is set that way here. It sits above the outline where
+   * there is room and below it where there is not, and the box it takes is
+   * handed to the label pass, so no tag's name is printed over it.
+   */
+  const territoryNames = [];
+
+  const overlap = (a, b) =>
+    Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)) *
+    Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y));
+
+  function nameTerritory(cluster, box, alpha, islands, chrome) {
+    const title = cluster?.title ?? cluster?.label;
+    if (!title || alpha < 0.05) return;
+
+    ctx.save();
+    ctx.font = `${Math.max(10.5, Math.min(13, 9 + view.k * 2.5))}px ${TYPEFACE}`;
+    if ('letterSpacing' in ctx) ctx.letterSpacing = '0.14em';
+    const text = title.toUpperCase();
+    const measured = ctx.measureText(text).width;
+
+    /*
+     * Above the coastline or below it, and centred or pulled to either end:
+     * six seats are tried and the emptiest wins. A name written across the next
+     * island along belongs to neither of them, and on a phone — where the
+     * islands are close enough to touch — that is the usual case rather than
+     * the rare one. Nothing here can guarantee a clear seat; it can only take
+     * the best on offer.
+     */
+    const gap = 13;
+    const half = measured / 2 + 6;
+    const edge = 8;
+    const seat = (cx, y) => ({
+      x: Math.min(Math.max(cx - half, edge), Math.max(width - half * 2 - edge, edge)),
+      y: y - 2,
+      w: measured + 12,
+      h: 18,
+    });
+
+    const cost = (place) =>
+      (place.y < (inset().top ?? 0) || place.y + place.h > height ? 1e6 : 0) +
+      chrome.reduce((sum, other) => sum + overlap(place, other) * 8, 0) +
+      islands.reduce((sum, other) => sum + (other.box === box ? 0 : overlap(place, other.box)), 0) +
+      territoryNames.reduce((sum, other) => sum + overlap(place, other) * 3, 0);
+
+    const middle = box.x + box.w / 2;
+    const seats = [];
+    for (const y of [box.y - gap - 14, box.y + box.h + gap]) {
+      for (const cx of [middle, box.x + measured / 2, box.x + box.w - measured / 2]) {
+        seats.push(seat(cx, y));
+      }
+    }
+    const place = seats.reduce((best, next) => (cost(next) < cost(best) ? next : best));
+
+    ctx.globalAlpha = alpha * 0.8;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = 3.5;
+    ctx.strokeStyle = THEME.paper;
+    ctx.strokeText(text, place.x + 6, place.y + 2);
+    ctx.fillStyle = 'rgba(16,15,13,0.62)';
+    ctx.fillText(text, place.x + 6, place.y + 2);
+    ctx.restore();
+
+    territoryNames.push(place);
   }
 
   function draw() {
@@ -1462,7 +1545,10 @@ export function createConstellation(canvas, options = {}) {
 
     // The themes' ground, under everything, and only on the islands: inside an
     // opened view you are looking at one thing and its ties, not at territory.
-    // It comes and goes on the same dissolve the islands themselves do.
+    // It comes and goes on the same dissolve the islands themselves do. The
+    // names it writes are cleared here rather than there, so a frame that draws
+    // no territory leaves none of last frame's behind for the labels to avoid.
+    territoryNames.length = 0;
     if (!focused) paintTerritories(transition ? enterFade : 1);
     else if (leaving.islands) paintTerritories(exitFade);
 
@@ -1605,7 +1691,9 @@ export function createConstellation(canvas, options = {}) {
      * label in any patch of the map wins and the rest wait for a zoom.
      */
     labelQueue.sort((a, b) => b.priority - a.priority);
-    const occupied = avoid();
+    // The islands are named before anything else is written, and a tag's name
+    // printed across its island's name would cost both of them.
+    const occupied = [...avoid(), ...territoryNames];
     // Mid-dissolve the rest of the names are gone, and placing them would only
     // reserve space against positions that are still moving. The name you are
     // holding is still placed, and still drawn.

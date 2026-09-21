@@ -218,10 +218,18 @@ export function buildGraph(atlas, options = {}) {
         .map((slug) => tagRows.find((t) => t.slug === slug))
         .filter(Boolean)
         .sort((x, y) => y.count - x.count || x.label.localeCompare(y.label));
-      const head = members.find((m) => m.facet === 'theme') ?? members[0];
+      // What the island is called. A cluster is held together by its subjects
+      // rather than by the formats or methods that happen to sit in it, so the
+      // name is taken from the theme tags: the heaviest, and the next one after
+      // it where the two still read as a name rather than as a list.
+      const themes = members.filter((m) => m.facet === 'theme');
+      const head = themes[0] ?? members[0];
+      const second = themes[1];
+      const paired = second ? `${head.label} & ${second.label}` : '';
       return {
         key,
         label: head?.label ?? key,
+        title: paired && paired.length <= 24 ? paired : head?.label ?? key,
         tags: members.map((m) => m.slug),
         weight: members.reduce((sum, m) => sum + m.count, 0),
       };
