@@ -25,7 +25,10 @@ const TRANSITION_MS = 3000;
 const THEME = {
   paper: '#f2ecdf',
   ink: INK,
-  accents: ['#c2372a', '#2c4a8c', '#dda32f'],
+  // Brick red, ink blue, gold. The yellow used to sit at hue 38, which at that
+  // saturation is an orange; it is walked round to 45 and darkened, where it
+  // reads as the ochre the washes are mixed from.
+  accents: ['#c2372a', '#2c4a8c', '#c89e1e'],
 };
 
 /* --------------------------------------------------------------------------
@@ -1510,16 +1513,19 @@ export function createConstellation(canvas, options = {}) {
         ctx.fillStyle = wash;
         traceBlob(ctx, node.blob, x, y, radius);
         ctx.fill();
-        // Pointed at or opened, a shape is drawn round in ink — an outline on
-        // the shape itself rather than a halo around it, so it reads as the
-        // same blot picked out rather than a second mark.
-        if (active) {
-          ctx.strokeStyle = THEME.ink;
-          ctx.lineWidth = Math.max(2 * view.k, 1.2);
-          ctx.lineJoin = 'round';
-          traceBlob(ctx, node.blob, x, y, radius);
-          ctx.stroke();
-        }
+        // Every blot is drawn round in ink, wash or no wash: the drawing is the
+        // constant and the colour is laid inside it, the way a survey sheet is
+        // engraved first and washed after. Pointed at or opened, that same line
+        // is simply laid in heavier — an outline on the shape itself rather
+        // than a halo around it, so it reads as the blot picked out rather than
+        // as a second mark.
+        ctx.strokeStyle = THEME.ink;
+        ctx.lineWidth = active
+          ? Math.max(3 * view.k, 1.8)
+          : Math.max(1.1 * Math.min(view.k, 1.5), 0.75);
+        ctx.lineJoin = 'round';
+        traceBlob(ctx, node.blob, x, y, radius);
+        ctx.stroke();
 
         // A dot on the tag that names its cluster, in one of the three
         // primaries. It is the only place on the map colour is used to point at

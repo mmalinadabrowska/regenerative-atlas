@@ -14,7 +14,9 @@
  * Most of the map is ink. A survey sheet is not coloured in everywhere — the
  * drawing carries it, and colour falls where it is worth spending — so the
  * washes here are a short family rather than a wheel: the greens and olives of
- * ground cover, two slate blues, two roses, and bone. They are mixed for cream
+ * ground cover, two slate blues, two roses, the ochres a survey sheet washes
+ * high ground with, and bone. No orange: an earth yellow that has gone that far
+ * round stops being a wash and starts being a warning. They are mixed for cream
  * paper with ink over them, which is why none of them is bright: a pale wash
  * disappears on this paper and a saturated one stops being a wash.
  *
@@ -29,9 +31,11 @@ const WASHES = [
   [104, 18, 40], // deep green
   [352, 38, 76], // dusty rose
   [74, 24, 52], //  olive
+  [46, 30, 60], //  ochre
   [196, 16, 64], // blue-grey
   [96, 20, 62], //  sage
   [348, 30, 66], // rose
+  [42, 26, 46], //  raw umber
   [64, 14, 80], //  bone
   [150, 14, 56], // sea green
   [40, 20, 72], //  pale ochre

@@ -270,12 +270,23 @@ cut through it, and the proportion lands near two fifths, which is about what a
 survey sheet colours.
 
 The washes themselves are a short family rather than a wheel: the greens and
-olives of ground cover, two slate blues, two roses, bone, pale ochre. Mid-toned
-and unsaturated, because a pale wash disappears on this paper and a saturated one
-stops being a wash. Which tag gets which is its place in the alphabet stepped by
+olives of ground cover, two slate blues, two roses, the ochres a survey sheet
+washes high ground with — pale ochre, ochre, raw umber — and bone. Mid-toned and
+unsaturated, because a pale wash disappears on this paper and a saturated one
+stops being a wash. No orange anywhere, which is a rule about hue and saturation
+together: an earth yellow that has gone that far round stops reading as a wash
+and starts reading as a warning. The third primary used to sit at hue 38, which
+at that saturation is an orange; it is walked round to 45 and darkened into the
+gold the ochres are mixed from. Which tag gets which is its place in the alphabet stepped by
 1/φ, so consecutive marks land most of the family apart; the family is short
 enough that it comes round again, which is true of a survey sheet too — there are
 always more formations than there are washes.
+
+Every blot is drawn round in ink, wash or no wash: the drawing is the constant and
+the colour is laid inside it, the way a sheet is engraved first and washed after.
+Pointing at a blot or opening it lays that same line in heavier rather than adding
+anything — about three times the weight — so the shape is picked out by the hand
+that drew it instead of by a second mark around it.
 
 With most blots in ink, the dot that names a theme could no longer be ink itself.
 It is one of the three primaries now, by cluster — the only place on the map where
