@@ -13,11 +13,15 @@
  *
  * A survey sheet is drawn in ink and coloured in washes, and the washes are a
  * short family rather than a wheel: the greens and olives of
- * ground cover, two slate blues, two roses, the ochres a survey sheet washes
- * high ground with, and bone. No orange: an earth yellow that has gone that far
- * round stops being a wash and starts being a warning. They are mixed for cream
- * paper with ink over them, which is why none of them is bright: a pale wash
- * disappears on this paper and a saturated one stops being a wash.
+ * ground cover, blues from slate to indigo, the pinks between rose and plum,
+ * the ochres a survey sheet washes high ground with, and bone. No orange: an
+ * earth yellow that has gone that far round stops being a wash and starts being
+ * a warning. They are mixed for cream paper with ink over them, so none of them
+ * is bright — but they are not all one weight either. A family pitched at a
+ * single lightness is a family you cannot tell apart at blot size, so this one
+ * runs from bone at 84 down to deep green at 38, and neighbours in the walk
+ * differ in weight as well as in hue: the fastest way to tell two shapes apart
+ * across a map is that one is pale and the other is not.
  *
  * Every shape carries one: the drawing is the ink, and the colour is laid
  * inside it.
@@ -26,24 +30,24 @@ export const INK = '#100f0d';
 export const PAPER = '#f2ecdf';
 
 const WASHES = [
-  [198, 20, 72], // slate blue
-  [352, 38, 76], // dusty rose
-  [96, 20, 62], //  sage
-  [46, 30, 60], //  ochre
-  [212, 22, 58], // deep slate
-  [336, 22, 58], // mallow
-  [104, 18, 40], // deep green
-  [52, 22, 68], //  straw
-  [196, 16, 64], // blue-grey
-  [348, 30, 66], // rose
-  [122, 16, 54], // moss
-  [42, 26, 46], //  raw umber
-  [178, 16, 60], // teal grey
-  [8, 26, 68], //   pale brick
-  [74, 24, 52], //  olive
-  [40, 20, 72], //  pale ochre
-  [150, 14, 56], // sea green
-  [64, 14, 80], //  bone
+  [205, 26, 70], // slate blue
+  [350, 40, 74], // dusty rose
+  [128, 22, 38], // deep green
+  [45, 38, 55], //  ochre
+  [212, 30, 48], // steel blue
+  [330, 26, 62], // mallow
+  [95, 22, 66], //  sage
+  [36, 30, 40], //  raw umber
+  [180, 24, 56], // teal
+  [6, 34, 60], //   brick rose
+  [112, 20, 50], // moss
+  [50, 30, 74], //  straw
+  [225, 18, 62], // indigo grey
+  [318, 20, 48], // plum
+  [70, 30, 48], //  olive
+  [40, 26, 78], //  pale ochre
+  [155, 20, 62], // sea green
+  [60, 12, 84], //  bone
 ];
 
 /**
@@ -56,6 +60,8 @@ const WASHES = [
  * always more formations than there are washes, and two of the same colour a
  * map apart read as two formations rather than as one.
  */
+export const WASH_COUNT = WASHES.length;
+
 export function washFor(index) {
   const [hue, sat, light] = WASHES[((index % WASHES.length) + WASHES.length) % WASHES.length];
   return `hsl(${hue} ${sat}% ${light}%)`;

@@ -17,7 +17,17 @@
  * drawn ink. Lines bow a little.
  */
 
-import { INK, blobPoints, crossInCircle, inkLine, rng, seedOf, traceBlob, washFor } from './ink.js';
+import {
+  INK,
+  WASH_COUNT,
+  blobPoints,
+  crossInCircle,
+  inkLine,
+  rng,
+  seedOf,
+  traceBlob,
+  washFor,
+} from './ink.js';
 
 /** Long enough to read as the map turning over rather than a cut. */
 const TRANSITION_MS = 3000;
@@ -429,15 +439,34 @@ export function createConstellation(canvas, options = {}) {
     };
     allById = new Map(library.nodes.map((n) => [n.id, n]));
 
-    // Every tag carries a wash — the sheet is coloured throughout, and the ink
-    // is the line round each shape rather than the shape itself. Alphabetical
-    // order decides nothing but the place in the queue: the family itself puts
-    // consecutive tags far apart, so no blot sits beside its own colour.
+    /*
+     * Every tag carries a wash — the sheet is coloured throughout, and the ink
+     * is the line round each shape rather than the shape itself. Alphabetical
+     * order decides nothing but the place in the queue: the family is laid out
+     * in the order it is walked, so consecutive tags are never in the same
+     * register.
+     *
+     * There are more tags than washes, though, and a colour that has come round
+     * again only costs you something when both blots are on screen together —
+     * which is to say, on the same island. So an island's second claim on a
+     * wash steps on to the next free one, seven along, which in a family
+     * arranged blue, rose, green, ochre is a different register again. A tag
+     * keeps whatever it was given as long as the library around it holds still.
+     */
+    const claimed = new Map();
     library.nodes
       .filter((node) => node.type === 'tag')
       .sort((a, b) => a.slug.localeCompare(b.slug))
       .forEach((node, index) => {
-        node.wash = washFor(index);
+        const island = node.cluster ?? -1;
+        const used = claimed.get(island) ?? new Set();
+        let pick = index % WASH_COUNT;
+        for (let tried = 0; used.has(pick) && tried < WASH_COUNT; tried++) {
+          pick = (pick + 7) % WASH_COUNT;
+        }
+        used.add(pick);
+        claimed.set(island, used);
+        node.wash = washFor(pick);
       });
 
     sourcesOfTag = new Map();
@@ -1515,13 +1544,13 @@ export function createConstellation(canvas, options = {}) {
         traceBlob(ctx, node.blob, x, y, radius);
         ctx.stroke();
 
-        // A dot on the tag that names its cluster, in one of the three
-        // primaries. It is the only place on the map colour is used to point at
-        // something rather than to fill it — and with most of the blots in ink
-        // now, ink is the one thing it could not be.
+        // An ink dot on the tag that names its cluster. It was briefly one of
+        // the three primaries, which it had to be while the blots themselves
+        // were black; now that every blot carries a wash, ink is what reads on
+        // all of them and a dot in a fourth colour is one colour too many.
         const cluster = clusters[node.cluster ?? -1];
         if (cluster && cluster.tags?.[0] === node.slug) {
-          ctx.fillStyle = THEME.accents[(node.cluster ?? 0) % THEME.accents.length];
+          ctx.fillStyle = THEME.ink;
           ctx.beginPath();
           ctx.arc(x + radius * 0.82, y - radius * 0.72, Math.max(radius * 0.2, 2.5), 0, Math.PI * 2);
           ctx.fill();

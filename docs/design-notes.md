@@ -267,26 +267,39 @@ the colour does the telling apart. Pointing at a blot or opening it lays that sa
 line in about three times heavier rather than adding anything around it, so the
 shape is picked out by the hand that drew it.
 
-The washes are a short family rather than a wheel: pinks and roses, the greens and
-olives of ground cover, slate and teal blues, the ochres a survey sheet washes high
-ground with, and bone — eighteen in all. Mid-toned and unsaturated, because a pale
-wash disappears on this paper and a saturated one stops being a wash. No orange
-anywhere, which is a rule about hue and saturation together: an earth yellow that
-has gone that far round stops reading as a wash and starts reading as a warning.
-The third primary used to sit at hue 38, which at that saturation is an orange; it
-is walked round to 45 and darkened into the gold the ochres are mixed from.
+The washes are a short family rather than a wheel: pinks from rose to plum, the
+greens and olives of ground cover, blues from slate to indigo, the ochres a survey
+sheet washes high ground with, and bone — eighteen in all. Mixed for cream paper
+with ink over them, so none of them is bright. No orange anywhere, which is a rule
+about hue and saturation together: an earth yellow that has gone that far round
+stops reading as a wash and starts reading as a warning.
+
+They are not all one weight, though, and that is the part that took two goes. A
+family pitched at a single lightness is a family you cannot tell apart at blot
+size — hue alone is not much to go on across a map, at a centimetre, in the corner
+of your eye. So the family runs from bone at 84 down to deep green at 38, and
+neighbours in the walk differ in weight as well as in hue: the fastest way to tell
+two shapes apart is that one is pale and the other is not.
 
 The family is stored in the order it is walked — a blue, a rose, a green, an ochre,
 and round again — and a tag takes the next one by its place in the alphabet, so
-consecutive shapes are never in the same register, let alone the same colour.
-Eighteen washes and forty-odd tags means it comes round; that is true of a survey
-sheet as well, where there are always more formations than there are washes, and
-two of the same colour a map apart read as two formations rather than as one. An
+consecutive shapes are never in the same register, let alone the same colour. An
 earlier version stepped through the family by 1/φ, which is the right trick for a
 continuous ramp and the wrong one for a short list: it landed three ochres in a row.
 
-The dot that names a theme is one of the three primaries, by cluster — the only
-place on the map where colour points at something rather than fills it.
+Eighteen washes and forty-odd tags means a colour comes round again, which is true
+of a survey sheet as well — there are always more formations than there are washes.
+It only costs you anything when both blots are on screen together, which is to say
+on the same island, so an island's second claim on a wash steps on to the next free
+one, seven along, which in a family arranged blue, rose, green, ochre is a different
+register again. No island here holds more than seven tags, so there is always one
+free. Without it, Dataset and Modelling — neighbours on the same island — came out
+in the same indigo.
+
+The dot that names a theme is ink. It was briefly one of the three primaries, which
+it had to be while the blots themselves were black; now that every blot carries a
+wash, ink is the one colour that reads on all of them, and a dot in a fourth colour
+is one colour too many.
 
 Type on a wash follows the wash. `needsPaper` in `js/ink.js` works out the
 relative luminance of a colour and asks which of ink or paper actually reads
