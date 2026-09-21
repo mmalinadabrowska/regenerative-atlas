@@ -270,6 +270,7 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 /* --- site navigation ----------------------------------------------------- */
 
 .topbar {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem 1.4rem;
@@ -278,6 +279,11 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   padding: 1.1rem var(--gutter);
   border-bottom: var(--rule);
 }
+
+/* The menu button belongs to the phone layout; on a wide screen the sections
+   are simply there, and a button to reveal what is already visible is a door
+   into the room you are standing in. */
+.burger { display: none; }
 
 .topbar__brand {
   font-family: var(--display);
@@ -1207,6 +1213,89 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 /* --- responsive ---------------------------------------------------------- */
 
 @media (max-width: 46rem) {
+  /* --- the top bar folds -------------------------------------------------
+     The section row is two wrapped lines on a phone, taken out of the one
+     screen the map has. It folds into a button at the left of the bar and
+     drops out of it when asked — the same nav, moved, rather than a second
+     copy of it to keep in step. */
+  .topbar {
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.7rem var(--gutter);
+  }
+
+  .burger {
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    width: 2.4rem;
+    height: 2.4rem;
+    padding: 0;
+    background: var(--paper);
+    border: var(--stroke) solid var(--ink);
+    border-radius: 999px;
+    color: var(--ink);
+    cursor: pointer;
+  }
+
+  .burger:active, .topbar.is-menu-open .burger {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  /* It wears the Atlas' own mark rather than three lines: the quatrefoil that
+     sits at the head of the section row on a wide screen, in the circle that
+     row would have drawn round it. Open, it turns a quarter of the way over —
+     the same shape, plainly moved, which is a state and not a second icon. */
+  .burger__mark {
+    display: block;
+    width: 1.15rem;
+    height: 1.15rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    transition: rotate 200ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+
+  .topbar.is-menu-open .burger__mark { rotate: 45deg; }
+
+  .topbar__brand { font-size: 1.05rem; }
+  .topbar__count { margin-left: auto; text-align: right; }
+
+  /* The menu itself: dropped out of the bar, over whatever is under it.
+     Written against the bar as well as the attribute, because `.topbar nav`
+     further up the sheet already claims a display and would keep it. */
+  .topbar nav[data-connected-nav] {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 6;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+    padding: 0.85rem var(--gutter) 1.1rem;
+    background: var(--paper);
+    border-bottom: var(--stroke) solid var(--ink);
+  }
+
+  .topbar.is-menu-open nav[data-connected-nav] { display: flex; }
+
+  /* A column of buttons is not a connected row, and the drawn outline knows
+     it — but the mark is a home button in a menu, and a circle on its own
+     line reads as a stray. */
+  /* The mark is on the button now, and twice is once too often. Written
+     against the row as well, or `[data-connected-nav] > a` keeps its display. */
+  .topbar nav[data-connected-nav] > a.navgroup__mark { display: none; }
+
+  .topbar nav[data-connected-nav] > a {
+    border-radius: 999px;
+    padding: 0.55rem 1.1rem;
+    font-size: 1.05rem;
+  }
+
   /* On a phone the record is a sheet at the bottom of the map rather than a
      card beside it: it comes up showing its title bar and the line under it,
      and you drag or tap it open when you want the rest. The map keeps the

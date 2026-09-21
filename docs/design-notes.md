@@ -383,6 +383,28 @@ nothing — it is the remains of a gesture already had. A trackpad pinch never a
 two pointers at all: the browser sends it as a wheel event holding ctrl, with a much
 smaller delta, so it is scaled up to travel as far as the same gesture would.
 
+## The top bar folds on a phone
+
+The section row is the whole navigation on a wide screen and two wrapped lines of it on a
+phone, taken out of the one screen the map has. So on a phone it folds into a button at
+the left of the bar and drops out of it when asked. The markup does not change — the same
+nav, the same links, moved — because a second copy of the navigation is a second thing to
+keep in step, and because with the script missing the row is still a row.
+
+The button wears the Atlas' own quatrefoil rather than three lines: the mark that sits at
+the head of the section row on a wide screen, in the circle that row draws round it. Open,
+it turns a quarter of the way over — the same shape, plainly moved, which is a state and
+not a second icon — and fills, the way everything on this site says *this is the one you
+are on*. The row's own copy of the mark is hidden while the button carries it, since twice
+is once too often.
+
+Two things about a menu that opens under a finger. It closes on anything else pressed, but
+never on a press inside itself: closing it while the finger is still coming down takes the
+link out from under the tap and the tap lands on the map behind it. And it closes on a
+click *within* it, after that click has been had — most of those links are on their way to
+another page, but the one for the page you are already on is not, and would otherwise
+leave the menu standing open over it.
+
 ## The tag bar
 
 The row above the map is named — **Tags** — because a row of words with counts on them
