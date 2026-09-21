@@ -165,6 +165,15 @@ fixed scale in its own coordinate space; the view is then fitted to what it sett
 into, with a floor on the zoom so marks never shrink into dust. Tying the layout to the
 viewport makes the map collapse in a short window and drift in a tall one.
 
+**One face on the map.** Everything written on the drawing is set in Tremplin — a tag's
+name sized by the weight of its territory, a piece of research at the quiet end of the
+same scale. Research used to be named in the serif the page sets its titles in, which
+made the map two typographic worlds at once; weight alone is enough to tell a theme from
+a thing filed under it, and one face reads as one drawing. The face arrives after the
+first paint, so what was measured in whatever stood in for it is forgotten when it lands
+and the map is drawn and reframed again — a name measured in a fallback is the wrong
+width for the one that turns up, and the fit would have been framed to it.
+
 **The islands are drawn on ground of their own.** Each theme gets an outline round
 its blots and a fill inside it, the way a survey sheet distinguishes formations it has
 no colour left for. There are ten: rules at four angles, two crossings, a stipple, a

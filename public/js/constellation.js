@@ -341,12 +341,28 @@ export function createConstellation(canvas, options = {}) {
     return size;
   }
 
-  // A tag's name is sized like the tag: the bigger the territory, the louder it
-  // is allowed to be. Shared so the fit measures the type the drawing will use.
+  // One face for everything written on the map. A tag's name is sized like the
+  // tag — the bigger the territory, the louder it is allowed to be — and a
+  // piece of research is named at the quiet end of the same scale, so weight
+  // still tells you what you are looking at where the face no longer does.
+  // Shared with the fit, so it measures the type the drawing will use.
+  const TYPEFACE = '"Tremplin", "Century Gothic", system-ui, sans-serif';
+
   const labelFont = (node) =>
     node.type === 'tag'
-      ? `${Math.max(11, Math.min(18, 10.5 + (node.count ?? 1) * 0.5))}px "Tremplin", "Century Gothic", system-ui, sans-serif`
-      : '12px "EB Garamond", Georgia, serif';
+      ? `${Math.max(11, Math.min(18, 10.5 + (node.count ?? 1) * 0.5))}px ${TYPEFACE}`
+      : `11.5px ${TYPEFACE}`;
+
+  // The face arrives after the first paint, and a name measured in whatever
+  // stood in for it is the wrong width for the one that turns up — a width the
+  // fit is then framed to and the cache would keep for good. So the
+  // measurements are forgotten and the map drawn again, and reframed too unless
+  // the reader has taken the camera by then.
+  document.fonts?.ready.then(() => {
+    labelSizes.clear();
+    if (userAdjusted) draw();
+    else fit();
+  });
 
   /** Frame what is on screen now. */
   function fit(padding = 90) {
