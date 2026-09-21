@@ -2,7 +2,7 @@
 
 import { api, citationLine, escapeHtml, fillCount, hostOf } from './api.js';
 import { createConstellation } from './constellation.js';
-import { blobPath, seedOf } from './ink.js';
+import { blobPath, needsPaper, seedOf } from './ink.js';
 
 const canvas = document.getElementById('constellation');
 const zoomCluster = document.querySelector('.map-zoom');
@@ -313,6 +313,9 @@ const blotMark = (id) =>
 function setHead(kind, title, glyph, wash) {
   panel.dataset.kind = kind;
   panel.style.setProperty('--head', wash || 'var(--ink)');
+  // Most tags are drawn in ink now, so the title bar cannot assume it is dark
+  // type on a wash: what is written on it follows the colour underneath it.
+  panel.style.setProperty('--head-ink', needsPaper(wash) ? 'var(--paper)' : 'var(--ink)');
   panelGlyph.innerHTML = glyph;
   panelTitle.textContent = title;
 }
@@ -323,9 +326,12 @@ const tagChips = (slugs) =>
   `<div class="tag-cloud">${slugs
     .map((slug) => {
       const wash = washOfTag(slug);
-      return `<button class="tag tag--wash" type="button" data-tag="${escapeHtml(slug)}"${
-        wash ? ` style="--chip: ${wash}"` : ''
-      }>${escapeHtml(labelOf(slug))}</button>`;
+      const style = wash
+        ? ` style="--chip: ${wash}; --chip-ink: ${needsPaper(wash) ? 'var(--paper)' : 'var(--ink)'}"`
+        : '';
+      return `<button class="tag tag--wash" type="button" data-tag="${escapeHtml(
+        slug,
+      )}"${style}>${escapeHtml(labelOf(slug))}</button>`;
     })
     .join('')}</div>`;
 

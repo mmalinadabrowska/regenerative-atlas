@@ -11,52 +11,84 @@
 /**
  * The washes.
  *
- * Taken from Greenough's 1820 geological map of England and Wales — the hand-
- * coloured survey palette of slate blue, sage, ochre, terracotta and dusty rose
- * laid over cream paper, with the ink drawing left on top. The anchors below
- * walk once around the wheel through that family; they are mid-toned and
- * unsaturated on purpose, because a pale wash disappears on this paper and a
- * saturated one stops being a wash. Lightness is corrected by hue — the yellows
- * sit darker so they read as ochre rather than highlighter.
+ * Most of the map is ink. A survey sheet is not coloured in everywhere — the
+ * drawing carries it, and colour falls where it is worth spending — so the
+ * washes here are a short family rather than a wheel: the greens and olives of
+ * ground cover, two slate blues, two roses, and bone. They are mixed for cream
+ * paper with ink over them, which is why none of them is bright: a pale wash
+ * disappears on this paper and a saturated one stops being a wash.
  *
- * Hues are stored unwrapped, decreasing, so interpolating between neighbours is
- * plain arithmetic and the last anchor closes back onto the first.
+ * Who gets one is decided on the map (constellation.js), by weight — the tags
+ * carrying the most research take a wash and the rest stay ink.
  */
 export const INK = '#100f0d';
+export const PAPER = '#f2ecdf';
 
-const RAMP = [
-  [200, 22, 64], // slate blue
-  [152, 16, 60], // sea green
-  [96, 20, 58], //  sage
-  [74, 22, 48], //  olive
-  [45, 42, 56], //  ochre
-  [24, 40, 54], //  terracotta
-  [6, 34, 58], //   brick
-  [-12, 30, 66], // dusty rose
-  [-60, 14, 62], // mauve
-  [-110, 16, 62], // moor purple
+const WASHES = [
+  [198, 20, 72], // slate blue
+  [104, 18, 40], // deep green
+  [352, 38, 76], // dusty rose
+  [74, 24, 52], //  olive
+  [196, 16, 64], // blue-grey
+  [96, 20, 62], //  sage
+  [348, 30, 66], // rose
+  [64, 14, 80], //  bone
+  [150, 14, 56], // sea green
+  [40, 20, 72], //  pale ochre
 ];
 
-/** 1/φ — successive indices land far apart on the ramp and never repeat early. */
+/** 1/φ — successive indices land far apart in the family and never repeat early. */
 const STEP = 0.6180339887498949;
 
 /**
- * The wash for the index-th shape: its own colour, drawn from the ramp above.
- * Neighbouring indices are most of a wheel apart, so shapes that sit next to
- * each other never end up in the same wash.
+ * The wash for the index-th shape. Neighbouring indices land most of the family
+ * apart, so nothing sits beside its own colour; the family is short enough that
+ * it does come round again, which is true of a survey sheet as well — there are
+ * always more formations than there are washes.
  */
 export function washFor(index) {
-  const n = RAMP.length;
   const t = (((index * STEP) % 1) + 1) % 1;
-  const at = t * n;
-  const i = Math.floor(at);
-  const f = at - i;
-  const [h1, s1, l1] = RAMP[i];
-  const [h2, s2, l2] = i + 1 < n ? RAMP[i + 1] : [RAMP[0][0] - 360, RAMP[0][1], RAMP[0][2]];
-  const hue = ((h1 + (h2 - h1) * f) % 360 + 360) % 360;
-  const sat = s1 + (s2 - s1) * f;
-  const light = l1 + (l2 - l1) * f;
-  return `hsl(${hue.toFixed(1)} ${sat.toFixed(1)}% ${light.toFixed(1)}%)`;
+  const [hue, sat, light] = WASHES[Math.floor(t * WASHES.length) % WASHES.length];
+  return `hsl(${hue} ${sat}% ${light}%)`;
+}
+
+/** Relative luminance, the way contrast is actually reckoned. */
+function luminance(hue, sat, light) {
+  const s = sat / 100;
+  const l = light / 100;
+  const c = (1 - Math.abs(2 * l - 1)) * s;
+  const x = c * (1 - Math.abs((((hue % 360) + 360) % 360) / 60 % 2 - 1));
+  const m = l - c / 2;
+  const sixth = Math.floor((((hue % 360) + 360) % 360) / 60);
+  const rgb = [
+    [c, x, 0],
+    [x, c, 0],
+    [0, c, x],
+    [0, x, c],
+    [x, 0, c],
+    [c, 0, x],
+  ][sixth].map((v) => v + m);
+  const linear = rgb.map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+}
+
+const PAPER_LUMINANCE = 0.8;
+const INK_LUMINANCE = 0.006;
+const contrast = (a, b) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+
+/**
+ * Whether a wash wants paper-coloured type on it, decided by which of the two
+ * reads better rather than by a guess at where dark begins. A mid olive looks
+ * dark and is not: paper on it is worse than ink by half again. Everything that
+ * sets a wash gets it from `washFor` or is ink, so the one format they come in
+ * is the only one parsed — and anything else is treated as ink, which is the
+ * safe way round.
+ */
+export function needsPaper(wash) {
+  const parts = /^hsl\(\s*([-\d.]+)\s+([\d.]+)%\s+([\d.]+)%/.exec(String(wash ?? ''));
+  if (!parts) return true;
+  const ground = luminance(Number(parts[1]), Number(parts[2]), Number(parts[3]));
+  return contrast(PAPER_LUMINANCE, ground) > contrast(INK_LUMINANCE, ground);
 }
 
 /** Deterministic 32-bit hash of a string — a node's id becomes its seed. */

@@ -258,24 +258,41 @@ The Atlas was ink on paper for its first few weeks, which was right for the mark
 and wrong for the map: forty-seven identical black blots are a field, not a
 territory. The colour comes from Greenough's 1820 geological map of England and
 Wales — a survey sheet is drawn in ink and coloured in washes, and it is legible
-across a room because every formation has its own colour.
+across a room because the formations that matter to the question carry a colour.
 
-So every ink shape carries its own wash, and nothing else does. The ramp in
-`js/ink.js` walks once around the wheel through that palette's family — slate
-blue, sea green, sage, olive, ochre, terracotta, brick, dusty rose, mauve, moor
-purple — mid-toned and unsaturated, because a pale wash disappears on this paper
-and a saturated one stops being a wash. Lightness is corrected by hue so the
-yellows land as ochre rather than as highlighter.
+That last part took a second pass to get right. Giving every tag its own wash
+made the map *all* colour, and a sheet that is coloured in everywhere has spent
+the thing it had to spend: the drawing stopped carrying it. So most of the map is
+ink again, and a wash is earned — the tags with the most research under them take
+one, the rest stay black. Weight is nudged by a seeded amount before the line is
+drawn, so the sheet reads as coloured by hand rather than as a ranked list with a
+cut through it, and the proportion lands near two fifths, which is about what a
+survey sheet colours.
 
-Shapes take their wash by index, stepped by 1/φ, so consecutive marks sit most of
-a wheel apart: two blots that end up next to each other on the map, or two marks
-that sit side by side in the drawing, can never be the same colour or close to
-it. On the map the index is the tag's place in the alphabet — arbitrary, and
-only there to give the ramp an order.
+The washes themselves are a short family rather than a wheel: the greens and
+olives of ground cover, two slate blues, two roses, bone, pale ochre. Mid-toned
+and unsaturated, because a pale wash disappears on this paper and a saturated one
+stops being a wash. Which tag gets which is its place in the alphabet stepped by
+1/φ, so consecutive marks land most of the family apart; the family is short
+enough that it comes round again, which is true of a survey sheet too — there are
+always more formations than there are washes.
+
+With most blots in ink, the dot that names a theme could no longer be ink itself.
+It is one of the three primaries now, by cluster — the only place on the map where
+colour points at something rather than fills it.
+
+Type on a wash follows the wash. `needsPaper` in `js/ink.js` works out the
+relative luminance of a colour and asks which of ink or paper actually reads
+better on it, rather than guessing at where dark begins: a mid olive looks dark
+and is not, and paper on it is worse than ink by half again. The record's title
+bar, its blot, the sheet's grip and the tag chips all take their contrast from
+that one answer, so a black-blotted tag opens a card with paper type and a pale
+one opens the same card in ink.
 
 Everything that is not a tag stays ink: the sources, the lines between them, the
 labels, the buttons, and the lines that join the landing drawing up. Colour means
-one thing on this site, which is *this is a subject*.
+one thing on this site, which is *this is a subject* — and now, by how much of it
+there is.
 
 ## The record card
 

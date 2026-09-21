@@ -926,11 +926,10 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   gap: 0.7rem;
   padding: 0.85rem 0.9rem 0.9rem 1rem;
   background: var(--head);
-  color: var(--ink);
+  /* A piece of research is ink, and so are most tags: what is written on the
+     title bar follows the colour of the bar rather than the kind of record. */
+  color: var(--head-ink, var(--ink));
 }
-
-/* A piece of research is ink; a tag wears the colour it is drawn in. */
-.panel[data-kind='source'] .panel__head { color: var(--paper); }
 
 .panel__title {
   font-family: var(--display);
@@ -952,7 +951,7 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 .panel__glyph svg { display: block; width: 100%; height: auto; }
 .panel__glyph .crosshair circle,
 .panel__glyph .crosshair path { fill: none; stroke: currentColor; stroke-width: 1.6; }
-.panel__glyph .blot { fill: var(--ink); }
+.panel__glyph .blot { fill: currentColor; }
 
 .panel__close {
   flex: 0 0 auto;
@@ -1089,7 +1088,7 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 
 /* A tag chip carries its blot's colour, so a record's tags are the same five
    colours you just saw around it on the map. */
-.tag--wash { background: var(--chip, transparent); }
+.tag--wash { background: var(--chip, transparent); color: var(--chip-ink, inherit); }
 .tag--wash:hover { background: var(--ink); color: var(--paper); }
 
 /* The map is a single screen: the page under it never scrolls, so nothing can
@@ -1285,7 +1284,8 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
     background: var(--ink-32);
   }
 
-  .panel[data-kind='source'] .sheet-grip__bar { background: rgba(242, 236, 223, 0.5); }
+  /* The grip is on the title bar, so it takes the bar's own contrast too. */
+  .panel.is-open .sheet-grip__bar { background: var(--head-ink, var(--ink-32)); opacity: 0.5; }
 
   .panel.is-dragging .sheet-grip { cursor: grabbing; }
 

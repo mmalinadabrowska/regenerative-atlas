@@ -426,15 +426,27 @@ export function createConstellation(canvas, options = {}) {
     };
     allById = new Map(library.nodes.map((n) => [n.id, n]));
 
-    // Every tag gets its own wash, the way a geological sheet gives every
-    // formation its own colour. Alphabetical order only decides who is first in
-    // the queue; the ramp itself puts consecutive tags most of a wheel apart, so
-    // no two blots on screen are the same colour or close to it.
-    library.nodes
-      .filter((node) => node.type === 'tag')
+    /*
+     * Colour is earned rather than handed out. Most of the map is ink — the
+     * drawing carries it — and the tags with the most research under them take
+     * a wash, the way a survey sheet lays colour on the formations that matter
+     * to the question and leaves the rest to the engraving. Weight is nudged by
+     * a seeded amount before the line is drawn, so the sheet reads as coloured
+     * by hand rather than as a ranked list with a cut in it.
+     *
+     * Which wash is then alphabetical, which decides nothing but the order in
+     * the queue: the family itself puts consecutive tags far apart.
+     */
+    const tags = library.nodes.filter((node) => node.type === 'tag');
+    const standing = (node) =>
+      (node.count ?? 1) + ((seedOf(`wash:${node.slug}`) % 1000) / 1000 - 0.5) * 3;
+    const ranked = [...tags].sort((a, b) => standing(b) - standing(a) || a.slug.localeCompare(b.slug));
+    const washed = new Set(ranked.slice(0, Math.round(ranked.length * 0.4)).map((n) => n.id));
+
+    tags
       .sort((a, b) => a.slug.localeCompare(b.slug))
       .forEach((node, index) => {
-        node.wash = washFor(index);
+        node.wash = washed.has(node.id) ? washFor(index) : INK;
       });
 
     sourcesOfTag = new Map();
@@ -1509,11 +1521,13 @@ export function createConstellation(canvas, options = {}) {
           ctx.stroke();
         }
 
-        // An ink dot on the tag that names its cluster — ink, now that the blot
-        // under it carries a colour of its own.
+        // A dot on the tag that names its cluster, in one of the three
+        // primaries. It is the only place on the map colour is used to point at
+        // something rather than to fill it — and with most of the blots in ink
+        // now, ink is the one thing it could not be.
         const cluster = clusters[node.cluster ?? -1];
         if (cluster && cluster.tags?.[0] === node.slug) {
-          ctx.fillStyle = THEME.ink;
+          ctx.fillStyle = THEME.accents[(node.cluster ?? 0) % THEME.accents.length];
           ctx.beginPath();
           ctx.arc(x + radius * 0.82, y - radius * 0.72, Math.max(radius * 0.2, 2.5), 0, Math.PI * 2);
           ctx.fill();
