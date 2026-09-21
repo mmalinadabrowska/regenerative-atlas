@@ -1214,6 +1214,119 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   white-space: nowrap; border: 0;
 }
 
+/* --- on paper -------------------------------------------------------------
+   The record, printed. A4 portrait: what a printer here has in it, and what a
+   PDF is expected to open as. Everything the screen needs — the map, the
+   controls, the drawer itself — is not on the page; what is left is a sheet
+   set for reading at arm's length, in ink on white, with the list running as
+   long as the research does.
+   -------------------------------------------------------------------------- */
+
+.print-sheet { display: none; }
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 18mm 16mm 16mm;
+  }
+
+  html, body {
+    height: auto;
+    min-height: 0;
+    background: #fff;
+    color: #000;
+    display: block;
+    overflow: visible;
+  }
+
+  /* One thing on the page, and it is not the one you were looking at. */
+  body > *:not(.print-sheet) { display: none !important; }
+
+  .print-sheet {
+    display: block;
+    font-family: var(--sans);
+    font-size: 10pt;
+    line-height: 1.45;
+    color: #000;
+  }
+
+  .print__kind {
+    margin: 0;
+    font-size: 8pt;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #555;
+  }
+
+  .print__name {
+    font-family: var(--display);
+    font-weight: 400;
+    font-size: 24pt;
+    line-height: 1.1;
+    margin: 2mm 0 1mm;
+  }
+
+  .print__head {
+    border-bottom: 0.4pt solid #000;
+    padding-bottom: 4mm;
+    margin-bottom: 5mm;
+  }
+
+  .print__meta { margin: 0; color: #333; }
+  .print__link { margin: 0.5mm 0 0; font-size: 8.5pt; color: #555; word-break: break-all; }
+
+  .print__note {
+    font-family: var(--display);
+    font-size: 11pt;
+    line-height: 1.5;
+    margin: 0 0 4mm;
+    max-width: 62ch;
+  }
+
+  .print__block { margin: 0 0 6mm; }
+
+  .print__heading {
+    font-family: var(--sans);
+    font-size: 8pt;
+    font-weight: 400;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #555;
+    margin: 0 0 2mm;
+    padding-bottom: 1.5mm;
+    border-bottom: 0.4pt solid #bbb;
+  }
+
+  .print__themes { margin: 0; font-size: 10.5pt; }
+  .print__rest { color: #666; }
+
+  .print__list {
+    margin: 0;
+    padding: 0 0 0 7mm;
+  }
+
+  /* A citation broken over a page break is two half-citations. */
+  .print__row {
+    break-inside: avoid;
+    margin: 0 0 3.5mm;
+    padding-bottom: 3.5mm;
+    border-bottom: 0.3pt solid #ddd;
+  }
+
+  .print__row:last-child { border-bottom: 0; }
+  .print__title { margin: 0; font-size: 11pt; }
+
+  .print__foot {
+    margin-top: 8mm;
+    padding-top: 3mm;
+    border-top: 0.4pt solid #000;
+    font-size: 7.5pt;
+    color: #555;
+  }
+
+  .print__foot p { margin: 0; }
+}
+
 /* --- responsive ---------------------------------------------------------- */
 
 @media (max-width: 46rem) {

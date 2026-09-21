@@ -457,8 +457,18 @@ left for it, and the artifact build leaves one — the page asks, the viewer con
 platform saves. Served from the repository there is no host and no hook, and the link is
 used, which is all a page can do on its own.
 
-It is plain text, with the title, the citation line, the link and what each piece is filed
-under. Plain text opens everywhere, survives every format after it, and can be pasted
+Beside it is **Print**, which is the same record laid out for a page instead of a drawer:
+A4 portrait, because that is what a printer here has in it and what a PDF is expected to
+open as. It is a stylesheet and `window.print()` rather than a generated file — every
+browser's print dialogue offers Save as PDF, and a library that exists to avoid
+dependencies should not take one on to draw a page it can already draw. Everything the
+screen needs is off the sheet; what is left is the record in ink on white, the research
+running as long as it runs, and the themes cut at eight, which is where a row of them
+stops being a shelf mark and starts being a second list. A citation never breaks across a
+page.
+
+The text file is plain text, with the title, the citation line, the link and what each
+piece is filed under. Plain text opens everywhere, survives every format after it, and can be pasted
 into whatever a reader actually writes in — where a citation manager's format would have
 to guess which one that is. The licence line the whole-library export carries comes with
 it, since a few records taken out of the Atlas are on the same terms as all of them.

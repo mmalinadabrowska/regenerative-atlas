@@ -358,6 +358,8 @@ let shown = null;
 
 const DOWNLOAD = `<button class="label label--small label--filled" type="button" data-download>Download bibliography</button>`;
 
+const PRINT = `<button class="label label--small" type="button" data-print>Print</button>`;
+
 const WHEN = () =>
   new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
 
@@ -407,6 +409,80 @@ const fileNameOf = (label) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '') || 'reading'}.txt`;
 
+/* --- the same record, on paper -------------------------------------------
+   A4 portrait, because that is what a printer in Europe has in it and what a
+   PDF is expected to open as. The sheet is built from the record on screen at
+   the moment it is asked for, laid out for a page rather than for a drawer —
+   the list runs as long as the research does, and the themes are cut at eight,
+   which is where a row of them stops being a shelf mark and starts being a
+   second list. */
+
+const sheet = document.getElementById('print-sheet');
+const MAX_THEMES = 8;
+
+const printRow = (source) => `
+  <li class="print__row">
+    <p class="print__title">${escapeHtml(source.label ?? source.title ?? '')}</p>
+    ${citationLine(source) ? `<p class="print__meta">${escapeHtml(citationLine(source))}</p>` : ''}
+    ${source.url ? `<p class="print__link">${escapeHtml(source.url)}</p>` : ''}
+  </li>`;
+
+function printRecord() {
+  if (!shown || !sheet) return;
+  const { kind, node, sources, themes = [] } = shown;
+  const shelf = themes.slice(0, MAX_THEMES).map(labelOf);
+  const rest = Math.max(themes.length - shelf.length, 0);
+  const listed = kind === 'tag' ? sources : sources.slice(1);
+
+  sheet.innerHTML = `
+    <header class="print__head">
+      <p class="print__kind">${kind === 'tag' ? 'A theme in the' : 'Research in the'} Regenerative Atlas</p>
+      <h1 class="print__name">${escapeHtml(node.label)}</h1>
+      ${
+        kind === 'source' && citationLine(node)
+          ? `<p class="print__meta">${escapeHtml(citationLine(node))}</p>`
+          : ''
+      }
+      ${kind === 'source' && node.url ? `<p class="print__link">${escapeHtml(node.url)}</p>` : ''}
+    </header>
+
+    ${node.note ? `<p class="print__note">${escapeHtml(node.note)}</p>` : ''}
+    ${node.summary ? `<p class="print__note">${escapeHtml(node.summary)}</p>` : ''}
+
+    ${
+      shelf.length
+        ? `<section class="print__block">
+             <h2 class="print__heading">${kind === 'tag' ? 'Connected themes' : 'Filed under'}</h2>
+             <p class="print__themes">${shelf.map(escapeHtml).join(' · ')}${
+               rest ? ` <span class="print__rest">and ${rest} more</span>` : ''
+             }</p>
+           </section>`
+        : ''
+    }
+
+    ${
+      listed.length
+        ? `<section class="print__block">
+             <h2 class="print__heading">${
+               kind === 'tag'
+                 ? `Research filed under ${escapeHtml(node.label)} (${listed.length})`
+                 : `Research it sits beside (${listed.length})`
+             }</h2>
+             <ol class="print__list">${listed.map(printRow).join('')}</ol>
+           </section>`
+        : ''
+    }
+
+    <footer class="print__foot">
+      <p>Taken from the Regenerative Atlas on ${WHEN()}${
+        /^(localhost|127\.|0\.0\.0\.0|\[?::1)/.test(location.hostname) ? '' : ` · ${location.host}`
+      }</p>
+      <p>Bibliographic records are shared under CC0; the linked works remain with their authors.</p>
+    </footer>`;
+
+  window.print();
+}
+
 function downloadBibliography() {
   const text = bibliography();
   if (!text) return;
@@ -453,12 +529,13 @@ function showTag(node) {
     .map(([slug]) => slug);
 
   setHead('tag', node.label, blotMark(node.id), washOfTag(node.slug));
-  shown = { kind: 'tag', node, sources };
+  shown = { kind: 'tag', node, sources, themes: connected };
   panelBody.innerHTML = `
     ${node.note ? `<p class="panel__summary">${escapeHtml(node.note)}</p>` : ''}
     <p class="panel__actions">
       <button class="label label--small" type="button" data-tag="${escapeHtml(node.slug)}">Filter the library to this</button>
       ${sources.length ? DOWNLOAD : ''}
+      ${sources.length ? PRINT : ''}
     </p>
     <h4>Research threads</h4>
     <ul class="panel__links">${sources
@@ -488,7 +565,12 @@ function showRecord(node) {
 
   setHead('source', node.label, CROSSHAIR, null);
   // The record itself leads the reading list it is the middle of.
-  shown = { kind: 'source', node, sources: [node, ...related.map(({ other }) => other)] };
+  shown = {
+    kind: 'source',
+    node,
+    sources: [node, ...related.map(({ other }) => other)],
+    themes: node.tags ?? [],
+  };
   panelBody.innerHTML = `
     <p class="panel__meta">${escapeHtml(citationLine(node)) || escapeHtml(hostOf(node.url))}</p>
     ${node.summary ? `<p class="panel__summary">${escapeHtml(node.summary)}</p>` : ''}
@@ -496,6 +578,7 @@ function showRecord(node) {
     <p class="panel__actions">
       <a class="label label--small" href="${escapeHtml(node.url)}" target="_blank" rel="noopener noreferrer">Read the source ↗</a>
       ${DOWNLOAD}
+      ${PRINT}
     </p>
     <h4>Tagged</h4>
     ${tagChips(node.tags ?? [])}
@@ -776,6 +859,11 @@ document.addEventListener('click', (event) => {
   if (event.target.closest('[data-download]')) {
     event.preventDefault();
     downloadBibliography();
+    return;
+  }
+  if (event.target.closest('[data-print]')) {
+    event.preventDefault();
+    printRecord();
     return;
   }
   const tagButton = event.target.closest('[data-tag]');
