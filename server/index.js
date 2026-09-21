@@ -14,6 +14,7 @@ import { extname, join, normalize, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { openDatabase } from './db.js';
 import { ApiError, exportBibtex, exportJson, handlers } from './api.js';
+import * as supabase from './supabase.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const PUBLIC = join(ROOT, 'public');
@@ -103,6 +104,26 @@ function createLimiter({ capacity, refillPerMinute }) {
 }
 
 const submitLimit = createLimiter({ capacity: 12, refillPerMinute: 4 });
+
+/**
+ * Send a source up to Supabase when there is a Supabase to send it to. Never
+ * throws: a library that cannot be written to is worth saying out loud, not
+ * worth losing the contribution over.
+ */
+async function writeThrough(source) {
+  if (!supabase.configured()) return {};
+  try {
+    await supabase.push(source);
+    return { synced: true };
+  } catch (error) {
+    console.error('[atlas] supabase write failed:', error.message);
+    return {
+      synced: false,
+      warning:
+        'Added to the map, but the shared library could not be reached — it will need pushing up again.',
+    };
+  }
+}
 const describeLimit = createLimiter({ capacity: 20, refillPerMinute: 20 });
 
 const clientKey = (req) =>
@@ -203,7 +224,13 @@ export function createAtlasServer(atlas) {
               });
             }
             const result = handlers.submit(atlas, body);
-            return sendJson(res, result.created ? 201 : 200, result);
+            // Written here first, because the map is drawn from here — then
+            // written through to the project that keeps it. A contributor is
+            // told plainly if the second half did not happen: their source is
+            // on the map either way, but only one of the two copies outlives
+            // this machine.
+            const synced = await writeThrough(result.source);
+            return sendJson(res, result.created ? 201 : 200, { ...result, ...synced });
           }
           return sendJson(res, 404, { error: 'No such endpoint.' });
         }
@@ -230,6 +257,19 @@ const invokedDirectly =
 
 if (invokedDirectly) {
   const atlas = openDatabase();
+
+  // The shared library comes down before the door opens, so the first request
+  // is answered from the same shelf as the last one.
+  if (supabase.configured()) {
+    try {
+      const { fetched, added } = await supabase.pull(atlas);
+      console.log(`\n  supabase: ${fetched} sources from ${supabase.projectRef()} (${added} new here)`);
+    } catch (error) {
+      console.error(`\n  supabase: could not read the project — ${error.message}`);
+      console.error('  Carrying on with the local library only.');
+    }
+  }
+
   const server = createAtlasServer(atlas);
   server.listen(PORT, HOST, () => {
     console.log(`\n  Regenerative Atlas`);

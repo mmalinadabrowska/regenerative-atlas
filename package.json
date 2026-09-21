@@ -13,6 +13,7 @@
     "dev": "node --disable-warning=ExperimentalWarning --watch server/index.js",
     "seed": "node --disable-warning=ExperimentalWarning server/seed.js",
     "reset": "node --disable-warning=ExperimentalWarning server/seed.js --reset",
+    "supabase": "node --disable-warning=ExperimentalWarning scripts/supabase.mjs",
     "test": "node --disable-warning=ExperimentalWarning --test",
     "check-links": "node --disable-warning=ExperimentalWarning scripts/check-links.js",
     "check-seed": "node --disable-warning=ExperimentalWarning scripts/check-links.js --seed",

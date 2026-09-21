@@ -240,12 +240,16 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 }
 
 .navgroup__mark { aspect-ratio: 1 / 1; padding: 0; }
+
+/* The Atlas' mark is solid: a drawn shape rather than an outlined one, so it
+   holds at the size a button gives it and reads as a mark rather than as one
+   more small o. It takes currentColor, so it goes to paper when its capsule
+   fills. */
 .navgroup__mark svg {
   width: 1.05em;
   height: 1.05em;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2.2;
+  fill: currentColor;
+  stroke: none;
 }
 
 .connected__canvas {
@@ -1250,11 +1254,10 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
      the same shape, plainly moved, which is a state and not a second icon. */
   .burger__mark {
     display: block;
-    width: 1.15rem;
-    height: 1.15rem;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 2.2;
+    width: 1.25rem;
+    height: 1.25rem;
+    fill: currentColor;
+    stroke: none;
     transition: rotate 200ms cubic-bezier(0.22, 0.61, 0.36, 1);
   }
 

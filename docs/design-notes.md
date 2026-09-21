@@ -574,6 +574,33 @@ The endpoint is a read: `POST /api/ask` changes nothing and is rate-limited only
 script cannot sit on it. It is also the one part of the site a static snapshot cannot
 fake, which is part of why the page in front of it went.
 
+## Where the library lives
+
+Two copies, with one job each. SQLite is the working copy: every read the map makes is
+synchronous — the fit measures every label, the drawing asks for nodes sixty times a
+second — and a map that waits on a network for those is not a map you can drag. Supabase
+is the durable copy: the place the research actually lives, which outlasts the machine
+the server happens to be running on and can be read by anything else pointed at it.
+
+So they are kept in step rather than swapped. The library is pulled down on boot, before
+the door opens, so the first request is answered from the same shelf as the last one; a
+new source is written to SQLite first — it is on the map immediately — and then written
+through to the project, and the contributor is told plainly if that second write failed.
+Losing the contribution because the network was out would be the worse trade.
+
+It is `fetch` against PostgREST rather than a client library, because the install story
+of this project is *clone it and run it* and a dependency that exists to save four lines
+of `fetch` is a dependency to explain forever. With no credentials set, none of it runs
+and the Atlas is exactly what it was: a SQLite file you can delete.
+
+The tables are the SQLite ones, in Postgres. Row-level security makes the library public
+to read and closed to write, so the anon key is safe to hand to a browser: writes go
+through the server, which holds the service role key. And because the adapter cannot be
+tested against the real project — that needs credentials nobody should commit — the tests
+stand a small PostgREST up on a socket and check the shape of every request it is sent:
+the upsert headers, the conflict targets, the paging, and that a tracking parameter is
+off the URL key before a source is written, so the same paper twice is one row.
+
 ## What is deliberately missing
 
 - **No accounts.** Anyone can add; nobody owns their entries. Rate limiting and the

@@ -185,6 +185,45 @@ PORT=4321 HOST=0.0.0.0 ATLAS_DB=/var/lib/atlas/atlas.db node server/index.js
 `ATLAS_DB` sets the database path, `ATLAS_FETCH_TIMEOUT` the link-lookup timeout in
 milliseconds. The database is a single SQLite file; back it up by copying it.
 
+## Keeping the library in Supabase
+
+The Atlas runs on a SQLite file and needs nothing else. Point it at a Supabase project
+and that project becomes the durable copy — the place the research lives, outliving any
+one machine and readable by anything else you point at it — while SQLite stays the
+working copy the map is drawn from. Every read the map makes is synchronous, and a map
+that waits on the network for each of them is not a map you can drag, so the two are
+kept in step rather than swapped:
+
+- **on boot** the library is pulled down into SQLite,
+- **on add** the new source is written through to the project, and the contributor is
+  told plainly if that second write did not happen.
+
+There is no client library, only `fetch` against PostgREST, which is the API Supabase
+already exposes — so the install story is the same as it ever was.
+
+**Setting it up.** Run [`supabase/schema.sql`](supabase/schema.sql) once in the project's
+SQL editor: three tables shaped exactly like the SQLite ones, and row-level security that
+makes the library public to read and closed to write. Then give the server two variables:
+
+```
+SUPABASE_URL=https://<project-ref>.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=<the service role key>
+```
+
+The service role key writes and must never reach a browser — set it on the machine that
+runs the server and nowhere else. The anon key can only read, and is the one to hand to
+anything public. Node does not read `.env` by itself: either export the variables, or
+start with `node --env-file=.env server/index.js`. `.env` is git-ignored;
+[`.env.example`](.env.example) shows the shape.
+
+```
+npm run supabase check   # does the project answer, and are the tables there
+npm run supabase push    # send this machine's library up — the first fill
+npm run supabase pull    # bring the project's library down
+```
+
+With the variables unset none of this runs and nothing changes.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md), and [docs/design-notes.md](docs/design-notes.md)
