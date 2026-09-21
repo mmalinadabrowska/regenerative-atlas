@@ -3,6 +3,7 @@
 import { api, citationLine, escapeHtml, fillCount, hostOf } from './api.js';
 import { createConstellation } from './constellation.js';
 import { blobPath, needsPaper, seedOf } from './ink.js';
+import { A4, Sheet, toBlob } from './pdf.js';
 
 const canvas = document.getElementById('constellation');
 const zoomCluster = document.querySelector('.map-zoom');
@@ -410,93 +411,104 @@ const fileNameOf = (label) =>
     .replace(/^-|-$/g, '') || 'reading'}.txt`;
 
 /* --- the same record, on paper -------------------------------------------
-   A4 portrait, because that is what a printer in Europe has in it and what a
-   PDF is expected to open as. The sheet is built from the record on screen at
-   the moment it is asked for, laid out for a page rather than for a drawer —
-   the list runs as long as the research does, and the themes are cut at eight,
-   which is where a row of them stops being a shelf mark and starts being a
-   second list. */
+   A4 portrait with 15mm of margin, which is what a printer here has in it and
+   what a PDF is expected to open as. It is written rather than printed: asking
+   the browser to print is the right answer on a laptop and no answer at all on
+   a phone, where an app's web view — or the sandbox a published page runs in —
+   ignores the request and nothing happens at all. A file can always be handed
+   over, so a file is what this makes. See js/pdf.js for how.
 
-const sheet = document.getElementById('print-sheet');
+   The list runs as long as the research does; the themes stop at eight, which
+   is where a row of them stops being a shelf mark and starts being a second
+   list. */
+
 const MAX_THEMES = 8;
 
-const printRow = (source) => `
-  <li class="print__row">
-    <p class="print__title">${escapeHtml(source.label ?? source.title ?? '')}</p>
-    ${citationLine(source) ? `<p class="print__meta">${escapeHtml(citationLine(source))}</p>` : ''}
-    ${source.url ? `<p class="print__link">${escapeHtml(source.url)}</p>` : ''}
-  </li>`;
-
 function printRecord() {
-  if (!shown || !sheet) return;
+  if (!shown) return;
   const { kind, node, sources, themes = [] } = shown;
   const shelf = themes.slice(0, MAX_THEMES).map(labelOf);
   const rest = Math.max(themes.length - shelf.length, 0);
   const listed = kind === 'tag' ? sources : sources.slice(1);
 
-  sheet.innerHTML = `
-    <header class="print__head">
-      <p class="print__kind">${kind === 'tag' ? 'A theme in the' : 'Research in the'} Regenerative Atlas</p>
-      <h1 class="print__name">${escapeHtml(node.label)}</h1>
-      ${
-        kind === 'source' && citationLine(node)
-          ? `<p class="print__meta">${escapeHtml(citationLine(node))}</p>`
-          : ''
-      }
-      ${kind === 'source' && node.url ? `<p class="print__link">${escapeHtml(node.url)}</p>` : ''}
-    </header>
+  const sheet = new Sheet({ size: A4 });
 
-    ${node.note ? `<p class="print__note">${escapeHtml(node.note)}</p>` : ''}
-    ${node.summary ? `<p class="print__note">${escapeHtml(node.summary)}</p>` : ''}
+  sheet.text(
+    kind === 'tag' ? 'A THEME IN THE REGENERATIVE ATLAS' : 'RESEARCH IN THE REGENERATIVE ATLAS',
+    { size: 7.5, grey: 0.4 },
+  );
+  sheet.space(3);
+  sheet.text(node.label, { font: 'serif', size: 22, leading: 1.15 });
+  if (kind === 'source') {
+    const cited = citationLine(node);
+    if (cited) sheet.text(cited, { size: 9.5, grey: 0.2 });
+    if (node.url) sheet.text(node.url, { size: 8.5, grey: 0.45 });
+  }
+  sheet.rule({ gap: 6 });
+  sheet.space(8);
 
-    ${
-      shelf.length
-        ? `<section class="print__block">
-             <h2 class="print__heading">${kind === 'tag' ? 'Connected themes' : 'Filed under'}</h2>
-             <p class="print__themes">${shelf.map(escapeHtml).join(' · ')}${
-               rest ? ` <span class="print__rest">and ${rest} more</span>` : ''
-             }</p>
-           </section>`
-        : ''
-    }
+  for (const passage of [node.note, node.summary].filter(Boolean)) {
+    sheet.text(passage, { font: 'serif', size: 11, leading: 1.5, grey: 0.1 });
+    sheet.space(8);
+  }
 
-    ${
-      listed.length
-        ? `<section class="print__block">
-             <h2 class="print__heading">${
-               kind === 'tag'
-                 ? `Research filed under ${escapeHtml(node.label)} (${listed.length})`
-                 : `Research it sits beside (${listed.length})`
-             }</h2>
-             <ol class="print__list">${listed.map(printRow).join('')}</ol>
-           </section>`
-        : ''
-    }
+  if (shelf.length) {
+    sheet.text(kind === 'tag' ? 'CONNECTED THEMES' : 'FILED UNDER', { size: 7.5, grey: 0.4 });
+    sheet.rule({ grey: 0.75, gap: 2 });
+    sheet.space(5);
+    sheet.text(shelf.join('  ·  ') + (rest ? `   and ${rest} more` : ''), { size: 10 });
+    sheet.space(10);
+  }
 
-    <footer class="print__foot">
-      <p>Taken from the Regenerative Atlas on ${WHEN()}${
-        /^(localhost|127\.|0\.0\.0\.0|\[?::1)/.test(location.hostname) ? '' : ` · ${location.host}`
-      }</p>
-      <p>Bibliographic records are shared under CC0; the linked works remain with their authors.</p>
-    </footer>`;
+  if (listed.length) {
+    const heading =
+      kind === 'tag'
+        ? `RESEARCH FILED UNDER ${node.label.toUpperCase()} (${listed.length})`
+        : `RESEARCH IT SITS BESIDE (${listed.length})`;
+    sheet.text(heading, { size: 7.5, grey: 0.4 });
+    sheet.rule({ grey: 0.75, gap: 2 });
+    sheet.space(6);
 
-  window.print();
+    listed.forEach((source, index) => {
+      // A citation broken over a page turn is two half-citations.
+      sheet.reserve(34);
+      sheet.text(`${index + 1}.  ${source.label ?? source.title ?? ''}`, { size: 11 });
+      const cited = citationLine(source);
+      if (cited) sheet.text(cited, { size: 9, grey: 0.25, indent: 14 });
+      if (source.url) sheet.text(source.url, { size: 8.5, grey: 0.45, indent: 14 });
+      sheet.space(7);
+    });
+  }
+
+  sheet.space(6);
+  sheet.rule({ gap: 2 });
+  sheet.space(4);
+  const where = /^(localhost|127\.|0\.0\.0\.0|\[?::1)/.test(location.hostname)
+    ? ''
+    : `  ·  ${location.host}`;
+  sheet.text(`Taken from the Regenerative Atlas on ${WHEN()}${where}`, { size: 7.5, grey: 0.4 });
+  sheet.text(
+    'Bibliographic records are shared under CC0; the linked works remain with their authors.',
+    { size: 7.5, grey: 0.4 },
+  );
+
+  hand(fileNameOf(node.label).replace(/\.txt$/, '.pdf'), toBlob(sheet));
 }
 
-function downloadBibliography() {
-  const text = bibliography();
-  if (!text) return;
-  const name = fileNameOf(shown.node.label);
-
-  // A page is not always allowed to hand a file over by itself — inside a
-  // sandbox an ordinary download link does nothing at all. A host that has its
-  // own way of doing it leaves it here, and it is used in preference.
+/**
+ * Hand a file to whoever is reading.
+ *
+ * A page is not always allowed to do this by itself — inside a sandbox an
+ * ordinary download link does nothing at all — so a host that has its own way
+ * of doing it leaves that way here, and it is used in preference.
+ */
+function hand(name, data) {
   if (typeof window.__ATLAS_SAVE__ === 'function') {
-    window.__ATLAS_SAVE__(name, text);
+    window.__ATLAS_SAVE__(name, data);
     return;
   }
 
-  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const blob = data instanceof Blob ? data : new Blob([data], { type: 'text/plain;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
@@ -506,6 +518,12 @@ function downloadBibliography() {
   link.remove();
   // Revoked late: some browsers are still reading the blob as the click returns.
   setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+
+function downloadBibliography() {
+  const text = bibliography();
+  if (!text) return;
+  hand(fileNameOf(shown.node.label), text);
 }
 
 function showTag(node) {

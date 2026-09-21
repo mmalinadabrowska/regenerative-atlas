@@ -51,7 +51,7 @@ console.log(
    level, and static imports.
    ------------------------------------------------------------------------- */
 
-const MODULES = ['ink.js', 'api.js', 'constellation.js', 'topbar.js', 'connected-nav.js', 'map.js'];
+const MODULES = ['ink.js', 'pdf.js', 'api.js', 'constellation.js', 'topbar.js', 'connected-nav.js', 'map.js'];
 
 function bundle() {
   const parts = ["const __m = {};"];

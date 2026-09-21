@@ -458,14 +458,25 @@ platform saves. Served from the repository there is no host and no hook, and the
 used, which is all a page can do on its own.
 
 Beside it is **Print**, which is the same record laid out for a page instead of a drawer:
-A4 portrait, because that is what a printer here has in it and what a PDF is expected to
-open as. It is a stylesheet and `window.print()` rather than a generated file — every
-browser's print dialogue offers Save as PDF, and a library that exists to avoid
-dependencies should not take one on to draw a page it can already draw. Everything the
-screen needs is off the sheet; what is left is the record in ink on white, the research
-running as long as it runs, and the themes cut at eight, which is where a row of them
-stops being a shelf mark and starts being a second list. A citation never breaks across a
-page.
+A4 portrait with 15mm of margin all round, the research running as long as it runs, and
+the themes cut at eight — which is where a row of them stops being a shelf mark and
+starts being a second list. A citation never breaks across a page turn.
+
+It began as a print stylesheet and `window.print()`, which is the right answer on a
+laptop and no answer at all on a phone: inside an app's web view, or inside the sandbox a
+published page runs in, the request to print is quietly ignored and nothing happens. A
+file can always be handed over, so the button writes the PDF itself, and hands it to the
+same place the bibliography goes.
+
+`js/pdf.js` is that writer, and it is smaller than it sounds: a catalogue of objects, a
+stream of text-positioning operators, and a table of byte offsets at the end. Two things
+make it tractable. The fourteen fonts every reader already has need no embedding — so the
+page is set in Times and Helvetica rather than in the Atlas' own faces, which is the one
+thing lost in the trade. And those two have the same advance widths as the Arial and
+Times New Roman on the machine drawing the page, so the browser can measure a line with
+canvas and the reader will break it in exactly the same place. The tests check the file
+the way a reader would: that every offset in the cross-reference table lands on its
+object, that the page box is 210×297mm, and that the type sits 15mm in.
 
 The text file is plain text, with the title, the citation line, the link and what each
 piece is filed under. Plain text opens everywhere, survives every format after it, and can be pasted
