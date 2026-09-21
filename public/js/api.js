@@ -111,12 +111,6 @@ export const api = {
     snapshot ? unavailable() : request('/api/describe', { method: 'POST', body: JSON.stringify({ url }) }),
   submit: (source) =>
     snapshot ? unavailable() : request('/api/sources', { method: 'POST', body: JSON.stringify(source) }),
-  /** A question in prose, answered from the library. Needs the reading the
-      server does, so there is nothing to fall back to in a static snapshot. */
-  ask: (question) =>
-    snapshot
-      ? unavailable()
-      : request('/api/ask', { method: 'POST', body: JSON.stringify({ question }) }),
 };
 
 /** Escape anything that came from a contributor before it touches innerHTML. */

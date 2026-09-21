@@ -258,52 +258,47 @@ The Atlas was ink on paper for its first few weeks, which was right for the mark
 and wrong for the map: forty-seven identical black blots are a field, not a
 territory. The colour comes from Greenough's 1820 geological map of England and
 Wales — a survey sheet is drawn in ink and coloured in washes, and it is legible
-across a room because the formations that matter to the question carry a colour.
+across a room because every formation carries a colour.
 
-That last part took a second pass to get right. Giving every tag its own wash
-made the map *all* colour, and a sheet that is coloured in everywhere has spent
-the thing it had to spend: the drawing stopped carrying it. So most of the map is
-ink again, and a wash is earned — the tags with the most research under them take
-one, the rest stay black. Weight is nudged by a seeded amount before the line is
-drawn, so the sheet reads as coloured by hand rather than as a ranked list with a
-cut through it, and the proportion lands near two fifths, which is about what a
-survey sheet colours.
+The ink went to the line rather than the shape. Each blot is drawn round in it and
+the wash laid inside, which is the order a sheet is actually made in — engraved
+first, washed after — and it is what lets the drawing hold the map together while
+the colour does the telling apart. Pointing at a blot or opening it lays that same
+line in about three times heavier rather than adding anything around it, so the
+shape is picked out by the hand that drew it.
 
-The washes themselves are a short family rather than a wheel: the greens and
-olives of ground cover, two slate blues, two roses, the ochres a survey sheet
-washes high ground with — pale ochre, ochre, raw umber — and bone. Mid-toned and
-unsaturated, because a pale wash disappears on this paper and a saturated one
-stops being a wash. No orange anywhere, which is a rule about hue and saturation
-together: an earth yellow that has gone that far round stops reading as a wash
-and starts reading as a warning. The third primary used to sit at hue 38, which
-at that saturation is an orange; it is walked round to 45 and darkened into the
-gold the ochres are mixed from. Which tag gets which is its place in the alphabet stepped by
-1/φ, so consecutive marks land most of the family apart; the family is short
-enough that it comes round again, which is true of a survey sheet too — there are
-always more formations than there are washes.
+The washes are a short family rather than a wheel: pinks and roses, the greens and
+olives of ground cover, slate and teal blues, the ochres a survey sheet washes high
+ground with, and bone — eighteen in all. Mid-toned and unsaturated, because a pale
+wash disappears on this paper and a saturated one stops being a wash. No orange
+anywhere, which is a rule about hue and saturation together: an earth yellow that
+has gone that far round stops reading as a wash and starts reading as a warning.
+The third primary used to sit at hue 38, which at that saturation is an orange; it
+is walked round to 45 and darkened into the gold the ochres are mixed from.
 
-Every blot is drawn round in ink, wash or no wash: the drawing is the constant and
-the colour is laid inside it, the way a sheet is engraved first and washed after.
-Pointing at a blot or opening it lays that same line in heavier rather than adding
-anything — about three times the weight — so the shape is picked out by the hand
-that drew it instead of by a second mark around it.
+The family is stored in the order it is walked — a blue, a rose, a green, an ochre,
+and round again — and a tag takes the next one by its place in the alphabet, so
+consecutive shapes are never in the same register, let alone the same colour.
+Eighteen washes and forty-odd tags means it comes round; that is true of a survey
+sheet as well, where there are always more formations than there are washes, and
+two of the same colour a map apart read as two formations rather than as one. An
+earlier version stepped through the family by 1/φ, which is the right trick for a
+continuous ramp and the wrong one for a short list: it landed three ochres in a row.
 
-With most blots in ink, the dot that names a theme could no longer be ink itself.
-It is one of the three primaries now, by cluster — the only place on the map where
-colour points at something rather than fills it.
+The dot that names a theme is one of the three primaries, by cluster — the only
+place on the map where colour points at something rather than fills it.
 
 Type on a wash follows the wash. `needsPaper` in `js/ink.js` works out the
 relative luminance of a colour and asks which of ink or paper actually reads
 better on it, rather than guessing at where dark begins: a mid olive looks dark
 and is not, and paper on it is worse than ink by half again. The record's title
 bar, its blot, the sheet's grip and the tag chips all take their contrast from
-that one answer, so a black-blotted tag opens a card with paper type and a pale
-one opens the same card in ink.
+that one answer, so the deep green opens a card with paper type and a pale slate
+opens the same card in ink.
 
 Everything that is not a tag stays ink: the sources, the lines between them, the
 labels, the buttons, and the lines that join the landing drawing up. Colour means
-one thing on this site, which is *this is a subject* — and now, by how much of it
-there is.
+one thing on this site, which is *this is a subject*.
 
 ## The record card
 
@@ -486,7 +481,21 @@ measures the rendered items and draws the union outline behind them, so the curv
 exact at any width and in any typeface. Each item keeps its own border until that curve
 is drawn, so with the script blocked the nav is still a row of buttons.
 
-## Ask
+## About, and the Ask endpoint behind it
+
+The fourth section of the site is **About**: a page of prose, which the rest of the site
+is not. It says what the Atlas is — a landscape of regenerative research, submitted and
+edited by the people who use it, curated by Malina Dabrowska — and then the three things
+worth saying at length: why it is drawn rather than listed, that where a piece is filed is
+the contribution and not a judgement a machine should be making on its own, and that the
+whole library can be taken away. It is set at reading width in the display face, and it
+ends on the ways in rather than on a signature, because an about page that does not put
+you back into the thing is a dead end.
+
+It replaced **Ask**, a page that put a question to the library in prose. The engine is
+still there and still tested — `server/ask.js` and `POST /api/ask` — because it is a read
+that costs nothing to keep and the API is part of the Atlas being easy to leave; what went
+is the page in front of it. It works like this:
 
 Ask is the library answering a question in prose, and it is deliberately not a chatbot:
 there is no model in `server/ask.js` and nothing behind it but this database. A question
@@ -511,8 +520,8 @@ told so. Every result carries its `why` — which tags it shares, which words it
 because an answer you cannot check is not an answer.
 
 The endpoint is a read: `POST /api/ask` changes nothing and is rate-limited only so one
-script cannot sit on it. It is the one part of the site a static snapshot cannot fake,
-and the client says as much rather than pretending.
+script cannot sit on it. It is also the one part of the site a static snapshot cannot
+fake, which is part of why the page in front of it went.
 
 ## What is deliberately missing
 

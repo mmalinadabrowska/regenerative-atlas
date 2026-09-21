@@ -11,48 +11,53 @@
 /**
  * The washes.
  *
- * Most of the map is ink. A survey sheet is not coloured in everywhere — the
- * drawing carries it, and colour falls where it is worth spending — so the
- * washes here are a short family rather than a wheel: the greens and olives of
+ * A survey sheet is drawn in ink and coloured in washes, and the washes are a
+ * short family rather than a wheel: the greens and olives of
  * ground cover, two slate blues, two roses, the ochres a survey sheet washes
  * high ground with, and bone. No orange: an earth yellow that has gone that far
  * round stops being a wash and starts being a warning. They are mixed for cream
  * paper with ink over them, which is why none of them is bright: a pale wash
  * disappears on this paper and a saturated one stops being a wash.
  *
- * Who gets one is decided on the map (constellation.js), by weight — the tags
- * carrying the most research take a wash and the rest stay ink.
+ * Every shape carries one: the drawing is the ink, and the colour is laid
+ * inside it.
  */
 export const INK = '#100f0d';
 export const PAPER = '#f2ecdf';
 
 const WASHES = [
   [198, 20, 72], // slate blue
-  [104, 18, 40], // deep green
   [352, 38, 76], // dusty rose
-  [74, 24, 52], //  olive
-  [46, 30, 60], //  ochre
-  [196, 16, 64], // blue-grey
   [96, 20, 62], //  sage
+  [46, 30, 60], //  ochre
+  [212, 22, 58], // deep slate
+  [336, 22, 58], // mallow
+  [104, 18, 40], // deep green
+  [52, 22, 68], //  straw
+  [196, 16, 64], // blue-grey
   [348, 30, 66], // rose
+  [122, 16, 54], // moss
   [42, 26, 46], //  raw umber
-  [64, 14, 80], //  bone
-  [150, 14, 56], // sea green
+  [178, 16, 60], // teal grey
+  [8, 26, 68], //   pale brick
+  [74, 24, 52], //  olive
   [40, 20, 72], //  pale ochre
+  [150, 14, 56], // sea green
+  [64, 14, 80], //  bone
 ];
 
-/** 1/φ — successive indices land far apart in the family and never repeat early. */
-const STEP = 0.6180339887498949;
-
 /**
- * The wash for the index-th shape. Neighbouring indices land most of the family
- * apart, so nothing sits beside its own colour; the family is short enough that
- * it does come round again, which is true of a survey sheet as well — there are
- * always more formations than there are washes.
+ * The wash for the index-th shape.
+ *
+ * The family is laid out in the order it is walked — a blue, a rose, a green,
+ * an ochre, and round again — so consecutive shapes are never in the same
+ * register, let alone the same colour. Eighteen washes and forty-odd tags means
+ * it comes round; that is true of a survey sheet as well, where there are
+ * always more formations than there are washes, and two of the same colour a
+ * map apart read as two formations rather than as one.
  */
 export function washFor(index) {
-  const t = (((index * STEP) % 1) + 1) % 1;
-  const [hue, sat, light] = WASHES[Math.floor(t * WASHES.length) % WASHES.length];
+  const [hue, sat, light] = WASHES[((index % WASHES.length) + WASHES.length) % WASHES.length];
   return `hsl(${hue} ${sat}% ${light}%)`;
 }
 

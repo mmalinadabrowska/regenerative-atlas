@@ -429,27 +429,15 @@ export function createConstellation(canvas, options = {}) {
     };
     allById = new Map(library.nodes.map((n) => [n.id, n]));
 
-    /*
-     * Colour is earned rather than handed out. Most of the map is ink — the
-     * drawing carries it — and the tags with the most research under them take
-     * a wash, the way a survey sheet lays colour on the formations that matter
-     * to the question and leaves the rest to the engraving. Weight is nudged by
-     * a seeded amount before the line is drawn, so the sheet reads as coloured
-     * by hand rather than as a ranked list with a cut in it.
-     *
-     * Which wash is then alphabetical, which decides nothing but the order in
-     * the queue: the family itself puts consecutive tags far apart.
-     */
-    const tags = library.nodes.filter((node) => node.type === 'tag');
-    const standing = (node) =>
-      (node.count ?? 1) + ((seedOf(`wash:${node.slug}`) % 1000) / 1000 - 0.5) * 3;
-    const ranked = [...tags].sort((a, b) => standing(b) - standing(a) || a.slug.localeCompare(b.slug));
-    const washed = new Set(ranked.slice(0, Math.round(ranked.length * 0.4)).map((n) => n.id));
-
-    tags
+    // Every tag carries a wash — the sheet is coloured throughout, and the ink
+    // is the line round each shape rather than the shape itself. Alphabetical
+    // order decides nothing but the place in the queue: the family itself puts
+    // consecutive tags far apart, so no blot sits beside its own colour.
+    library.nodes
+      .filter((node) => node.type === 'tag')
       .sort((a, b) => a.slug.localeCompare(b.slug))
       .forEach((node, index) => {
-        node.wash = washed.has(node.id) ? washFor(index) : INK;
+        node.wash = washFor(index);
       });
 
     sourcesOfTag = new Map();

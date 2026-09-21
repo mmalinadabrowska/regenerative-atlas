@@ -1143,69 +1143,43 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   * { scrollbar-width: thin; scrollbar-color: var(--ink-32) transparent; }
 }
 
-/* --- ask ------------------------------------------------------------------
-   A question and its answer, stacked newest first. The reply is set in the same
-   parts the record card uses — sentences, then subjects, then research — so an
-   answer looks like the Atlas rather than like a chat window.
+/* --- about ----------------------------------------------------------------
+   A page of prose, which the rest of the site is not. It is set at reading
+   width in the display face, because it is the one place where somebody is
+   being told something rather than shown it.
    -------------------------------------------------------------------------- */
 
-.ask { max-width: 46rem; margin-top: 2rem; }
-
-/* The prompt is a question, not a form label: set as the question it is. */
-.ask .field > span {
+.prose {
+  max-width: 62ch;
+  margin-top: 2.25rem;
   font-family: var(--display);
-  font-size: 1.1rem;
-  line-height: 1.45;
-  letter-spacing: 0;
-  text-transform: none;
+  font-size: clamp(1rem, 1.2vw, 1.12rem);
+  line-height: 1.6;
+  color: var(--ink-80);
+}
+
+.prose h2 {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(1.25rem, 2vw, 1.6rem);
+  line-height: 1.2;
   color: var(--ink);
-  max-width: 44ch;
-  margin-bottom: 0.7rem;
+  margin: 2.4rem 0 0.6rem;
 }
 
-.ask textarea {
-  width: 100%;
-  font: inherit;
-  font-family: var(--display);
-  font-size: 1.05rem;
-  line-height: 1.5;
-  color: inherit;
-  background: var(--paper);
-  border: var(--stroke) solid var(--ink-32);
-  border-radius: 1rem;
-  padding: 0.85rem 1rem;
-  resize: vertical;
-}
+.prose h2:first-child { margin-top: 0; }
+.prose p { margin: 0 0 1rem; }
+.prose strong { font-weight: 400; color: var(--ink); }
+.prose em { font-style: italic; }
 
-.ask textarea:focus { border-color: var(--ink); outline: none; }
-
-.ask__send {
+.about__ways {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 0.9rem;
-  margin-top: -0.4rem;
+  gap: 0.7rem;
+  margin-top: 2.75rem;
 }
 
-.ask__bounds { font-size: 0.82rem; color: var(--ink-55); }
-
-.ask__thread { margin-top: 2.5rem; display: grid; gap: 2.5rem; max-width: 46rem; }
-
-.ask__turn { display: grid; gap: 0.9rem; }
-
-.ask__asked {
-  margin: 0;
-  font-family: var(--display);
-  font-size: 1.15rem;
-  line-height: 1.4;
-  padding-left: 0.9rem;
-  border-left: 2px solid var(--ink-32);
-}
-
-.ask__answer > p { margin: 0 0 0.7rem; max-width: 62ch; }
-.ask__answer .tag-cloud { margin: 0.9rem 0; }
-.ask__answer .panel__links { margin-top: 1rem; }
-.ask__onward { margin: 0.2rem 0 0; }
+.about__ways .label { font-size: clamp(0.95rem, 1.2vw, 1.1rem); }
 
 /* --- notices ------------------------------------------------------------- */
 
