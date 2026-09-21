@@ -1225,9 +1225,11 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 .print-sheet { display: none; }
 
 @media print {
+  /* 15mm of paper on every side: the text is set in by the same amount all
+     round, which is what a page looks like when it was meant to be a page. */
   @page {
     size: A4 portrait;
-    margin: 18mm 16mm 16mm;
+    margin: 15mm;
   }
 
   html, body {
