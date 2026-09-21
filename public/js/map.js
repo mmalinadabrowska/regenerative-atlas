@@ -289,8 +289,8 @@ function renderLegend(graph, opened = map.opened?.()) {
 
   legend.innerHTML = `
     ${plural(tags, 'theme')} across ${plural(sources, 'source')}.<br>
-    <span style="opacity:.75">Each blot is a tag, sized by how much research sits
-    under it. Open one to see what it holds.</span>`;
+    <span style="opacity:.75">This map is a landscape of regenerative research.
+    Each island is a theme — click to see what it holds.</span>`;
 }
 
 /* --- the record panel --------------------------------------------------- */
