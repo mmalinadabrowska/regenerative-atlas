@@ -407,12 +407,14 @@ the left of the bar and drops out of it when asked. The markup does not change �
 nav, the same links, moved — because a second copy of the navigation is a second thing to
 keep in step, and because with the script missing the row is still a row.
 
-The button wears the Atlas' own quatrefoil rather than three lines: the mark that sits at
-the head of the section row on a wide screen, in the circle that row draws round it. Open,
-it turns a quarter of the way over — the same shape, plainly moved, which is a state and
-not a second icon — and fills, the way everything on this site says *this is the one you
-are on*. The row's own copy of the mark is hidden while the button carries it, since twice
-is once too often.
+There are two controls in that corner, not one. The Atlas' quatrefoil goes home, in the
+circle the section row draws round it on a wide screen; the button beside it is three
+lines and opens the sections. The menu button briefly wore the quatrefoil too, which was
+the wrong economy: a mark that means *the Atlas* on every other screen cannot also mean
+*open the menu* on this one, and a reader who taps it expecting home is right. Two marks
+that look alike are two marks nobody reads, so the menu takes the plainest form there is —
+and its three lines become the cross that closes it. The row's own copy of the mark is
+hidden while the bar carries it, since twice is once too often.
 
 Two things about a menu that opens under a finger. It closes on anything else pressed, but
 never on a press inside itself: closing it while the finger is still coming down takes the

@@ -11,11 +11,16 @@
 <body class="page page--map">
 
 <header class="topbar">
-  <button class="burger" id="site-menu-button" type="button"
-    aria-expanded="false" aria-controls="site-menu" aria-label="Sections of the Atlas">
-    <svg class="burger__mark" viewBox="-11 -11 22 22" aria-hidden="true" focusable="false">
+  <!-- The mark goes home; the button beside it opens the sections. Both belong
+       to the phone layout — on a wide screen the sections are simply there. -->
+  <a class="atlas-mark" href="/" aria-label="Regenerative Atlas home">
+    <svg viewBox="-11 -11 22 22" aria-hidden="true" focusable="false">
       <path d="M -5 -5 A 5 5 0 0 1 5 -5 A 5 5 0 0 1 5 5 A 5 5 0 0 1 -5 5 A 5 5 0 0 1 -5 -5 Z"/>
     </svg>
+  </a>
+  <button class="burger" id="site-menu-button" type="button"
+    aria-expanded="false" aria-controls="site-menu" aria-label="Sections of the Atlas">
+    <span class="burger__lines" aria-hidden="true"><i></i><i></i><i></i></span>
   </button>
   <a class="topbar__brand" href="/">Regenerative Atlas</a>
   <nav class="navgroup" id="site-menu" data-connected-nav aria-label="Sections of the Atlas">
