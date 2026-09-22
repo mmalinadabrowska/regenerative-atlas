@@ -201,20 +201,21 @@ kept in step rather than swapped:
 There is no client library, only `fetch` against PostgREST, which is the API Supabase
 already exposes — so the install story is the same as it ever was.
 
-**Setting it up.** Run [`supabase/schema.sql`](supabase/schema.sql) once in the project's
-SQL editor: three tables shaped exactly like the SQLite ones, and row-level security that
-makes the library public to read and closed to write. Then give the server two variables:
+**Setting it up** takes about fifteen minutes and is walked through step by step, from
+making the project to sending the library up, in **[docs/supabase.md](docs/supabase.md)**.
+The short version: run [`supabase/schema.sql`](supabase/schema.sql) once in the project's
+SQL editor, then put two values in a `.env` file next to `package.json`:
 
 ```
 SUPABASE_URL=https://<project-ref>.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=<the service role key>
 ```
 
-The service role key writes and must never reach a browser — set it on the machine that
-runs the server and nowhere else. The anon key can only read, and is the one to hand to
-anything public. Node does not read `.env` by itself: either export the variables, or
-start with `node --env-file=.env server/index.js`. `.env` is git-ignored;
-[`.env.example`](.env.example) shows the shape.
+The service role key writes and must never reach a browser — that machine and nowhere
+else. The anon key can only read, and is the one to hand to anything public. `.env` is
+git-ignored and [`.env.example`](.env.example) shows the shape; it is read automatically,
+and anything already set in the environment wins over it, which is how a hosted server
+should be configured.
 
 ```
 npm run supabase check   # does the project answer, and are the tables there

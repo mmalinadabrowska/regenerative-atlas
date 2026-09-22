@@ -12,9 +12,14 @@ import { createReadStream } from 'node:fs';
 import { stat } from 'node:fs/promises';
 import { extname, join, normalize, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { loadEnv } from './env.js';
 import { openDatabase } from './db.js';
 import { ApiError, exportBibtex, exportJson, handlers } from './api.js';
 import * as supabase from './supabase.js';
+
+// Before anything reads process.env — the Supabase credentials live in .env
+// when they live anywhere on this machine at all.
+loadEnv();
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const PUBLIC = join(ROOT, 'public');

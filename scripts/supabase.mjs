@@ -10,21 +10,28 @@
  * right afterwards.
  */
 
+import { loadEnv } from '../server/env.js';
 import { openDatabase } from '../server/db.js';
 import * as supabase from '../server/supabase.js';
+
+loadEnv();
 
 const [, , command = 'check'] = process.argv;
 
 if (!supabase.configured()) {
   console.error(`
-  No Supabase credentials in the environment.
+  No Supabase credentials found.
 
-    SUPABASE_URL=https://<project>.supabase.co
-    SUPABASE_SERVICE_ROLE_KEY=<the service role key>
+  Make a file called .env next to package.json, with these two lines in it:
 
-  The service role key writes; the anon key can only read. Keep the service
-  role key out of the repository and out of anything a browser can see — an
-  environment variable on the machine that runs the server, and nowhere else.
+    SUPABASE_URL=https://your-project-ref.supabase.co
+    SUPABASE_SERVICE_ROLE_KEY=the-long-service-role-key
+
+  Both are in your Supabase project under Settings -> API. The service role
+  key writes; the anon key can only read. .env is ignored by git, and the
+  service role key must never reach a browser.
+
+  docs/supabase.md walks through the whole thing.
 `);
   process.exit(1);
 }
