@@ -99,8 +99,12 @@ const mapBody = read('public', 'map.html')
   .replace(/[\s\S]*<body[^>]*>/, '')
   .replace(/<\/body>[\s\S]*/, '')
   .replace(/<script[\s\S]*?<\/script>/g, '')
-  // Nothing in a single file can navigate to another page.
+  // Nothing in a single file can navigate to another page, and a link that
+  // cannot go anywhere is worse than no link: it takes the reader out of the
+  // map and lands them on a 404. The marks stay — they say whose map this is —
+  // but they stop being links, and the section row goes entirely.
   .replace(/<a class="topbar__brand"[^>]*>([\s\S]*?)<\/a>/, '<span class="topbar__brand">$1</span>')
+  .replace(/<a class="atlas-mark"[^>]*>([\s\S]*?)<\/a>/, '<span class="atlas-mark">$1</span>')
   .replace(/<nav class="navgroup"[\s\S]*?<\/nav>/, '');
 
 const html = `<!doctype html>

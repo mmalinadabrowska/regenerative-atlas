@@ -11,16 +11,17 @@
 <body class="page">
 
 <header class="topbar">
-  <!-- The way back, on a phone: on a wide screen the section row carries the
-       same mark at its head and this one stands down. -->
-  <a class="atlas-mark" href="/" aria-label="Regenerative Atlas home">
-    <svg viewBox="-11 -11 22 22" aria-hidden="true" focusable="false">
-      <path d="M -5 -5 A 5 5 0 0 1 5 -5 A 5 5 0 0 1 5 5 A 5 5 0 0 1 -5 5 A 5 5 0 0 1 -5 -5 Z"/>
-    </svg>
-  </a>
-  <a class="topbar__brand" href="/">Regenerative Atlas</a>
+  <!-- Who this is, and the way back to it: the Atlas' mark in the circle it
+       wears everywhere else on the site, and the name beside it. -->
+  <div class="topbar__id">
+    <a class="atlas-mark" href="/" aria-label="Regenerative Atlas home">
+      <svg viewBox="-11 -11 22 22" aria-hidden="true" focusable="false">
+        <path d="M -5 -5 A 5 5 0 0 1 5 -5 A 5 5 0 0 1 5 5 A 5 5 0 0 1 -5 5 A 5 5 0 0 1 -5 -5 Z"/>
+      </svg>
+    </a>
+    <a class="topbar__brand" href="/">Regenerative Atlas</a>
+  </div>
   <nav class="navgroup" data-connected-nav aria-label="Sections of the Atlas">
-    <a class="navgroup__mark" data-connect href="/" aria-label="Atlas home"><svg viewBox="-11 -11 22 22" aria-hidden="true"><path d="M -5 -5 A 5 5 0 0 1 5 -5 A 5 5 0 0 1 5 5 A 5 5 0 0 1 -5 5 A 5 5 0 0 1 -5 -5 Z"/></svg></a>
     <a data-connect href="/map">Explore</a>
     <a data-connect href="/add">Add</a>
     <a data-connect href="/about">About</a>

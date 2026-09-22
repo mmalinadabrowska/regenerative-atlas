@@ -277,16 +277,54 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   position: relative;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.6rem 1.4rem;
-  align-items: baseline;
+  gap: 0.6rem 1.1rem;
+  align-items: center;
   justify-content: space-between;
   padding: 1.1rem var(--gutter);
   border-bottom: var(--rule);
 }
 
-/* The way back belongs to the phone layout: on a wide screen the section row
-   carries the same mark at its head, and a second one would be a second mark. */
-.atlas-mark { display: none; }
+/* The way back, at every width. It used to live at the head of the section row
+   on a wide screen and as a button of its own on a phone, which made the same
+   mark two different sizes and two different shapes depending on the window.
+   One mark, one place: the left of the bar, where a reader looks for it. */
+.atlas-mark {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  background: var(--paper);
+  border: var(--stroke) solid var(--ink);
+  border-radius: 999px;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease;
+}
+
+@media (hover: hover) {
+  .atlas-mark:hover { background: var(--ink); color: var(--paper); }
+}
+.atlas-mark:active, .atlas-mark:focus-visible { background: var(--ink); color: var(--paper); }
+
+/* Solid: a drawn shape rather than an outlined one, so it holds at this size. */
+.atlas-mark svg {
+  display: block;
+  width: 1.25rem;
+  height: 1.25rem;
+  fill: currentColor;
+  stroke: none;
+}
+
+/* The mark and the name are one thing — who this is — so the row spreads the
+   three things it actually has: that, the sections, and the count. */
+.topbar__id {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 0;
+}
 
 .topbar__brand {
   font-family: var(--display);
@@ -1227,30 +1265,8 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
     padding: 0.7rem var(--gutter);
   }
 
-  .atlas-mark {
-    display: grid;
-    place-items: center;
-    flex: 0 0 auto;
-    width: 2.3rem;
-    height: 2.3rem;
-    padding: 0;
-    background: var(--paper);
-    border: var(--stroke) solid var(--ink);
-    border-radius: 999px;
-    color: var(--ink);
-    cursor: pointer;
-  }
-
-  .atlas-mark:active { background: var(--ink); color: var(--paper); }
-
-  /* Solid, in the circle the section row draws round it on a wide screen. */
-  .atlas-mark svg {
-    display: block;
-    width: 1.15rem;
-    height: 1.15rem;
-    fill: currentColor;
-    stroke: none;
-  }
+  .atlas-mark { width: 2.3rem; height: 2.3rem; }
+  .atlas-mark svg { width: 1.15rem; height: 1.15rem; }
 
   .topbar__brand {
     font-size: 1rem;
