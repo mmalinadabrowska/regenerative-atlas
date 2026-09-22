@@ -958,6 +958,12 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   transition: transform 220ms cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
+/* A card parked off the right of the screen and a sheet parked under the bottom
+   of it are the same card in two layouts, and crossing between them changes
+   which way it is parked. Without this you watch a closed drawer slide across
+   the window as you resize it: an animation of a thing that is not there. */
+.panel.is-resizing { transition: none; }
+
 .panel.is-open { transform: none; }
 .panel[hidden] { display: flex; }
 

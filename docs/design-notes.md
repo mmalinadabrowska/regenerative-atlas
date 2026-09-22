@@ -478,6 +478,14 @@ it, since a few records taken out of the Atlas are on the same terms as all of t
 `/api/export.json` and `/api/export.bib` still take the library whole; this is the same
 courtesy for the part you are looking at.
 
+**Nothing animates while the window is being dragged.** The record is a card parked off
+the right of the screen in one layout and a sheet parked under the bottom of it in the
+other; they are the same element, so crossing the breakpoint changes which way it is
+parked, and the transition that makes it slide in gracefully will just as gracefully play
+that journey across the window — an animation of a drawer that is not open. The panel
+drops its transition for as long as resize events keep arriving, and takes it back a sixth
+of a second after they stop.
+
 ## Fitting the map on a phone
 
 A map that does not fit is not a map, and the phone was the case where it did not.

@@ -864,7 +864,16 @@ panel.addEventListener('click', (event) => {
 
 // The sheet is a phone arrangement; crossing back to the desktop one leaves it
 // with a half-dragged transform and an expanded state that mean nothing there.
+let settling;
 window.addEventListener('resize', () => {
+  // Nothing animates while the window is being dragged. The card is parked off
+  // the right in one layout and under the bottom in the other, so a resize
+  // across the breakpoint would otherwise play that journey — a closed drawer
+  // sliding over the map, animating a thing that is not even open.
+  panel.classList.add('is-resizing');
+  clearTimeout(settling);
+  settling = setTimeout(() => panel.classList.remove('is-resizing'), 160);
+
   if (!isSheet()) {
     panel.style.transform = '';
     setSheet('peek');
