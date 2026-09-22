@@ -201,8 +201,11 @@ kept in step rather than swapped:
 There is no client library, only `fetch` against PostgREST, which is the API Supabase
 already exposes — so the install story is the same as it ever was.
 
-**Setting it up** takes about fifteen minutes and is walked through step by step, from
-making the project to sending the library up, in **[docs/supabase.md](docs/supabase.md)**.
+**Setting it up** is walked through step by step in **[docs/supabase.md](docs/supabase.md)**,
+which offers two routes: filling a project from the browser alone — paste
+[`supabase/schema.sql`](supabase/schema.sql) then [`supabase/seed.sql`](supabase/seed.sql)
+into the SQL editor, no terminal and no keys handled — or connecting a running Atlas so
+that new sources go up as they arrive.
 The short version: run [`supabase/schema.sql`](supabase/schema.sql) once in the project's
 SQL editor, then put two values in a `.env` file next to `package.json`:
 

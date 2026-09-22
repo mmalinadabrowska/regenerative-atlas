@@ -4,6 +4,20 @@ A walkthrough, assuming no prior acquaintance with Supabase, databases, or the t
 beyond copying a line and pressing return. It takes about fifteen minutes, most of which
 is waiting for a project to finish setting itself up.
 
+## Two ways in, and you can stop after the first
+
+**A — from a browser, nothing installed.** Make the project, make the tables, and fill it
+with the library by pasting two files into Supabase's own SQL editor. No terminal, no Node,
+no keys leaving the Supabase page. At the end of it the whole library is in Postgres and
+you can look at it, share it, query it. This is steps 1, 2 and 2b below.
+
+**B — connecting a running Atlas to it.** This is what makes new sources go up as they are
+added, and it needs the Atlas actually running somewhere: your own machine, or a host. It
+needs the repository and the two keys. Steps 3 to 7.
+
+If you have no idea what you are doing, do A today and leave B until the Atlas is
+deployed somewhere. Nothing in A is wasted work — B picks up exactly where it leaves off.
+
 ## What this actually does, in one paragraph
 
 The Atlas keeps its library in a file — `data/atlas.db` — sitting on whatever machine is
@@ -20,9 +34,10 @@ and the Atlas goes back to exactly what it was.
 
 ---
 
-## Before you start
+## Before you start (route B only)
 
-You need the Atlas running on your own machine. In a terminal, in the project folder:
+Route A needs nothing but a browser. For route B you need the Atlas running on your own
+machine. In a terminal, in the project folder:
 
 ```
 node --version      # needs to say v22.5 or higher
@@ -69,7 +84,27 @@ vocabulary), a table joining them, and a rule that says **anyone may read the li
 nobody may write to it except with the secret key**. That last part is why it is safe to
 put this behind a public website later.
 
+## Step 2b — Fill it with the library
+
+Still in the SQL editor, **New query** again. This time paste
+[`supabase/seed.sql`](../supabase/seed.sql) — every source, every tag, and which is filed
+where. If you are reading this on GitHub, open that file and press the copy button at the
+top right of it.
+
+Press **Run**. It should say *Success*.
+
+Now look: **Table Editor** → `sources`. The library is there, one row per piece of
+research. That is route A finished — the Atlas' library exists somewhere that is not a
+laptop, and you never handled a key.
+
+The file can be run again any time without making duplicates: a source is matched on its
+link and a tag on its slug. When the library here grows, `npm run supabase-sql` writes a
+fresh one.
+
 ## Step 3 — Get the two keys
+
+*From here on is route B: connecting a running Atlas, so that new sources go up as they
+are added.*
 
 In Supabase: **Settings** (the cog, bottom left) → **API**.
 
@@ -155,6 +190,7 @@ second. That is the whole thing working.
 | check the connection | `npm run supabase check` |
 | send this machine's library up | `npm run supabase push` |
 | bring the library down | `npm run supabase pull` |
+| write the library out as SQL to paste | `npm run supabase-sql` |
 | go back to no Supabase at all | delete `.env` |
 
 `pull` is the useful one on a second machine: clone the repository, make the same `.env`,
@@ -173,6 +209,16 @@ added twice is one row, and the tags merge.
 laptop, that host will have a way to set environment variables (Railway, Render and Fly
 all call it "Variables" or "Secrets"). Put the same two values there instead of in a
 `.env` file, and do not copy `.env` onto the server.
+
+**Should the `.env` file go to GitHub?** No — never, and it is already listed in
+`.gitignore` so git will not offer to. A service role key in a public repository is the
+whole project handed to whoever finds it, and they are found: there are bots that do
+nothing but scan new commits for keys. If one ever does get committed, treat it as burnt —
+generate a new one in Supabase under **Settings → API**, and the old one stops working.
+
+The same goes for pasting a key into a chat, a ticket, a screenshot of your editor, or a
+deployment log. The only places it belongs are the `.env` file on your own machine and the
+secrets panel of whatever eventually hosts the Atlas.
 
 **Is the data locked in?** No. `npm run supabase pull` brings it all back, and
 `/api/export.json` and `/api/export.bib` still take the whole library at any time. That is
