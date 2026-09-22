@@ -11,19 +11,15 @@
 <body class="page page--map">
 
 <header class="topbar">
-  <!-- The mark goes home; the button beside it opens the sections. Both belong
-       to the phone layout — on a wide screen the sections are simply there. -->
+  <!-- The way back, on a phone: on a wide screen the section row carries the
+       same mark at its head and this one stands down. -->
   <a class="atlas-mark" href="/" aria-label="Regenerative Atlas home">
     <svg viewBox="-11 -11 22 22" aria-hidden="true" focusable="false">
       <path d="M -5 -5 A 5 5 0 0 1 5 -5 A 5 5 0 0 1 5 5 A 5 5 0 0 1 -5 5 A 5 5 0 0 1 -5 -5 Z"/>
     </svg>
   </a>
-  <button class="burger" id="site-menu-button" type="button"
-    aria-expanded="false" aria-controls="site-menu" aria-label="Sections of the Atlas">
-    <span class="burger__lines" aria-hidden="true"><i></i><i></i><i></i></span>
-  </button>
   <a class="topbar__brand" href="/">Regenerative Atlas</a>
-  <nav class="navgroup" id="site-menu" data-connected-nav aria-label="Sections of the Atlas">
+  <nav class="navgroup" data-connected-nav aria-label="Sections of the Atlas">
     <a class="navgroup__mark" data-connect href="/" aria-label="Atlas home"><svg viewBox="-11 -11 22 22" aria-hidden="true"><path d="M -5 -5 A 5 5 0 0 1 5 -5 A 5 5 0 0 1 5 5 A 5 5 0 0 1 -5 5 A 5 5 0 0 1 -5 -5 Z"/></svg></a>
     <a data-connect href="/map" aria-current="page">Explore</a>
     <a data-connect href="/add">Add</a>
@@ -94,7 +90,6 @@
 </div>
 
 <script type="module" src="/js/map.js"></script>
-<script type="module" src="/js/topbar.js"></script>
 <script type="module" src="/js/connected-nav.js"></script>
 </body>
 </html>

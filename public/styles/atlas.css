@@ -284,10 +284,9 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   border-bottom: var(--rule);
 }
 
-/* Both belong to the phone layout; on a wide screen the sections are simply
-   there, and a button to reveal what is already visible is a door into the
-   room you are standing in. */
-.burger, .atlas-mark { display: none; }
+/* The way back belongs to the phone layout: on a wide screen the section row
+   carries the same mark at its head, and a second one would be a second mark. */
+.atlas-mark { display: none; }
 
 .topbar__brand {
   font-family: var(--display);
@@ -1217,19 +1216,18 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 /* --- responsive ---------------------------------------------------------- */
 
 @media (max-width: 46rem) {
-  /* --- the top bar folds -------------------------------------------------
-     The section row is two wrapped lines on a phone, taken out of the one
-     screen the map has. It folds into a button at the left of the bar and
-     drops out of it when asked — the same nav, moved, rather than a second
-     copy of it to keep in step. */
+  /* --- the top bar on a phone -------------------------------------------
+     The section row is two wrapped lines here, taken out of the one screen the
+     map has, so it stands down and the bar keeps one control: the Atlas' mark,
+     which is the way back to the page the sections are laid out on. */
   .topbar {
     flex-wrap: nowrap;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.5rem;
     padding: 0.7rem var(--gutter);
   }
 
-  .burger, .atlas-mark {
+  .atlas-mark {
     display: grid;
     place-items: center;
     flex: 0 0 auto;
@@ -1243,13 +1241,9 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
     cursor: pointer;
   }
 
-  .burger:active, .topbar.is-menu-open .burger, .atlas-mark:active {
-    background: var(--ink);
-    color: var(--paper);
-  }
+  .atlas-mark:active { background: var(--ink); color: var(--paper); }
 
-  /* The way home: the Atlas' own mark, solid, in the circle the section row
-     draws round it on a wide screen. */
+  /* Solid, in the circle the section row draws round it on a wide screen. */
   .atlas-mark svg {
     display: block;
     width: 1.15rem;
@@ -1258,39 +1252,6 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
     stroke: none;
   }
 
-  /* Three lines, because the mark beside it is already saying something else
-     and two marks that look alike are two marks nobody reads. Open, they are
-     the cross that closes it. */
-  .burger__lines {
-    display: block;
-    position: relative;
-    width: 1.05rem;
-    height: 0.64rem;
-  }
-
-  .burger__lines i {
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 1.6px;
-    background: currentColor;
-    border-radius: 2px;
-    transition: rotate 180ms ease, top 180ms ease, opacity 120ms ease;
-  }
-
-  .burger__lines i:nth-child(1) { top: 0; }
-  .burger__lines i:nth-child(2) { top: calc(50% - 0.8px); }
-  .burger__lines i:nth-child(3) { top: calc(100% - 1.6px); }
-
-  .topbar.is-menu-open .burger__lines i:nth-child(1),
-  .topbar.is-menu-open .burger__lines i:nth-child(3) { top: calc(50% - 0.8px); }
-  .topbar.is-menu-open .burger__lines i:nth-child(1) { rotate: 45deg; }
-  .topbar.is-menu-open .burger__lines i:nth-child(3) { rotate: -45deg; }
-  .topbar.is-menu-open .burger__lines i:nth-child(2) { opacity: 0; }
-
-  /* Two circles and a wordmark is a lot for 390 pixels: the name gives way
-     before the count does, since the count is the only live thing in the bar. */
-  .topbar { gap: 0.5rem; }
   .topbar__brand {
     font-size: 1rem;
     min-width: 0;
@@ -1299,38 +1260,9 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   }
   .topbar__count { margin-left: auto; text-align: right; }
 
-  /* The menu itself: dropped out of the bar, over whatever is under it.
-     Written against the bar as well as the attribute, because `.topbar nav`
+  /* Written against the bar as well as the attribute, because `.topbar nav`
      further up the sheet already claims a display and would keep it. */
-  .topbar nav[data-connected-nav] {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    z-index: 6;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.5rem;
-    padding: 0.85rem var(--gutter) 1.1rem;
-    background: var(--paper);
-    border-bottom: var(--stroke) solid var(--ink);
-  }
-
-  .topbar.is-menu-open nav[data-connected-nav] { display: flex; }
-
-  /* A column of buttons is not a connected row, and the drawn outline knows
-     it — but the mark is a home button in a menu, and a circle on its own
-     line reads as a stray. */
-  /* The mark is on the button now, and twice is once too often. Written
-     against the row as well, or `[data-connected-nav] > a` keeps its display. */
-  .topbar nav[data-connected-nav] > a.navgroup__mark { display: none; }
-
-  .topbar nav[data-connected-nav] > a {
-    border-radius: 999px;
-    padding: 0.55rem 1.1rem;
-    font-size: 1.05rem;
-  }
+  .topbar nav[data-connected-nav] { display: none; }
 
   /* On a phone the record is a sheet at the bottom of the map rather than a
      card beside it: it comes up showing its title bar and the line under it,

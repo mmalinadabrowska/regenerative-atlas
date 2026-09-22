@@ -399,29 +399,19 @@ nothing — it is the remains of a gesture already had. A trackpad pinch never a
 two pointers at all: the browser sends it as a wheel event holding ctrl, with a much
 smaller delta, so it is scaled up to travel as far as the same gesture would.
 
-## The top bar folds on a phone
+## The top bar on a phone
 
 The section row is the whole navigation on a wide screen and two wrapped lines of it on a
-phone, taken out of the one screen the map has. So on a phone it folds into a button at
-the left of the bar and drops out of it when asked. The markup does not change — the same
-nav, the same links, moved — because a second copy of the navigation is a second thing to
-keep in step, and because with the script missing the row is still a row.
+phone, taken out of the one screen the map has. So on a phone it stands down, and the bar
+keeps one control: the Atlas' quatrefoil, solid, in the circle the section row draws round
+it — a link to the landing page, where the three sections are laid out as buttons. Every
+page carries it, so everywhere is two taps from everywhere: home, then the section.
 
-There are two controls in that corner, not one. The Atlas' quatrefoil goes home, in the
-circle the section row draws round it on a wide screen; the button beside it is three
-lines and opens the sections. The menu button briefly wore the quatrefoil too, which was
-the wrong economy: a mark that means *the Atlas* on every other screen cannot also mean
-*open the menu* on this one, and a reader who taps it expecting home is right. Two marks
-that look alike are two marks nobody reads, so the menu takes the plainest form there is —
-and its three lines become the cross that closes it. The row's own copy of the mark is
-hidden while the bar carries it, since twice is once too often.
-
-Two things about a menu that opens under a finger. It closes on anything else pressed, but
-never on a press inside itself: closing it while the finger is still coming down takes the
-link out from under the tap and the tap lands on the map behind it. And it closes on a
-click *within* it, after that click has been had — most of those links are on their way to
-another page, but the one for the page you are already on is not, and would otherwise
-leave the menu standing open over it.
+It briefly had a menu as well — the sections dropped out of the bar from a button beside
+the mark — and the mark briefly *was* that button. Both went. A mark that means *the
+Atlas* on every other screen cannot also mean *open the menu* on this one; and once the
+mark is a link home, the menu is a second way of doing what the landing page already does,
+in the corner of the screen the map needs most.
 
 ## The tag bar
 
