@@ -32,13 +32,17 @@ export const FACETS = {
     label: 'Formats',
     note: 'What kind of artefact this is to read or use.',
   },
+  location: {
+    label: 'Locations',
+    note: 'Where the work is grounded — the ground it is about or for.',
+  },
   open: {
     label: 'Open tags',
     note: 'Coined by contributors, not yet part of the core vocabulary.',
   },
 };
 
-export const FACET_ORDER = ['theme', 'material', 'method', 'scale', 'format', 'open'];
+export const FACET_ORDER = ['theme', 'location', 'material', 'method', 'scale', 'format', 'open'];
 
 /**
  * Curated tags: [slug, facet, label, note]
@@ -113,6 +117,53 @@ const CORE = [
   ['dataset', 'format', 'Dataset', 'Open data and databases.'],
   ['talk', 'format', 'Talk', 'Lecture, film, podcast, recorded conversation.'],
   ['glossary', 'format', 'Glossary', 'Vocabulary and terminology work.'],
+
+  // — locations ————————————————————————————————————————————
+  // Where the work is grounded, not where its office is: a standard written
+  // for one country is of that country, and a framework that would read the
+  // same anywhere is global. A country is filed inside its region too, by
+  // WITHIN below, so asking for Europe finds the work filed under Denmark.
+  ['global', 'location', 'Global', 'Not bound to one place — planetary in scope, or read the same anywhere.'],
+
+  ['africa', 'location', 'Africa', 'Grounded in Africa.'],
+  ['kenya', 'location', 'Kenya', 'Grounded in Kenya.'],
+  ['nigeria', 'location', 'Nigeria', 'Grounded in Nigeria.'],
+  ['south-africa', 'location', 'South Africa', 'Grounded in South Africa.'],
+
+  ['asia', 'location', 'Asia', 'Grounded in Asia.'],
+  ['china', 'location', 'China', 'Grounded in China.'],
+  ['india', 'location', 'India', 'Grounded in India.'],
+  ['indonesia', 'location', 'Indonesia', 'Grounded in Indonesia.'],
+  ['japan', 'location', 'Japan', 'Grounded in Japan.'],
+  ['singapore', 'location', 'Singapore', 'Grounded in Singapore.'],
+
+  ['europe', 'location', 'Europe', 'Grounded in Europe.'],
+  ['uk', 'location', 'UK', 'Grounded in the United Kingdom.'],
+  ['ireland', 'location', 'Ireland', 'Grounded in Ireland.'],
+  ['france', 'location', 'France', 'Grounded in France.'],
+  ['germany', 'location', 'Germany', 'Grounded in Germany.'],
+  ['netherlands', 'location', 'Netherlands', 'Grounded in the Netherlands.'],
+  ['denmark', 'location', 'Denmark', 'Grounded in Denmark.'],
+  ['sweden', 'location', 'Sweden', 'Grounded in Sweden.'],
+  ['norway', 'location', 'Norway', 'Grounded in Norway.'],
+  ['finland', 'location', 'Finland', 'Grounded in Finland.'],
+  ['spain', 'location', 'Spain', 'Grounded in Spain.'],
+  ['italy', 'location', 'Italy', 'Grounded in Italy.'],
+  ['switzerland', 'location', 'Switzerland', 'Grounded in Switzerland.'],
+
+  ['north-america', 'location', 'North America', 'Grounded in North America.'],
+  ['usa', 'location', 'USA', 'Grounded in the United States.'],
+  ['canada', 'location', 'Canada', 'Grounded in Canada.'],
+  ['mexico', 'location', 'Mexico', 'Grounded in Mexico.'],
+
+  ['south-america', 'location', 'South America', 'Grounded in South America.'],
+  ['brazil', 'location', 'Brazil', 'Grounded in Brazil.'],
+  ['chile', 'location', 'Chile', 'Grounded in Chile.'],
+  ['colombia', 'location', 'Colombia', 'Grounded in Colombia.'],
+
+  ['oceania', 'location', 'Oceania', 'Grounded in Australia, Aotearoa New Zealand and the Pacific.'],
+  ['australia', 'location', 'Australia', 'Grounded in Australia.'],
+  ['new-zealand', 'location', 'New Zealand', 'Grounded in Aotearoa New Zealand.'],
 ];
 
 export const CORE_TAGS = CORE.map(([slug, facet, label, note]) => ({ slug, facet, label, note }));
@@ -251,7 +302,8 @@ const ALIASES = new Map(Object.entries({
   'cities': 'city',
   'landscape': 'bioregion',
   'territory': 'bioregion',
-  'global': 'planetary',
+  // 'global' used to fold onto the planetary scale. It is a place now — the
+  // one that means no particular place — and the scale keeps its own name.
   'planetary-boundaries': 'planetary',
   'papers': 'paper',
   'journal-article': 'paper',
@@ -293,6 +345,149 @@ const ALIASES = new Map(Object.entries({
   'video': 'talk',
   'podcast': 'talk',
   'documentary': 'talk',
+
+  // — places ———————————————————————————————————————————————
+  // Written forms of a place, folded onto the one the Atlas files it under.
+  // Countries the vocabulary does not name are folded to their region rather
+  // than being lost as open tags: better a source findable under Africa than
+  // one filed under a place nothing else shares.
+  'worldwide': 'global',
+  'international': 'global',
+  'world': 'global',
+  'everywhere': 'global',
+  'anywhere': 'global',
+  'united-kingdom': 'uk',
+  'u-k': 'uk',
+  'gb': 'uk',
+  'great-britain': 'uk',
+  'britain': 'uk',
+  'british': 'uk',
+  'england': 'uk',
+  'scotland': 'uk',
+  'wales': 'uk',
+  'northern-ireland': 'uk',
+  'london': 'uk',
+  'eire': 'ireland',
+  'republic-of-ireland': 'ireland',
+  'eu': 'europe',
+  'european-union': 'europe',
+  'european': 'europe',
+  'nordic': 'europe',
+  'nordics': 'europe',
+  'scandinavia': 'europe',
+  'scandinavian': 'europe',
+  'baltics': 'europe',
+  'balkans': 'europe',
+  'belgium': 'europe',
+  'austria': 'europe',
+  'portugal': 'europe',
+  'poland': 'europe',
+  'czechia': 'europe',
+  'greece': 'europe',
+  'iceland': 'europe',
+  'estonia': 'europe',
+  'holland': 'netherlands',
+  'dutch': 'netherlands',
+  'deutschland': 'germany',
+  'german': 'germany',
+  'french': 'france',
+  'danish': 'denmark',
+  'swedish': 'sweden',
+  'swiss': 'switzerland',
+  'us': 'usa',
+  'u-s': 'usa',
+  'u-s-a': 'usa',
+  'united-states': 'usa',
+  'united-states-of-america': 'usa',
+  'america': 'usa',
+  'american': 'usa',
+  'north-american': 'north-america',
+  'central-america': 'north-america',
+  'caribbean': 'north-america',
+  'latin-america': 'south-america',
+  'south-american': 'south-america',
+  'argentina': 'south-america',
+  'peru': 'south-america',
+  'ecuador': 'south-america',
+  'bolivia': 'south-america',
+  'uruguay': 'south-america',
+  'aotearoa': 'new-zealand',
+  'aotearoa-new-zealand': 'new-zealand',
+  'nz': 'new-zealand',
+  'australasia': 'oceania',
+  'pacific': 'oceania',
+  'pacific-islands': 'oceania',
+  'sub-saharan-africa': 'africa',
+  'east-africa': 'africa',
+  'west-africa': 'africa',
+  'southern-africa': 'africa',
+  'north-africa': 'africa',
+  'african': 'africa',
+  'ghana': 'africa',
+  'tanzania': 'africa',
+  'uganda': 'africa',
+  'ethiopia': 'africa',
+  'rwanda': 'africa',
+  'egypt': 'africa',
+  'morocco': 'africa',
+  'senegal': 'africa',
+  'asian': 'asia',
+  'east-asia': 'asia',
+  'south-asia': 'asia',
+  'south-east-asia': 'asia',
+  'southeast-asia': 'asia',
+  'middle-east': 'asia',
+  'bharat': 'india',
+  'prc': 'china',
+  'hong-kong': 'china',
+  'taiwan': 'asia',
+  'korea': 'asia',
+  'south-korea': 'asia',
+  'vietnam': 'asia',
+  'thailand': 'asia',
+  'philippines': 'asia',
+  'malaysia': 'asia',
+  'bangladesh': 'asia',
+  'pakistan': 'asia',
+  'nepal': 'asia',
+  'sri-lanka': 'asia',
+}));
+
+/**
+ * A place inside a larger place. Tagging the smaller files the source under
+ * both, so the vocabulary carries its own hierarchy and a query never has to:
+ * asking the library for Europe is a plain tag match, and it finds the work
+ * filed under Denmark because Denmark put Europe there when it was stored.
+ */
+const WITHIN = new Map(Object.entries({
+  'kenya': 'africa',
+  'nigeria': 'africa',
+  'south-africa': 'africa',
+  'china': 'asia',
+  'india': 'asia',
+  'indonesia': 'asia',
+  'japan': 'asia',
+  'singapore': 'asia',
+  'uk': 'europe',
+  'ireland': 'europe',
+  'france': 'europe',
+  'germany': 'europe',
+  'netherlands': 'europe',
+  'denmark': 'europe',
+  'sweden': 'europe',
+  'norway': 'europe',
+  'finland': 'europe',
+  'spain': 'europe',
+  'italy': 'europe',
+  'switzerland': 'europe',
+  'usa': 'north-america',
+  'canada': 'north-america',
+  'mexico': 'north-america',
+  'brazil': 'south-america',
+  'chile': 'south-america',
+  'colombia': 'south-america',
+  'australia': 'oceania',
+  'new-zealand': 'oceania',
 }));
 
 /** Loose text -> a safe, comparable tag slug. */
@@ -336,7 +531,13 @@ export function resolveTag(input) {
   };
 }
 
-/** Resolve a list of tags, dropping empties and duplicates, preserving order. */
+/**
+ * Resolve a list of tags, dropping empties and duplicates, preserving order.
+ *
+ * A place brings its region with it — see WITHIN. The region is added at the
+ * end rather than beside the country, so the order a contributor chose is the
+ * order that survives and the inherited tags read as what they are.
+ */
 export function resolveTags(inputs) {
   const seen = new Set();
   const out = [];
@@ -346,7 +547,23 @@ export function resolveTags(inputs) {
     seen.add(tag.slug);
     out.push(tag);
   }
+  for (const tag of [...out]) {
+    const region = WITHIN.get(tag.slug);
+    if (!region || seen.has(region)) continue;
+    seen.add(region);
+    out.push(resolveTag(region));
+  }
   return out;
+}
+
+/** Is this slug a place? Used where the map wants subjects and not addresses. */
+export function isLocation(slug) {
+  return BY_SLUG.get(slug)?.facet === 'location';
+}
+
+/** The region a place sits in, or null for a region and for anything else. */
+export function regionOf(slug) {
+  return WITHIN.get(slug) ?? null;
 }
 
 /**

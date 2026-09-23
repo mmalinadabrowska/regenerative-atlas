@@ -96,7 +96,10 @@ test('a valid submission is created and shows up on the map', async () => {
   assert.equal(response.status, 201);
   const { created, source } = await response.json();
   assert.equal(created, true);
-  assert.deepEqual(new Set(source.tags.map((t) => t.slug)), new Set(['mycelium', 'bio-based']));
+  // 'global' is not in the submission: a record with no place named is filed
+  // as one that reads the same anywhere, so no source falls out of the
+  // location filter.
+  assert.deepEqual(new Set(source.tags.map((t) => t.slug)), new Set(['mycelium', 'bio-based', 'global']));
 
   const graph = await (await get('/api/graph')).json();
   assert.ok(graph.nodes.some((n) => n.label === 'Grown structures'));

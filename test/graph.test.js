@@ -179,3 +179,66 @@ test('an empty library produces an empty but well-formed map', () => {
   assert.deepEqual(graph.clusters, []);
   assert.equal(graph.stats.sources, 0);
 });
+
+/* --- places --------------------------------------------------------------- */
+
+/** The same library, with each piece of work grounded somewhere. */
+function groundedLibrary() {
+  const atlas = openDatabase(':memory:');
+  const add = (title, tags) =>
+    atlas.addSource({ url: `https://example.org/${title.replace(/\s+/g, '-')}`, title, tags });
+
+  add('Timber tower', ['timber', 'materials', 'building', 'case-study', 'denmark']);
+  add('Mass timber LCA', ['timber', 'life-cycle-assessment', 'carbon', 'paper', 'uk']);
+  add('Embodied carbon primer', ['carbon', 'life-cycle-assessment', 'building', 'guidance', 'uk']);
+  add('Soil and the city', ['soil', 'city', 'ecology', 'essay', 'kenya']);
+  add('Urban ecology reader', ['soil', 'ecology', 'city', 'book', 'global']);
+  return atlas;
+}
+
+test('a place is never drawn: the islands are subjects, not addresses', () => {
+  const atlas = groundedLibrary();
+  const graph = buildGraph(atlas);
+  const drawn = graph.nodes.filter((n) => n.type === 'tag').map((n) => n.slug);
+  for (const place of ['denmark', 'uk', 'europe', 'kenya', 'africa', 'global']) {
+    assert.ok(!drawn.includes(place), `${place} was drawn`);
+  }
+  assert.ok(drawn.includes('timber'));
+  atlas.close();
+});
+
+test('two sources are not made kin by sharing a continent', () => {
+  const atlas = groundedLibrary();
+  const graph = buildGraph(atlas);
+  const byName = (label) => graph.nodes.find((n) => n.label === label);
+  const timber = byName('Timber tower');
+  const soil = byName('Soil and the city');
+  // Nothing in common but the fact that both are somewhere.
+  const kin = graph.links.filter(
+    (l) => l.kind === 'kin' &&
+      [l.source, l.target].includes(timber.id) &&
+      [l.source, l.target].includes(soil.id),
+  );
+  assert.equal(kin.length, 0);
+  // And no source carries a place among the tags the drawing works from.
+  for (const node of graph.nodes.filter((n) => n.type === 'source')) {
+    assert.ok(!node.tags.includes('europe'), node.label);
+  }
+  atlas.close();
+});
+
+test('the record still knows where it is grounded', () => {
+  const atlas = groundedLibrary();
+  const graph = buildGraph(atlas);
+  const tower = graph.nodes.find((n) => n.label === 'Timber tower');
+  assert.deepEqual(new Set(tower.places), new Set(['denmark', 'europe']));
+  atlas.close();
+});
+
+test('filtering by a region finds the work filed under a country inside it', () => {
+  const atlas = groundedLibrary();
+  const europe = buildGraph(atlas, { filterTags: ['europe'] });
+  const titles = europe.nodes.filter((n) => n.type === 'source').map((n) => n.label).sort();
+  assert.deepEqual(titles, ['Embodied carbon primer', 'Mass timber LCA', 'Timber tower']);
+  atlas.close();
+});

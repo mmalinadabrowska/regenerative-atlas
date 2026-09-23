@@ -44,6 +44,16 @@
         <span class="chip--more__narrow">Tags</span>
         <svg class="chip__caret" viewBox="0 0 12 8" aria-hidden="true" focusable="false"><path d="M1 1.5 6 6.5 11 1.5"/></svg>
       </button>
+      <!-- Where the work is grounded. A second, shorter group in the same row:
+           a place is not a subject, and asking for both at once is the whole
+           point of keeping them apart. -->
+      <span class="tag-bar__name" id="place-bar-name">Location</span>
+      <div id="map-places" class="tag-cloud" aria-labelledby="place-bar-name"></div>
+      <button class="chip chip--more" id="map-place-more" type="button" aria-expanded="false" aria-controls="place-drawer">
+        <span class="chip--more__wide">More</span>
+        <span class="chip--more__narrow">Location</span>
+        <svg class="chip__caret" viewBox="0 0 12 8" aria-hidden="true" focusable="false"><path d="M1 1.5 6 6.5 11 1.5"/></svg>
+      </button>
       <button class="chip" id="map-clear" type="button" hidden>Clear</button>
       <!-- On a phone this cluster leaves the scrolling row and floats over the
            map, where it can always be reached. -->
@@ -62,6 +72,10 @@
 
     <div class="tag-drawer" id="tag-drawer" hidden>
       <div class="tag-cloud" id="tag-drawer-list" aria-label="Every tag in the library"></div>
+    </div>
+
+    <div class="tag-drawer" id="place-drawer" hidden>
+      <div class="tag-cloud" id="place-drawer-list" aria-label="Everywhere the library is grounded"></div>
     </div>
   </div>
 

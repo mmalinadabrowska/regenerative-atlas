@@ -32,8 +32,17 @@ paper is a signal rather than a collision.
 sixty holds the middle. Every tag written by a contributor is slugified and run
 through an alias table before it is stored, so `Circular Economy`, `circularity` and
 `cradle to cradle` all arrive at the same node instead of splitting the map three
-ways. Tags carry a facet — theme, material, method, scale, format, or open — which
-decides how hard they pull on the map. Themes hold territory; formats only tint it.
+ways. Tags carry a facet — theme, location, material, method, scale, format, or open —
+which decides how hard they pull on the map. Themes hold territory; formats only tint
+it; a location pulls on nothing at all.
+
+**A place for everything.** Where a piece of work is grounded is a tag like any other
+underneath, and nothing like one to read. `Denmark` files a source under Europe as well,
+so asking the library for a region is a plain tag match and still finds the work filed
+under a country inside it; a country the vocabulary does not name folds to its region
+rather than being lost. A submission that names no place is filed as `global` — the work
+that reads the same anywhere — so no source falls out of the location filter. Places
+are never drawn on the map: an island is a subject, and a continent is not one.
 
 **A map.** `/map` opens on the tags alone — ink blots clustered into islands by what
 they are filed alongside. Open one and the graph rearranges around it: the tag at the

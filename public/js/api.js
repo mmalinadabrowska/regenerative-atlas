@@ -52,7 +52,10 @@ const wanted = (params) => ({
 });
 
 const matches = (source, { tags, query }) => {
-  const slugs = (source.tags ?? []).map((t) => t.slug ?? t);
+  // Places are filed on the record rather than among the tags the map draws
+  // from, and they are filtered on exactly like any other tag — so the
+  // snapshot has to look in both, or asking for the UK finds nothing.
+  const slugs = [...(source.tags ?? []), ...(source.places ?? [])].map((t) => t.slug ?? t);
   if (!tags.every((slug) => slugs.includes(slug))) return false;
   if (!query) return true;
   return [source.title ?? source.label, source.authors, source.publisher, source.summary]
@@ -141,6 +144,10 @@ export async function fillCount(selector = '[data-count]') {
   const node = document.querySelector(selector);
   if (!node) return;
   try {
+    // Tags here means what the map draws — the same number the legend gives —
+    // so the two never disagree. The places are counted in `stats` as well,
+    // but they are read in their own filter rather than in this line, which
+    // has to survive a phone.
     const { sources, tags } = await api.stats();
     node.textContent = `${sources} sources · ${tags} tags`;
   } catch {

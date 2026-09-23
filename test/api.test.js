@@ -35,7 +35,11 @@ test('fields are trimmed and clamped, and tags capped at twelve', () => {
   assert.equal(submission.title.length, 300);
   assert.equal(submission.authors, 'A B');
   assert.equal(submission.summary.length, 1200);
-  assert.equal(submission.tags.length, 12);
+  // Twelve subjects, and then the place, which is not one of the twelve: the
+  // cap is there so a source is not about everything, and where it is grounded
+  // was never one of the things it is about.
+  assert.equal(submission.tags.length, 13);
+  assert.equal(submission.tags.at(-1), 'global');
 });
 
 test('tags may arrive as a comma-separated string', () => {
@@ -44,7 +48,7 @@ test('tags may arrive as a comma-separated string', () => {
     title: 'A',
     tags: 'timber, Circular Economy , ,LCA',
   });
-  assert.deepEqual(submission.tags, ['timber', 'circular-economy', 'life-cycle-assessment']);
+  assert.deepEqual(submission.tags, ['timber', 'circular-economy', 'life-cycle-assessment', 'global']);
 });
 
 test('an implausible year is dropped rather than stored', () => {
@@ -90,7 +94,7 @@ function seeded() {
 
 test('the vocabulary endpoint hands back facets in a fixed order', () => {
   const { facets, tags } = handlers.vocabulary();
-  assert.deepEqual(facets.map((f) => f.key), ['theme', 'material', 'method', 'scale', 'format', 'open']);
+  assert.deepEqual(facets.map((f) => f.key), ['theme', 'location', 'material', 'method', 'scale', 'format', 'open']);
   assert.ok(tags.length > 40);
 });
 

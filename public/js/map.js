@@ -13,6 +13,10 @@ const clearButton = document.getElementById('map-clear');
 const moreButton = document.getElementById('map-more');
 const drawer = document.getElementById('tag-drawer');
 const drawerList = document.getElementById('tag-drawer-list');
+const placeBox = document.getElementById('map-places');
+const placeMoreButton = document.getElementById('map-place-more');
+const placeDrawer = document.getElementById('place-drawer');
+const placeDrawerList = document.getElementById('place-drawer-list');
 const resetButton = document.getElementById('map-reset');
 const zoomInButton = document.getElementById('map-in');
 const zoomOutButton = document.getElementById('map-out');
@@ -174,67 +178,111 @@ async function load() {
 /* --- chrome ------------------------------------------------------------- */
 
 let vocabulary = [];
+let places = [];
 
 const tagChip = (tag) => `<button class="tag" type="button" data-tag="${escapeHtml(tag.slug)}"
         aria-pressed="${state.tags.has(tag.slug)}">${escapeHtml(tag.label)}
         <span class="tag__count">${tag.count}</span></button>`;
 
-async function renderFilters() {
-  if (vocabulary.length === 0) {
-    const { tags } = await api.tags();
-    vocabulary = tags;
-  }
-  // The heaviest tags lead, and whatever you have picked is pulled to the front
-  // of the row so a filter you are using is never the one that got tucked away.
-  const lead = vocabulary.slice(0, 18);
-  const chosen = [...state.tags].filter((slug) => !lead.some((t) => t.slug === slug));
-  const shown = [
-    ...chosen.map((slug) => vocabulary.find((t) => t.slug === slug) ?? { slug, label: slug, count: 0 }),
-    ...lead,
-  ];
+/**
+ * The heaviest lead, and whatever you have picked is pulled to the front of the
+ * row so a filter you are using is never the one that got tucked away.
+ */
+function leading(list, depth) {
+  const lead = list.slice(0, depth);
+  const chosen = [...state.tags].filter(
+    (slug) => list.some((t) => t.slug === slug) && !lead.some((t) => t.slug === slug),
+  );
+  return [...chosen.map((slug) => list.find((t) => t.slug === slug)), ...lead];
+}
 
-  filterBox.innerHTML = shown.map(tagChip).join('');
+async function renderFilters() {
+  if (vocabulary.length === 0 && places.length === 0) {
+    const { tags } = await api.tags();
+    // Places are filtered on in the same way and drawn on the map in no way at
+    // all, so they leave the vocabulary here and keep their own row.
+    vocabulary = tags.filter((t) => t.facet !== 'location');
+    places = tags.filter((t) => t.facet === 'location');
+  }
+
+  filterBox.innerHTML = leading(vocabulary, 18).map(tagChip).join('');
   drawerList.innerHTML = vocabulary.map(tagChip).join('');
+  placeBox.innerHTML = leading(places, 8).map(tagChip).join('');
+  placeDrawerList.innerHTML = places.map(tagChip).join('');
   tuckTags();
 
   clearButton.hidden = state.tags.size === 0 && !state.query;
 }
 
 /**
- * Keep the tag bar to one line. Everything past the end of the row is hidden
- * rather than wrapped: a filter bar that grows downwards as you pick tags moves
- * the map out from under itself every time. What is hidden is not lost — the
- * whole vocabulary is a button away, in the drawer.
+ * Keep the filter bar to one line. Everything past the end of the row is hidden
+ * rather than wrapped: a bar that grows downwards as you pick tags moves the
+ * map out from under itself every time. What is hidden is not lost — the whole
+ * vocabulary is a button away, in the drawer.
+ *
+ * Two groups share the row now, and they are not equals. The places are few
+ * and each one stands for a great deal of the library, so they are served
+ * first, up to about a third of the row; the tags take everything left. Served
+ * the other way round a wide vocabulary would push the whole location group
+ * behind its More button, and a filter nobody can see is a filter nobody uses.
  */
+const PLACE_SHARE = 0.34;
+
 function tuckTags() {
-  const chips = [...filterBox.children];
-  for (const chip of chips) chip.hidden = false;
-  // Collapsed to nothing first, so the row is not overflowing while it is
-  // measured: an overflowing row has already squeezed the search field, and
-  // the room left for tags would be read off a width that only exists while
-  // there is no room. The tags keep their own width through this.
-  filterBox.style.flexBasis = '0px';
+  const boxes = [placeBox, filterBox];
+  for (const box of boxes) {
+    for (const chip of box.children) chip.hidden = false;
+    // Collapsed to nothing first, so the row is not overflowing while it is
+    // measured: an overflowing row has already squeezed the search field, and
+    // the room left for tags would be read off a width that only exists while
+    // there is no room. The tags keep their own width through this.
+    box.style.flexBasis = '0px';
+  }
   if (filterBox.offsetParent === null) return;
 
-  // How much room the tags have is asked of the row, not of the tag box: the
-  // box is about to be resized to whatever fits, and a box that measures itself
-  // measures the answer to the last question rather than this one.
+  // How much room the groups have is asked of the row, not of either box: a
+  // box is about to be resized to whatever fits, and a box that measures
+  // itself measures the answer to the last question rather than this one.
   const rowGap = parseFloat(getComputedStyle(controlsRow).columnGap) || 0;
   const standing = [...controlsRow.children].flatMap((child) =>
     getComputedStyle(child).display === 'contents' ? [...child.children] : [child],
   );
   let taken = 0;
   for (const item of standing) {
-    if (item === filterBox) continue;
+    if (boxes.includes(item)) continue;
     const width = item.getBoundingClientRect().width;
     if (width > 0) taken += width + rowGap;
   }
 
-  const room = Math.max(controlsRow.clientWidth - taken, 0);
-  const gap = parseFloat(getComputedStyle(filterBox).columnGap) || 0;
+  const room = Math.max(controlsRow.clientWidth - taken - rowGap, 0);
+  // A third of the row, or whatever the first two places need if that is more:
+  // one chip under a heading reads as a mistake rather than as a group, and
+  // the whole point of the row is that you can see there is a choice.
+  const forPlaces = fill(
+    placeBox,
+    Math.min(room * 0.5, Math.max(room * PLACE_SHARE, widthOf(placeBox, 2))),
+  );
+  fill(filterBox, room - forPlaces);
+}
+
+/** What the first `count` chips in a box would take, gaps included. */
+function widthOf(box, count) {
+  const gap = parseFloat(getComputedStyle(box).columnGap) || 0;
+  return [...box.children]
+    .slice(0, count)
+    .reduce((total, chip) => total + chip.offsetWidth + gap, -gap);
+}
+
+/**
+ * Show what fits in `room` and hide the rest, then give the box back the width
+ * it actually used — so More stands at the end of the chips rather than across
+ * a gap from them. Returns that width.
+ */
+function fill(box, room) {
+  const gap = parseFloat(getComputedStyle(box).columnGap) || 0;
   let used = 0;
   let full = false;
-  for (const chip of chips) {
+  for (const chip of box.children) {
     const width = chip.offsetWidth;
     if (full || used + width > room) {
       full = true;
@@ -243,32 +291,49 @@ function tuckTags() {
     }
     used += width + gap;
   }
-  // Give the box back the width it actually used, so More stands at the end of
-  // the tags rather than across a gap from them.
-  filterBox.style.flexBasis = `${Math.max(used - gap, 0)}px`;
+  const width = Math.max(used - gap, 0);
+  box.style.flexBasis = `${width}px`;
+  return width ? width + gap : 0;
 }
 
-/* --- the tag drawer ------------------------------------------------------ */
+/* --- the drawers ---------------------------------------------------------- */
 
-function setDrawer(open) {
-  drawer.hidden = !open;
-  moreButton.setAttribute('aria-expanded', String(open));
+/**
+ * A button and the panel it drops out of. Two of them now — the rest of the
+ * vocabulary, and everywhere the library is grounded — and only ever one open:
+ * they hang from the same row and would otherwise stack down over the map.
+ */
+function hangDrawer(button, panel) {
+  const shown = () => !panel.hidden;
+  const show = (open) => {
+    panel.hidden = !open;
+    button.setAttribute('aria-expanded', String(open));
+  };
+
+  button.addEventListener('click', (event) => {
+    event.stopPropagation();
+    const opening = !shown();
+    for (const other of drawers) other.show(false);
+    show(opening);
+  });
+
+  // Anywhere else is a way out of it — including the map, which is the thing
+  // the drawer is standing in front of.
+  document.addEventListener('pointerdown', (event) => {
+    if (!shown()) return;
+    if (event.target === button || panel.contains(event.target) || button.contains(event.target)) return;
+    show(false);
+  });
+
+  return { shown, show };
 }
 
-const drawerOpen = () => !drawer.hidden;
+const drawers = [];
+drawers.push(hangDrawer(moreButton, drawer), hangDrawer(placeMoreButton, placeDrawer));
 
-moreButton.addEventListener('click', (event) => {
-  event.stopPropagation();
-  setDrawer(!drawerOpen());
-});
-
-// Anywhere else is a way out of it — including the map, which is the thing the
-// drawer is standing in front of.
-document.addEventListener('pointerdown', (event) => {
-  if (!drawerOpen()) return;
-  if (event.target.closest('#tag-drawer, #map-more')) return;
-  setDrawer(false);
-});
+/** True while any drawer is down; closing them all is what Escape does first. */
+const drawerOpen = () => drawers.some((d) => d.shown());
+const closeDrawers = () => drawers.forEach((d) => d.show(false));
 
 const plural = (n, word) => `<b>${n}</b> ${word}${n === 1 ? '' : 's'}`;
 
@@ -426,7 +491,7 @@ const MAX_THEMES = 8;
 
 function printRecord() {
   if (!shown) return;
-  const { kind, node, sources, themes = [] } = shown;
+  const { kind, node, sources, themes = [], places: grounded = [] } = shown;
   const shelf = themes.slice(0, MAX_THEMES).map(labelOf);
   const rest = Math.max(themes.length - shelf.length, 0);
   const listed = kind === 'tag' ? sources : sources.slice(1);
@@ -457,6 +522,14 @@ function printRecord() {
     sheet.rule({ grey: 0.75, gap: 2 });
     sheet.space(5);
     sheet.text(shelf.join('  ·  ') + (rest ? `   and ${rest} more` : ''), { size: 10 });
+    sheet.space(10);
+  }
+
+  if (grounded.length) {
+    sheet.text('GROUNDED IN', { size: 7.5, grey: 0.4 });
+    sheet.rule({ grey: 0.75, gap: 2 });
+    sheet.space(5);
+    sheet.text(grounded.map(labelOf).join('  ·  '), { size: 10 });
     sheet.space(10);
   }
 
@@ -588,6 +661,7 @@ function showRecord(node) {
     node,
     sources: [node, ...related.map(({ other }) => other)],
     themes: node.tags ?? [],
+    places: node.places ?? [],
   };
   panelBody.innerHTML = `
     <p class="panel__meta">${escapeHtml(citationLine(node)) || escapeHtml(hostOf(node.url))}</p>
@@ -600,6 +674,11 @@ function showRecord(node) {
     </p>
     <h4>Tagged</h4>
     ${tagChips(node.tags ?? [])}
+    ${
+      (node.places ?? []).length
+        ? `<h4>Grounded in</h4>${tagChips(node.places)}`
+        : ''
+    }
     ${
       related.length
         ? `<h4>Research threads</h4>
@@ -619,6 +698,7 @@ function showRecord(node) {
 
 const labelOf = (slug) =>
   vocabulary.find((t) => t.slug === slug)?.label ??
+  places.find((t) => t.slug === slug)?.label ??
   state.graph?.nodes.find((n) => n.slug === slug)?.label ??
   slug;
 
@@ -936,7 +1016,7 @@ zoomOutButton.addEventListener('click', () => map.zoomBy(1 / 1.4));
 
 document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape') {
-    if (drawerOpen()) return setDrawer(false);
+    if (drawerOpen()) return closeDrawers();
     closePanel();
     map.reset();
   }

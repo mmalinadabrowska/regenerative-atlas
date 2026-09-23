@@ -18,6 +18,8 @@
  * Everything here is deterministic: the same library produces the same map.
  */
 
+import { regionOf } from './vocabulary.js';
+
 /** Small, fast, seeded PRNG so ordering never changes between runs. */
 function mulberry32(seed) {
   let a = seed >>> 0;
@@ -187,12 +189,24 @@ export function buildGraph(atlas, options = {}) {
 
   const sources = atlas.listSources({ tags: filterTags, query, limit: 5000 });
   const allowed = new Set(sources.map((s) => s.id));
+
+  // Places filter the library; they do not furnish the map. An island is a
+  // subject — something the research is *about* — and a map that drew Europe
+  // as territory would gather a third of the library into one blot that says
+  // nothing about what any of it argues. So the location tags come off before
+  // the vocabulary is clustered, and off the ties that make two sources kin:
+  // sharing a continent is not sharing a thought. They are still on the
+  // record, still in the filter bar, and still what `filterTags` matched on.
+  const rows = atlas.tagsWithCounts();
+  const places = new Set(rows.filter((t) => t.facet === 'location').map((t) => t.slug));
   const tagMap = new Map(
-    [...atlas.tagMap()].filter(([id]) => allowed.has(id)),
+    [...atlas.tagMap()]
+      .filter(([id]) => allowed.has(id))
+      .map(([id, tags]) => [id, tags.filter((slug) => !places.has(slug))]),
   );
   const idf = idfWeights(tagMap, sources.length || 1);
 
-  const tagRows = atlas.tagsWithCounts().filter((t) => tagMap.size === 0
+  const tagRows = rows.filter((t) => t.facet !== 'location').filter((t) => tagMap.size === 0
     || [...tagMap.values()].some((tags) => tags.includes(t.slug)));
   const tagCounts = new Map(tagRows.map((t) => [t.slug, t.count]));
   const liveTags = new Set(tagRows.map((t) => t.slug));
@@ -280,6 +294,12 @@ export function buildGraph(atlas, options = {}) {
       note: source.note,
       contributor: source.contributor,
       tags: (tagMap.get(source.id) ?? []).slice(),
+      // Off the drawing, still on the record: where this one is grounded,
+      // narrowest first, so it reads the way an address does.
+      places: (source.tags ?? [])
+        .map((t) => t.slug)
+        .filter((slug) => places.has(slug))
+        .sort((a, b) => (regionOf(b) ? 1 : 0) - (regionOf(a) ? 1 : 0)),
       cluster: clusterOfSource.get(source.id),
       weight: (tagMap.get(source.id) ?? []).length,
     });

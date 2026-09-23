@@ -8,7 +8,7 @@
 
 import { buildGraph } from './graph.js';
 import { describeUrl } from './metadata.js';
-import { CORE_TAGS, FACETS, FACET_ORDER, aliasIndex, resolveTags } from './vocabulary.js';
+import { CORE_TAGS, FACETS, FACET_ORDER, aliasIndex, isLocation, resolveTag, resolveTags } from './vocabulary.js';
 import { ask } from './ask.js';
 
 const LIMITS = {
@@ -58,6 +58,10 @@ export function validateSubmission(body) {
   if (tags.length === 0) {
     throw new ApiError(400, 'Add at least one tag, so the source has somewhere to sit on the map.');
   }
+  // Everything is somewhere. A record that names no place is not missing data,
+  // it is global — the work reads the same wherever you are — and saying so
+  // keeps the location filter honest: no source falls out of every answer.
+  if (!tags.some((tag) => isLocation(tag.slug))) tags.push(resolveTag('global'));
 
   const title = text(body?.title, LIMITS.title);
   if (!title) throw new ApiError(400, 'A title is required.');
@@ -132,9 +136,14 @@ export const handlers = {
 
   stats(atlas) {
     const tags = atlas.tagsWithCounts();
+    // Counted apart, because they are read apart: the map's themes are what
+    // the number over the drawing has always meant, and a place is not one of
+    // them however much it is a tag underneath.
+    const places = tags.filter((t) => t.facet === 'location');
     return {
       sources: atlas.count(),
-      tags: tags.length,
+      tags: tags.length - places.length,
+      places: places.length,
       contributors: new Set(
         atlas.listSources({ limit: 5000 }).map((s) => s.contributor).filter(Boolean),
       ).size,

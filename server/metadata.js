@@ -199,7 +199,7 @@ export async function describeUrl(rawUrl) {
   if (doi && DOI_RE.test(doi)) {
     try {
       const found = await fromDoi(doi);
-      if (found?.title) return { ...found, url: rawUrl, suggestedTags: suggestTags(found) };
+      if (found?.title) return { ...found, url: rawUrl, suggestedTags: withPlace(suggestTags(found), url.hostname) };
     } catch {
       /* fall through to scraping */
     }
@@ -222,7 +222,7 @@ export async function describeUrl(rawUrl) {
       year: null,
       summary: '',
       via: 'none',
-      suggestedTags: [],
+      suggestedTags: withPlace([], url.hostname),
     };
   }
 
@@ -258,7 +258,7 @@ export function readMetadata(html, url) {
     via: 'page',
   };
 
-  described.suggestedTags = suggestTags(described);
+  described.suggestedTags = withPlace(suggestTags(described), parsed.hostname);
   return described;
 }
 
@@ -291,6 +291,37 @@ const KEYWORDS = (() => {
   }
   return index;
 })();
+
+/**
+ * A place, guessed from the domain the link lives on.
+ *
+ * It is the weakest signal on the page and the only one that does not come from
+ * what the work says, so it goes in last and is only ever a suggestion: a
+ * country-code domain says where a thing was published, which is usually but
+ * not always where it is grounded. The contributor unticks it when it is wrong,
+ * which is one press, and is spared typing it when it is right, which is most
+ * of the time.
+ */
+const CCTLD = new Map(Object.entries({
+  uk: 'uk', ie: 'ireland', fr: 'france', de: 'germany', nl: 'netherlands',
+  dk: 'denmark', se: 'sweden', no: 'norway', fi: 'finland', es: 'spain',
+  it: 'italy', ch: 'switzerland', be: 'europe', at: 'europe', pt: 'europe',
+  pl: 'europe', eu: 'europe', ca: 'canada', mx: 'mexico', br: 'brazil',
+  cl: 'chile', co: 'colombia', au: 'australia', nz: 'new-zealand',
+  za: 'south-africa', ke: 'kenya', ng: 'nigeria', in: 'india', cn: 'china',
+  jp: 'japan', sg: 'singapore', id: 'indonesia',
+}));
+
+export function placeFromHost(hostname) {
+  const last = String(hostname ?? '').toLowerCase().split('.').pop();
+  return CCTLD.get(last) ?? null;
+}
+
+/** Suggestions, with the domain's country appended when it has one to give. */
+function withPlace(tags, hostname) {
+  const place = placeFromHost(hostname);
+  return place && !tags.includes(place) ? [...tags, place] : tags;
+}
 
 /** Guess a handful of tags from whatever text we managed to read. */
 export function suggestTags(described, limit = 6) {

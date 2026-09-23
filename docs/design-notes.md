@@ -425,23 +425,56 @@ in the corner of the screen the map needs most.
 
 ## The tag bar
 
-The row above the map is named — **Tags** — because a row of words with counts on them
-is not self-evidently a filter, and it is one row, always. It shows the tags that fit
-and tucks the rest behind **More**, which drops the whole vocabulary out of the bar as a
-drawer. A filter bar that wraps to a second and third line as you pick tags moves the
-map out from under itself every time, which is worse than not seeing all forty-seven at
-once.
+The row above the map is named — **Tags**, and **Location** — because a row of words
+with counts on them is not self-evidently a filter, and it is one row, always. Each group
+shows what fits and tucks the rest behind its own **More**, which drops that vocabulary
+out of the bar as a drawer. A filter bar that wraps to a second and third line as you
+pick tags moves the map out from under itself every time, which is worse than not seeing
+all forty-seven at once.
 
 How many fit is measured rather than guessed, and measured against the row rather than
 against the tag box — the box is about to be resized to whatever fits, so a box that
-measures itself is answering the last question. What is left over falls between More and
+measures itself is answering the last question. The two groups are not equals in that
+sum. There are five places and forty-seven tags, and each place stands for a great deal
+more of the library than each tag does, so the places are served first — about a third of
+the row, or whatever the first two of them need if that is more. One chip under a
+heading reads as a mistake rather than as a group, and the whole point of the row is
+that you can see there is a choice. What is left over falls between the last More and
 the zoom controls, which is where the difference between filtering the library and
 moving the camera actually is.
 
 On a phone there is no room for a row of tags at all, so there isn't one: the bar is a
-search field and a **Tags** button, and the same drawer opens under it as a menu the
-width of the band. Picking a tag leaves it open, so you can pick a second; the map, the
-Escape key, or the button closes it.
+search field, a **Tags** button and a **Location** button, and the drawer opens under
+whichever you pressed as a menu the width of the band. Only one is ever down — they hang
+off the same row and would otherwise stack over the map. Picking a tag leaves it open, so
+you can pick a second; the map, the Escape key, or the button closes it.
+
+Everything standing over the map — the search field, both groups, the legend, and the
+zoom cluster at the far end — is set on the page's own margin rather than on a margin of
+its own, so the bar below the masthead starts exactly where the Atlas' mark above it
+starts. A floating row inset by some other amount reads as a second, competing edge.
+
+## Places filter, and do not draw
+
+Where a piece of work is grounded is a tag underneath — same table, same alias folding,
+same filter — and nothing like a tag to read. It gets its own facet and its own group in
+the bar, and it never becomes an island.
+
+That last part is the whole decision. An island on this map is a subject, something the
+research is *about*; drawing Europe as territory would gather a third of the library
+into one blot that says nothing about what any of it argues, and pull the themes apart to
+make room for it. So the places come off before the vocabulary is clustered, and off the
+ties that make two sources kin as well: sharing a continent is not sharing a thought.
+They stay on the record, under **Grounded in**, narrowest first, so a record still tells
+you where it stands.
+
+The hierarchy lives in the vocabulary rather than in the queries. Tagging `Denmark` files
+the source under `Europe` too, at the moment it is stored, so asking for a region is an
+ordinary tag match and finds the work filed under a country inside it. A country the
+vocabulary does not name — Ghana, Vietnam, Peru — folds to its region instead of becoming
+an open tag nothing else shares. And a submission that names no place at all is filed as
+`global`: everything is somewhere, a record with no place named is not missing data, and
+saying so is what keeps the filter honest — no source falls out of every answer.
 
 ## Taking the reading away
 

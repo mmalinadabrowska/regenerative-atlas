@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { assertPublicUrl, readMetadata, suggestTags } from '../server/metadata.js';
+import { assertPublicUrl, placeFromHost, readMetadata, suggestTags } from '../server/metadata.js';
 
 test('only public http(s) addresses are fetchable', async () => {
   const refused = [
@@ -86,4 +86,23 @@ test('suggestions match whole words, not fragments inside other words', () => {
 
 test('nothing to read means nothing suggested', () => {
   assert.deepEqual(suggestTags({ title: '', summary: '', publisher: '' }), []);
+});
+
+test('a country-code domain offers a place, and a generic one offers none', () => {
+  assert.equal(placeFromHost('www.leti.uk'), 'uk');
+  assert.equal(placeFromHost('example.com.au'), 'australia');
+  assert.equal(placeFromHost('new-european-bauhaus.europa.eu'), 'europe');
+  assert.equal(placeFromHost('rmi.org'), null);
+  assert.equal(placeFromHost(''), null);
+  assert.equal(placeFromHost(undefined), null);
+});
+
+test('the domain’s place is the last suggestion, never the loudest', () => {
+  const suggested = readMetadata(
+    '<html><head><title>Embodied carbon in timber</title>' +
+      '<meta name="description" content="Whole life carbon and mass timber."></head></html>',
+    new URL('https://example.uk/paper'),
+  ).suggestedTags;
+  assert.equal(suggested.at(-1), 'uk');
+  assert.ok(suggested.includes('carbon'));
 });

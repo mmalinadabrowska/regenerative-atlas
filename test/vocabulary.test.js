@@ -74,3 +74,63 @@ test('the alias index groups every written form under its canonical tag', () => 
 test('titleize is only used where no curated label exists', () => {
   assert.equal(titleize('mass-timber-construction'), 'Mass timber construction');
 });
+
+/* --- places --------------------------------------------------------------- */
+
+test('a place is a tag like any other, in its own facet', () => {
+  assert.equal(resolveTag('Global').facet, 'location');
+  assert.equal(resolveTag('Australia').slug, 'australia');
+  assert.equal(resolveTag('New Zealand').facet, 'location');
+});
+
+test('written forms of a place fold onto the one the Atlas files it under', () => {
+  for (const [written, expected] of [
+    ['Scotland', 'uk'],
+    ['United Kingdom', 'uk'],
+    ['U.S.A.', 'usa'],
+    ['Holland', 'netherlands'],
+    ['Aotearoa', 'new-zealand'],
+    ['worldwide', 'global'],
+    ['European Union', 'europe'],
+  ]) {
+    assert.equal(resolveTag(written).slug, expected, written);
+  }
+});
+
+test('a country the vocabulary does not name is folded to its region, not lost', () => {
+  assert.equal(resolveTag('Ghana').slug, 'africa');
+  assert.equal(resolveTag('Vietnam').slug, 'asia');
+  assert.equal(resolveTag('Peru').slug, 'south-america');
+});
+
+test('a place brings its region with it, so asking for the region finds it', () => {
+  assert.deepEqual(resolveTags(['Denmark']).map((t) => t.slug), ['denmark', 'europe']);
+  assert.deepEqual(resolveTags(['Scotland']).map((t) => t.slug), ['uk', 'europe']);
+  // A region on its own inherits nothing, and a region already named is not
+  // added twice.
+  assert.deepEqual(resolveTags(['europe']).map((t) => t.slug), ['europe']);
+  assert.deepEqual(resolveTags(['uk', 'europe']).map((t) => t.slug), ['uk', 'europe']);
+});
+
+test('the region arrives after the tags the contributor actually chose', () => {
+  assert.deepEqual(resolveTags(['Japan', 'carbon']).map((t) => t.slug), ['japan', 'carbon', 'asia']);
+});
+
+test('global is a place now, and the planetary scale kept its own name', () => {
+  assert.equal(resolveTag('global').facet, 'location');
+  assert.equal(resolveTag('planetary').facet, 'scale');
+  assert.equal(resolveTag('planetary boundaries').slug, 'planetary');
+});
+
+test('every place that sits inside a region is a tag the vocabulary knows', () => {
+  const slugs = new Set(CORE_TAGS.map((t) => t.slug));
+  for (const tag of CORE_TAGS.filter((t) => t.facet === 'location')) {
+    const [{ slug }] = resolveTags([tag.slug]);
+    assert.equal(slug, tag.slug);
+  }
+  // Every region a country rolls up to has to exist, or the roll-up invents
+  // vocabulary the index has never heard of.
+  for (const tag of CORE_TAGS.filter((t) => t.facet === 'location')) {
+    for (const { slug } of resolveTags([tag.slug])) assert.ok(slugs.has(slug), slug);
+  }
+});

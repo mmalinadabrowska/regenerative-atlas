@@ -13,7 +13,8 @@
         "regenerative-systems",
         "essay",
         "planetary",
-        "framework"
+        "framework",
+        "global"
       ]
     },
     {
@@ -28,7 +29,8 @@
         "regenerative-systems",
         "paper",
         "building",
-        "diagrams"
+        "diagrams",
+        "global"
       ]
     },
     {
@@ -43,7 +45,8 @@
         "place",
         "living-systems",
         "framework",
-        "storytelling"
+        "storytelling",
+        "global"
       ]
     },
     {
@@ -58,7 +61,8 @@
         "materials",
         "diagrams",
         "framework",
-        "economics"
+        "economics",
+        "global"
       ]
     },
     {
@@ -73,7 +77,8 @@
         "planetary",
         "city",
         "toolkit",
-        "justice"
+        "justice",
+        "global"
       ]
     },
     {
@@ -88,7 +93,8 @@
         "ecology",
         "measurement",
         "diagrams",
-        "climate-adaptation"
+        "climate-adaptation",
+        "global"
       ]
     },
     {
@@ -103,7 +109,8 @@
         "ecology",
         "dataset",
         "product",
-        "toolkit"
+        "toolkit",
+        "global"
       ]
     },
     {
@@ -118,7 +125,8 @@
         "measurement",
         "place",
         "standard",
-        "ecology"
+        "ecology",
+        "global"
       ]
     },
     {
@@ -133,7 +141,8 @@
         "building",
         "regenerative-systems",
         "measurement",
-        "health"
+        "health",
+        "global"
       ]
     },
     {
@@ -148,7 +157,8 @@
         "materials",
         "product",
         "standard",
-        "health"
+        "health",
+        "global"
       ]
     },
     {
@@ -163,7 +173,8 @@
         "pattern-language",
         "building",
         "guidance",
-        "ecology"
+        "ecology",
+        "global"
       ]
     },
     {
@@ -178,7 +189,8 @@
         "life-cycle-assessment",
         "materials",
         "dataset",
-        "measurement"
+        "measurement",
+        "usa"
       ]
     },
     {
@@ -193,7 +205,8 @@
         "measurement",
         "building",
         "guidance",
-        "energy"
+        "energy",
+        "uk"
       ]
     },
     {
@@ -208,7 +221,8 @@
         "energy",
         "guidance",
         "building",
-        "retrofit"
+        "retrofit",
+        "uk"
       ]
     },
     {
@@ -223,7 +237,8 @@
         "governance",
         "framework",
         "building",
-        "measurement"
+        "measurement",
+        "uk"
       ]
     },
     {
@@ -238,7 +253,8 @@
         "materials",
         "circular-economy",
         "building",
-        "toolkit"
+        "toolkit",
+        "europe"
       ]
     },
     {
@@ -253,7 +269,8 @@
         "measurement",
         "planetary",
         "report",
-        "economics"
+        "economics",
+        "global"
       ]
     },
     {
@@ -268,7 +285,8 @@
         "materials",
         "straw",
         "place",
-        "case-study"
+        "case-study",
+        "uk"
       ]
     },
     {
@@ -283,7 +301,8 @@
         "modelling",
         "dataset",
         "planetary",
-        "measurement"
+        "measurement",
+        "global"
       ]
     },
     {
@@ -298,7 +317,8 @@
         "dataset",
         "planetary",
         "ecology",
-        "economics"
+        "economics",
+        "global"
       ]
     },
     {
@@ -313,7 +333,8 @@
         "neighbourhood",
         "community",
         "case-study",
-        "planetary"
+        "planetary",
+        "global"
       ]
     },
     {
@@ -328,7 +349,8 @@
         "living-systems",
         "book",
         "building",
-        "community"
+        "community",
+        "global"
       ]
     },
     {
@@ -343,7 +365,8 @@
         "ecology",
         "book",
         "justice",
-        "storytelling"
+        "storytelling",
+        "north-america"
       ]
     },
     {
@@ -358,7 +381,8 @@
         "bioregion",
         "ecology",
         "case-study",
-        "soil"
+        "soil",
+        "uk"
       ]
     },
     {
@@ -373,7 +397,8 @@
         "community",
         "city",
         "framework",
-        "justice"
+        "justice",
+        "europe"
       ]
     },
     {
@@ -388,7 +413,8 @@
         "standard",
         "building",
         "retrofit",
-        "measurement"
+        "measurement",
+        "uk"
       ]
     },
     {
@@ -403,7 +429,8 @@
         "carbon",
         "report",
         "retrofit",
-        "economics"
+        "economics",
+        "usa"
       ]
     },
     {
@@ -418,7 +445,8 @@
         "governance",
         "community",
         "retrofit",
-        "justice"
+        "justice",
+        "uk"
       ]
     }
   ]
