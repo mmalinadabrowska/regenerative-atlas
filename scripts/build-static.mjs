@@ -116,8 +116,8 @@ const html = `<!doctype html>
 <style>
 ${css}
 .standalone-note {
-  position: absolute; right: 1rem; bottom: 1rem; max-width: 22rem;
-  font-size: 0.72rem; line-height: 1.45; color: var(--ink-32); text-align: right;
+  position: absolute; right: var(--gutter); bottom: 1rem; max-width: 24rem;
+  font-size: 0.6rem; line-height: 1.5; color: var(--ink-32); text-align: right;
   pointer-events: none;
 }
 .standalone-note a { pointer-events: auto; color: inherit; }
@@ -125,8 +125,10 @@ ${css}
 </head>
 <body class="page">
 ${mapBody}
+<!-- What the type licence asks for, and nothing else. How many sources and
+     tags there are is already written under the map, in the legend, by the
+     thing that actually counted them. -->
 <p class="standalone-note">
-  Static snapshot of ${snapshot.stats.sources} sources, ${snapshot.stats.tags} tags.
   Set in Enby Gertrude and Tremplin, post-binary faces from
   <a href="https://typotheque.byebyebinary.space">Bye Bye Binary</a> — the complete
   packages, and their licence, are in the
@@ -165,16 +167,18 @@ body {
 }
 
 .standalone-note {
-  position: absolute; right: 1rem; bottom: 1rem; max-width: 22rem;
-  font-size: 0.72rem; line-height: 1.45; color: var(--ink-32); text-align: right;
+  position: absolute; right: var(--gutter); bottom: 1rem; max-width: 24rem;
+  font-size: 0.6rem; line-height: 1.5; color: var(--ink-32); text-align: right;
   pointer-events: none;
 }
 .standalone-note a { pointer-events: auto; color: inherit; }
 @media (max-width: 46rem) { .standalone-note { display: none; } }
 </style>
 ${mapBody}
+<!-- What the type licence asks for, and nothing else. How many sources and
+     tags there are is already written under the map, in the legend, by the
+     thing that actually counted them. -->
 <p class="standalone-note">
-  Static snapshot of ${snapshot.stats.sources} sources, ${snapshot.stats.tags} tags.
   Set in Enby Gertrude and Tremplin, post-binary faces from
   <a href="https://typotheque.byebyebinary.space">Bye Bye Binary</a> — the complete
   packages, and their licence, are in the
