@@ -746,13 +746,42 @@ export function createConstellation(canvas, options = {}) {
       }
       transition = null;
       leaving = { nodes: [], links: [], islands: false };
-      fitWhenSettled = true;
-      if (!focused) reheat(1);
-      else {
+      if (!focused) {
+        // Settled before anything is painted, so the map is simply there, in
+        // frame, rather than assembling in the corner and being fetched.
+        alpha = 1;
+        settle();
+        fit();
+        run();
+      } else {
+        fitWhenSettled = true;
         fit();
         run();
       }
     }
+  }
+
+  /**
+   * Run the arrangement to rest without painting a frame of it.
+   *
+   * The camera can only frame a layout that has stopped moving, so a map that
+   * settles on screen has to be drawn somewhere first — and somewhere is
+   * wherever the camera was left, which on arrival is the origin at no zoom,
+   * with most of the constellation off the top and left of the glass. You then
+   * watch it find its shape for four seconds and watch the camera go and find
+   * it. Four hundred steps of the same simulation cost a few milliseconds off
+   * screen, and the first frame the reader sees is the fitted one.
+   *
+   * The cap is there so an arrangement that will not come to rest still yields
+   * to the page; the tick picks up whatever is left of it.
+   */
+  function settle(limit = 400) {
+    for (let i = 0; i < limit && alpha > settings.minAlpha; i++) step();
+    for (const node of nodes) {
+      node.homeX = node.x;
+      node.homeY = node.y;
+    }
+    drifting = true;
   }
 
   /**

@@ -165,6 +165,16 @@ fixed scale in its own coordinate space; the view is then fitted to what it sett
 into, with a floor on the zoom so marks never shrink into dust. Tying the layout to the
 viewport makes the map collapse in a short window and drift in a tall one.
 
+**And it settles before the first frame.** The corollary of fitting to a settled layout
+is that an unsettled one has to be drawn somewhere, and somewhere was wherever the
+camera was left — the origin at no zoom, which puts most of the constellation off the
+top and left of the glass. Arriving at the map you watched it find its shape in the
+corner for four and a half seconds and then watched the camera go and collect it. The
+same four hundred steps run off screen cost a few milliseconds, and the first frame
+drawn is the fitted one: on arrival the map is simply there, whole, the way a map on
+paper is. The run is capped rather than run to rest, so an arrangement that will not
+converge still yields to the page and the ordinary tick finishes it.
+
 **One face on the map.** Everything written on the drawing is set in Tremplin — a tag's
 name sized by the weight of its territory, a piece of research at the quiet end of the
 same scale. Research used to be named in the serif the page sets its titles in, which
