@@ -139,7 +139,7 @@ lookupForm.addEventListener('submit', async (event) => {
 
     if (found.alreadyInAtlas) {
       say(
-        `That one is already here — <a href="/themes?q=${encodeURIComponent(found.alreadyInAtlas.title)}">${escapeHtml(found.alreadyInAtlas.title)}</a>.
+        `That one is already here — <a href="/themes/?q=${encodeURIComponent(found.alreadyInAtlas.title)}">${escapeHtml(found.alreadyInAtlas.title)}</a>.
          Adding it again will fold your tags into the existing record rather than making a second node.`,
         'good',
       );
@@ -233,8 +233,8 @@ recordForm.addEventListener('submit', async (event) => {
 
     say(
       `${created ? 'Added to the Atlas' : 'Folded into the record already there'} —
-       <a href="/map?q=${encodeURIComponent(source.title)}">see it on the map</a>,
-       or <a href="/themes?tag=${encodeURIComponent(source.tags[0]?.slug ?? '')}">browse its neighbours</a>.`,
+       <a href="/map/?q=${encodeURIComponent(source.title)}">see it on the map</a>,
+       or <a href="/themes/?tag=${encodeURIComponent(source.tags[0]?.slug ?? '')}">browse its neighbours</a>.`,
       'good',
     );
 

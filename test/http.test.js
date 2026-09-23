@@ -48,12 +48,17 @@ test('the read endpoints answer as JSON', async () => {
   }
 });
 
-test('pages are served, including pretty URLs without an extension', async () => {
-  for (const path of ['/', '/map', '/themes', '/add', '/styles/atlas.css', '/js/ink.js']) {
+test('every page is served, with or without its trailing slash', async () => {
+  const paths = [
+    '/', '/map/', '/themes/', '/add/', '/about/',
+    '/map', '/themes', '/add', '/about',
+    '/styles/atlas.css', '/js/ink.js',
+  ];
+  for (const path of paths) {
     const response = await get(path);
     assert.equal(response.status, 200, path);
   }
-  assert.equal((await get('/map')).headers.get('content-type'), 'text/html; charset=utf-8');
+  assert.equal((await get('/map/')).headers.get('content-type'), 'text/html; charset=utf-8');
   assert.equal((await get('/js/ink.js')).headers.get('content-type'), 'text/javascript; charset=utf-8');
 });
 

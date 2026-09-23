@@ -95,7 +95,7 @@ const css = embedFonts(read('public', 'styles', 'atlas.css')).replace(
   '',
 );
 
-const mapBody = read('public', 'map.html')
+const mapBody = read('public', 'map', 'index.html')
   .replace(/[\s\S]*<body[^>]*>/, '')
   .replace(/<\/body>[\s\S]*/, '')
   .replace(/<script[\s\S]*?<\/script>/g, '')

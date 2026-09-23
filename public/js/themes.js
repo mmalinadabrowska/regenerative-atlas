@@ -88,7 +88,7 @@ async function load() {
 
   results.innerHTML = sources.length
     ? sources.map(recordHtml).join('')
-    : `<li class="empty">Nothing here yet. <a href="/add">Add the first one.</a></li>`;
+    : `<li class="empty">Nothing here yet. <a href="/add/">Add the first one.</a></li>`;
 }
 
 facetBox.addEventListener('click', (event) => {

@@ -144,7 +144,8 @@ async function serveStatic(req, res, pathname) {
     filePath = join(filePath, 'index.html');
     info = await stat(filePath).catch(() => null);
   }
-  // Pretty URLs: /themes serves public/themes.html
+  // A page is a folder — /themes is public/themes/index.html, handled above —
+  // so this is only for anything still linked the old way: /themes.html.
   if (!info && !extname(filePath)) {
     filePath += '.html';
     info = await stat(filePath).catch(() => null);
