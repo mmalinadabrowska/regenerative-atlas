@@ -35,6 +35,10 @@ export const FACETS = {
   location: {
     label: 'Locations',
     note: 'Where the work is grounded — the ground it is about or for.',
+    // The submission form is asking a contributor something, not glossing a
+    // heading for a reader, so it puts the same thing as a question. Any facet
+    // may carry one; where there is none the note stands in.
+    ask: 'Where is this work grounded?',
   },
   open: {
     label: 'Open tags',

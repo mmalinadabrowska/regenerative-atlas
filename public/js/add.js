@@ -108,7 +108,7 @@ async function renderVocabulary() {
       if (tags.length === 0) return '';
       return `<div class="section-head" style="margin-top:1.5rem">
           <h2 style="font-size:1.1rem">${escapeHtml(facet.label)}</h2>
-          <p>${escapeHtml(facet.note)}</p>
+          <p>${escapeHtml(facet.ask ?? facet.note)}</p>
         </div>
         <div class="tag-cloud">${tags
           .map(
