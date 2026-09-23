@@ -83,7 +83,7 @@ function renderChosen() {
             <span class="visually-hidden">remove</span></button>`,
         )
         .join('')
-    : '<p class="field__hint" style="margin:0">No tags yet — pick at least one from below, or write your own.</p>';
+    : '<p class="field__hint" style="margin:0">No tags yet — pick from below or write your own.</p>';
 
   for (const button of vocabularyBox.querySelectorAll('[data-pick]')) {
     button.classList.toggle('is-on', chosen.has(button.dataset.pick));
