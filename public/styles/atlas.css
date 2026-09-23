@@ -227,7 +227,7 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   line-height: 1.25;
   text-decoration: none;
   white-space: nowrap;
-  transition: color 140ms ease;
+  transition: color 240ms ease-in-out;
 }
 
 /* Once the curve is drawn the individual borders and grounds would double it. */
@@ -268,8 +268,17 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   stroke-width: var(--stroke);
 }
 
-.connected__fill { fill: none; transition: fill 140ms ease; }
-.connected__fill[data-on] { fill: var(--ink); }
+/* The capsule fills and empties on the same easing as the type inside it. It
+   is written as an opacity rather than as a fill, because `none` is not a
+   colour: a transition from `none` to ink has nothing to interpolate and the
+   capsule snapped on instead of arriving. */
+.connected__fill {
+  fill: var(--ink);
+  fill-opacity: 0;
+  transition: fill-opacity 240ms ease-in-out;
+}
+
+.connected__fill[data-on] { fill-opacity: 1; }
 
 /* --- site navigation ----------------------------------------------------- */
 
@@ -473,8 +482,15 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 .landing-foot p { margin: 0; }
 .landing-foot__curator { max-width: 42ch; text-align: right; }
 
-/* The type credit the font's licence asks for. */
-.landing-foot__type { margin-top: 0.5rem; max-width: 44ch; color: var(--ink-55); }
+/* The type credit the font's licence asks for — set small, because it is a
+   colophon: there to be found rather than to be read on the way past. */
+.landing-foot__type {
+  margin-top: 0.5rem;
+  max-width: 52ch;
+  font-size: 0.66rem;
+  line-height: 1.5;
+  color: var(--ink-55);
+}
 
 @media (max-width: 48rem) {
   /* Below this the frame is too small to read type off, so the composition
