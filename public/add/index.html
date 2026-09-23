@@ -36,7 +36,7 @@
   <div class="masthead masthead--left" style="padding-inline:0">
     <h1 class="wordmark" style="font-size:clamp(2rem,4.5vw,3.2rem)">Add</h1>
     <p class="blurb">Upload your regenerative design references, texts, papers. Paste a link and
-      the Atlas will go and read it — you only need to check what it found and say where it sits.</p>
+      the Atlas will find it — you only need to check what it found and add a short summary.</p>
   </div>
 
   <div id="notice"></div>
@@ -53,7 +53,8 @@
   <form id="record-form" hidden>
     <div class="section-head" style="margin-top:0">
       <h2>What it is</h2>
-      <p>Correct anything the Atlas got wrong.</p>
+      <p>Correct anything the Atlas got wrong, and write the summary yourself — it is the
+        part only a reader can do.</p>
     </div>
 
     <label class="field"><span>Title</span><input name="title" required maxlength="300"></label>
@@ -65,7 +66,10 @@
     </div>
 
     <label class="field"><span>Summary</span>
-      <textarea name="summary" maxlength="1200" placeholder="What does it actually say?"></textarea></label>
+      <textarea name="summary" maxlength="1200"
+        placeholder="In your own words: what does it argue, and who is it for?"></textarea>
+      <p class="field__hint">Two or three sentences. What it argues, not what it covers —
+        whoever finds it next is deciding whether to read it.</p></label>
 
     <label class="field"><span>Why it matters</span>
       <textarea name="note" maxlength="600" placeholder="Your note to whoever finds this next."></textarea>

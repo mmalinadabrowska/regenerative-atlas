@@ -150,7 +150,12 @@ lookupForm.addEventListener('submit', async (event) => {
     recordForm.elements.authors.value = found.authors ?? '';
     recordForm.elements.publisher.value = found.publisher ?? '';
     recordForm.elements.year.value = found.year ?? '';
-    recordForm.elements.summary.value = found.summary ?? '';
+    // The summary is left empty on purpose. What a page says about itself is a
+    // publisher's blurb, and a library of blurbs tells you nothing about which
+    // of them to read; the one sentence worth having is the one written by
+    // somebody who read it. The scraped text still does its other job on the
+    // server, where the tag suggestions are drawn from it.
+    recordForm.elements.summary.value = '';
 
     lookupStatus.textContent =
       found.via === 'doi'
