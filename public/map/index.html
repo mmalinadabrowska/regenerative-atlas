@@ -65,8 +65,15 @@
       <!-- On a phone this cluster leaves the scrolling row and floats over the
            map, where it can always be reached. -->
       <div class="map-zoom">
-        <button class="chip chip--round" id="map-out" type="button" title="Zoom out" aria-label="Zoom out">&minus;</button>
-        <button class="chip chip--round" id="map-in" type="button" title="Zoom in" aria-label="Zoom in">+</button>
+        <!-- Drawn, not set: a font's minus and plus sit on its mathematical
+             axis, which is not the middle of a circle. Two strokes have a
+             middle, and they match the weight of the mark beside them. -->
+        <button class="chip chip--round" id="map-out" type="button" title="Zoom out" aria-label="Zoom out">
+          <svg class="chip__mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12H19"/></svg>
+        </button>
+        <button class="chip chip--round" id="map-in" type="button" title="Zoom in" aria-label="Zoom in">
+          <svg class="chip__mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5V19M5 12H19"/></svg>
+        </button>
         <button class="chip chip--round" id="map-reset" type="button" title="Recentre" aria-label="Recentre the map">
           <svg class="chip__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/>

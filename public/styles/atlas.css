@@ -75,6 +75,21 @@
   --display: 'Enby Gertrude', 'EB Garamond', 'Hoefler Text', Garamond, Georgia, 'Times New Roman', serif;
   --sans: 'Tremplin', 'Century Gothic', Questrial, Futura, 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
 
+  /* How far the type has to come down to sit in the middle of a button.
+
+     Centring a line of type centres its *line box*, and a line box is cap
+     height plus a descender well that "Recentre" and "Explore" and "+" never
+     use — so the ink ends up above the middle and every pill on the site read
+     as slightly top-heavy. What should be centred is the band the letters
+     actually occupy, cap to baseline.
+
+     Tremplin's ascent is 0.70em, its descent 0.20em, and its caps reach the
+     full ascent. The cap band's middle therefore sits 0.10em above the line
+     box's middle, whatever the size or the leading, so every button takes
+     0.10em off its bottom padding and gives it to its top. Drawings are
+     exempt: a mark is already centred on what it is. */
+  --type-drop: 0.1em;
+
   --gutter: clamp(1.25rem, 4vw, 4.5rem);
   --rule: 1px solid var(--ink-14);
   --stroke: 1.5px;
@@ -158,7 +173,7 @@ a { color: inherit; }
   font-weight: 400;
   font-size: clamp(1.05rem, 1.5vw, 1.45rem);
   line-height: 1.25;
-  padding: 0.38em 1.05em 0.44em;
+  padding: calc(0.41em + var(--type-drop)) 1.05em calc(0.41em - var(--type-drop));
   text-decoration: none;
   border: var(--stroke) solid var(--ink);
   border-radius: 999px;
@@ -228,7 +243,7 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   justify-content: center;
   text-align: center;
   background: var(--paper);
-  padding: 0.34em 1.05em 0.4em;
+  padding: calc(0.37em + var(--type-drop)) 1.05em calc(0.37em - var(--type-drop));
   border: var(--stroke) solid var(--ink);
   border-radius: 999px;
   font-size: 0.95rem;
@@ -634,7 +649,7 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   background: none;
   border: var(--stroke) solid var(--ink);
   border-radius: 999px;
-  padding: 0.28em 0.85em;
+  padding: calc(0.28em + var(--type-drop)) 0.85em calc(0.28em - var(--type-drop));
   cursor: pointer;
   color: inherit;
   display: inline-flex;
@@ -677,7 +692,8 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   position: absolute;
   right: 0.8em;
   top: 50%;
-  translate: 0 -50%;
+  /* Set on the same line as the word it counts, so the two agree. */
+  translate: 0 calc(-50% + var(--type-drop));
 }
 
 .tag--ghost { border-style: dashed; }
@@ -943,12 +959,34 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   background: var(--paper);
   border: var(--stroke) solid var(--ink);
   border-radius: 999px;
-  padding: 0.35em 0.85em;
+  padding: calc(0.35em + var(--type-drop)) 0.85em calc(0.35em - var(--type-drop));
   cursor: pointer;
   color: inherit;
 }
 
 .chip.is-on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+/* A drawing rather than a letter, so it is centred on itself: the type drop
+   above is a correction for the empty descender well under a line of type, and
+   a stroke has no descender to allow for. The padding goes back to even. */
+.chip__mark {
+  display: block;
+  /* A line box tall, so the button keeps the height of the words beside it,
+     and square, so it keeps the circle it had when it was a character. */
+  width: 1.5em;
+  height: 1.5em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+}
+
+.chip:has(.chip__mark) {
+  padding: 0.35em;
+  display: inline-grid;
+  place-items: center;
+  aspect-ratio: 1;
+}
 
 /* The zoom cluster sits in the controls row like any other chip on a wide
    screen, so it is nothing at all until the phone layout gives it a box. */
@@ -1480,7 +1518,8 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   .chip--round {
     width: 2.85rem;
     height: 2.85rem;
-    padding: 0;
+    /* Twice the drop, because a centred grid item splits its padding. */
+    padding: calc(var(--type-drop) * 2) 0 0;
     display: grid;
     place-items: center;
     font-size: 1.25rem;
@@ -1509,6 +1548,13 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
     stroke-linejoin: round;
   }
   .chip--round .chip__icon circle { fill: currentColor; stroke: none; }
+
+  /* These carry drawings rather than letters, and a drawing is already
+     centred on itself. */
+  .chip--round:has(.chip__icon),
+  .chip--round:has(.chip__mark) { padding: 0; }
+
+  .chip--round .chip__mark { width: 1.4rem; height: 1.4rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
