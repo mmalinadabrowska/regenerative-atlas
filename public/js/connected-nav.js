@@ -133,7 +133,8 @@ function draw(container) {
   const caps = rects.map((rect) => ({ left: rect.left + r, right: rect.right - r }));
 
   let svg = container.querySelector('.connected__canvas');
-  if (!svg) {
+  const first = !svg;
+  if (first) {
     svg = document.createElementNS(SVG_NS, 'svg');
     svg.setAttribute('class', 'connected__canvas');
     svg.setAttribute('aria-hidden', 'true');
@@ -143,20 +144,48 @@ function draw(container) {
   svg.setAttribute('width', round(box.width));
   svg.setAttribute('height', round(box.height));
 
-  const fills = caps
-    .map((cap, i) => `<path class="connected__fill" data-fill="${i}" d="${capsulePath(cap, cy, r)}"/>`)
-    .join('');
   // Three layers to the one shape: paper underneath, so whatever the row is
   // sitting on does not run through it; the per-item fills; then the outline
   // on top, where its stroke cannot be half-covered by a filled capsule.
   const shape = outlinePath(caps, cy, r, r * FILLET);
-  svg.innerHTML =
-    `<path class="connected__ground" d="${shape}"/>` +
-    fills +
-    `<path class="connected__outline" d="${shape}"/>`;
+  const paths = [...svg.querySelectorAll('.connected__fill')];
+
+  if (paths.length === items.length) {
+    // The row is the same row, in new places: the type has finished loading, or
+    // the window changed. Moving the paths that are there keeps every capsule's
+    // state, and a state that never changes never re-animates — rebuilding the
+    // markup made the page you are on fade in again on every redraw.
+    svg.querySelector('.connected__ground').setAttribute('d', shape);
+    svg.querySelector('.connected__outline').setAttribute('d', shape);
+    caps.forEach((cap, i) => paths[i].setAttribute('d', capsulePath(cap, cy, r)));
+  } else {
+    svg.innerHTML =
+      `<path class="connected__ground" d="${shape}"/>` +
+      caps
+        .map((cap, i) => `<path class="connected__fill" data-fill="${i}" d="${capsulePath(cap, cy, r)}"/>`)
+        .join('') +
+      `<path class="connected__outline" d="${shape}"/>`;
+  }
 
   container.classList.add('is-connected');
+
+  // The first state is a fact about the page, not a change to it: arriving at
+  // About, the About capsule is already filled. Animating into it means every
+  // page you open flickers as the row catches up with where you are. So the
+  // transitions are held off until the shape has been set once.
+  if (first) settle(container, items);
+  else sync(container, items);
+}
+
+/** Set the state with the transitions off, then hand them back. */
+function settle(container, items) {
+  container.classList.add('is-settling');
   sync(container, items);
+  // Two frames: one for the state to be painted, one for the class to come off
+  // without the removal being folded into the same style recalculation.
+  requestAnimationFrame(() =>
+    requestAnimationFrame(() => container.classList.remove('is-settling')),
+  );
 }
 
 /** Mirror each item's state onto the shape sitting behind it. */

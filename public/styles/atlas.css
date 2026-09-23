@@ -280,6 +280,14 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 
 .connected__fill[data-on] { fill-opacity: 1; }
 
+/* While the row is being set for the first time on a page, nothing moves: the
+   capsule under the page you opened is filled because that is where you are,
+   not because something just happened. */
+[data-connected-nav].is-settling > a,
+[data-connected-nav].is-settling .connected__fill {
+  transition: none;
+}
+
 /* --- site navigation ----------------------------------------------------- */
 
 .topbar {
