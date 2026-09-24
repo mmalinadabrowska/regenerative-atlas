@@ -1,6 +1,6 @@
 /** Wiring for /map: state in the URL, graph from the API, drawing in constellation.js. */
 
-import { api, citationLine, escapeHtml, fillCount, hostOf } from './api.js';
+import { api, citationLine, escapeHtml, fillCount, hostOf, usingSnapshot } from './api.js';
 import { createConstellation } from './constellation.js';
 import { blobPath, needsPaper, seedOf } from './ink.js';
 import { A4, Sheet, toBlob } from './pdf.js';
@@ -337,6 +337,23 @@ const closeDrawers = () => drawers.forEach((d) => d.show(false));
 
 const plural = (n, word) => `<b>${n}</b> ${word}${n === 1 ? '' : 's'}`;
 
+/**
+ * The way out with everything. It stands above the count rather than in it
+ * because it is the one line under the map that is an offer rather than a
+ * description, and it is the only part of the legend a phone keeps: the
+ * sentence explaining what an island is has no room there, and taking the
+ * library with you should not depend on the size of the glass.
+ *
+ * A static copy of the Atlas has no endpoint to serve it, so it says nothing.
+ * Asked at the moment the legend is written rather than when this file is
+ * read: served from a folder rather than from the Atlas, the fall back to the
+ * baked library only happens once the first request has failed.
+ */
+const exportLink = () =>
+  usingSnapshot()
+    ? ''
+    : '<a class="map-legend__export" href="/api/export.json" download>Export the library</a>';
+
 function renderLegend(graph, opened = map.opened?.()) {
   if (!graph) return;
   const { sources, tags } = graph.stats;
@@ -347,16 +364,22 @@ function renderLegend(graph, opened = map.opened?.()) {
         ? `${plural(opened.count ?? 0, 'source')} filed under <b>${escapeHtml(opened.label)}</b>`
         : `<b>${escapeHtml(opened.label)}</b> — what it is filed under, and what it sits beside`;
     legend.innerHTML = `
-      ${what}<br>
-      <span style="opacity:.75">Open anything else to travel on.
-      Click the empty ground to come back to the islands.</span>`;
+      ${exportLink()}
+      <span class="map-legend__text">
+        ${what}<br>
+        <span style="opacity:.75">Open anything else to travel on.
+        Click the empty ground to come back to the islands.</span>
+      </span>`;
     return;
   }
 
   legend.innerHTML = `
-    ${plural(tags, 'theme')} across ${plural(sources, 'source')}.<br>
-    <span style="opacity:.75">This map is a landscape of regenerative research.
-    Each island is a theme — click to see what it holds.</span>`;
+    ${exportLink()}
+    <span class="map-legend__text">
+      ${plural(tags, 'theme')} across ${plural(sources, 'source')}.<br>
+      <span style="opacity:.75">This map is a landscape of regenerative research.
+      Each island is a theme — click to see what it holds.</span>
+    </span>`;
 }
 
 /* --- the record panel --------------------------------------------------- */

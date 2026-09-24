@@ -98,6 +98,14 @@ const unavailable = () => {
   throw new Error('This is a static snapshot of the library — adding is switched off here.');
 };
 
+/**
+ * True once a read has been answered by the baked library rather than by a
+ * server. Anything that offers an endpoint the snapshot has no answer for —
+ * the whole-library exports, above all — asks this first, so a static copy
+ * does not advertise a link that would only ever 404.
+ */
+export const usingSnapshot = () => snapshot !== null;
+
 export const api = {
   stats: () => read('/api/stats', (baked_) => baked_.stats),
   tags: () => read('/api/tags', (baked_) => baked_.tags),
