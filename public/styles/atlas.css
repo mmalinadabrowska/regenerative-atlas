@@ -83,12 +83,18 @@
      as slightly top-heavy. What should be centred is the band the letters
      actually occupy, cap to baseline.
 
-     Tremplin's ascent is 0.70em, its descent 0.20em, and its caps reach the
-     full ascent. The cap band's middle therefore sits 0.10em above the line
-     box's middle, whatever the size or the leading, so every button takes
-     0.10em off its bottom padding and gives it to its top. Drawings are
-     exempt: a mark is already centred on what it is. */
-  --type-drop: 0.1em;
+     The number is measured rather than derived. Tremplin's metrics as the
+     canvas reports them say 0.10em, and at 0.10em the type still sat two
+     thirds of a pixel high: what a font tells you about its ascent is not
+     quite what the browser lays a line box out with. So the drop was swept
+     until the ink above a capital and the ink below its baseline came out
+     even, and 0.14em is where that happens. What is left is a third of a
+     pixel, and it differs a little from button to button because each one's
+     padding rounds to the device grid its own way — no single constant can
+     take that out.
+
+     Drawings are exempt: a mark is already centred on what it is. */
+  --type-drop: 0.14em;
 
   --gutter: clamp(1.25rem, 4vw, 4.5rem);
   --rule: 1px solid var(--ink-14);
