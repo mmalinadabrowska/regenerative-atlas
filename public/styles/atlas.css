@@ -547,13 +547,24 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 
 @media (max-width: 48rem) {
   /* Below this the frame is too small to read type off, so the composition
-     unstacks: type first at ordinary sizes, the drawing kept as a coda. */
+     unstacks: type first at ordinary sizes, the drawing kept as a coda.
+
+     The whole landing is held to one screen. A phone gets the words, the way
+     in and the line about who tends it without a scroll, because everything
+     here is the introduction — a page you have to scroll to finish reading
+     hides half of its own invitation. The parts that can give are the ones
+     that give: the paddings and the field, which is a window on a drawing
+     that carries on past it in every direction anyway. */
   .hero {
     max-width: none;
     aspect-ratio: auto;
     display: flex;
     flex-direction: column;
-    padding: 2.5rem var(--gutter) 3rem;
+    /* Fill what the footer leaves, and no more — the field below takes up
+       the slack, so the sum is the viewport rather than the content. */
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: clamp(1rem, 3.4svh, 2.5rem) var(--gutter) clamp(0.6rem, 1.8svh, 1.5rem);
     /* The drawing is wider than the phone and is meant to run off both edges. */
     overflow: hidden;
   }
@@ -565,14 +576,24 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   /* Edge to edge, past the page's own margin: the field is wider than the
      phone and is meant to run off both sides, so a mark cut by the screen
      reads as the drawing carrying on rather than as a cropped picture. */
+  /* Its height is whatever the type and the curator's line leave over. The
+     band is a window, not a picture: the drawing is anchored to the button at
+     its middle and continues past all four edges, so a shorter screen crops
+     it further rather than shrinking anything inside it. */
   .hero__field {
     position: relative;
     order: 1;
     width: 100vw;
     margin-left: calc(50% - 50vw);
-    aspect-ratio: 1;
+    flex: 1 1 auto;
+    aspect-ratio: auto;
     height: auto;
-    margin-top: 1.25rem;
+    /* A floor, so the band never closes up around the button — but a floor
+       measured against the screen too, because a phone held on its side has
+       no 8.5rem to spare and a scroll would be the worse answer. */
+    min-height: min(8.5rem, 20svh);
+    max-height: 100vw;
+    margin-top: clamp(0.5rem, 1.6svh, 1.25rem);
     overflow: hidden;
   }
 
@@ -581,12 +602,13 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
      do on a wide screen, instead of being squeezed into a band across it. It
      is zoomed rather than shrunk: a blot is very nearly the size on a phone
      that it is on a laptop, which is the point of drawing it at all. 60.6% is
-     where the button's middle sits down the drawing. */
+     where the button's middle sits down the drawing, and the width is three
+     screens whatever the band's height, so cropping never resizes a mark. */
   .hero__drawing {
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 300%;
+    width: 300vw;
     height: auto;
     margin: 0;
     transform: translate(-50%, -60.6%);
@@ -603,11 +625,18 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
     width: auto;
     translate: none;
     text-align: center;
+    flex: 0 0 auto;
   }
 
-  .hero .wordmark { font-size: clamp(2.4rem, 11vw, 3.4rem); }
-  .hero .standfirst { font-size: 1.05rem; margin-top: 0.6rem; }
-  .hero .blurb { font-size: 1rem; margin-top: 1.4rem; }
+  /* Sized against the short side as well as the long one: a phone held on a
+     short screen shrinks the type rather than pushing the field off the end. */
+  .hero .wordmark { font-size: clamp(2rem, min(10.5vw, 5.6svh), 3.4rem); }
+  .hero .standfirst { font-size: clamp(0.92rem, 2svh, 1.05rem); margin-top: clamp(0.35rem, 0.9svh, 0.6rem); }
+  .hero .blurb {
+    font-size: clamp(0.88rem, 1.9svh, 1rem);
+    line-height: 1.45;
+    margin-top: clamp(0.7rem, 2svh, 1.4rem);
+  }
 
   /* Still in the middle of the field, which is now a band rather than a frame. */
   .hero__atlas {
@@ -632,13 +661,23 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
     left: auto;
     translate: none;
     order: 2;
+    flex: 0 0 auto;
     width: auto;
     max-width: 36ch;
-    margin: 1.75rem auto 0;
-    font-size: 0.95rem;
+    margin: clamp(0.8rem, 2.2svh, 1.75rem) auto 0;
+    font-size: clamp(0.85rem, 1.9svh, 0.95rem);
   }
 
-  .landing-foot { flex-direction: column; gap: 1rem; }
+  /* The colophon holds the bottom of the screen rather than a scroll of its
+     own, so it is set as small as it can be and still be read. */
+  .landing-foot {
+    flex-direction: column;
+    gap: 1rem;
+    flex: 0 0 auto;
+    padding: 0 var(--gutter) clamp(0.6rem, 1.6svh, 1.25rem);
+  }
+
+  .landing-foot__type { font-size: 0.6rem; line-height: 1.45; }
 }
 
 /* --- generic page body --------------------------------------------------- */
