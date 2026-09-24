@@ -610,6 +610,11 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
     padding: calc(0.43em + var(--type-drop)) 1.2em calc(0.43em - var(--type-drop));
   }
 
+  /* The break is set for a line that has room for it. On a phone the first
+     half does not fit on one line anyway, so letting it wrap where it will
+     gives two lines rather than three with an orphan on the middle one. */
+  .hero__break { display: none; }
+
   .hero__curator {
     position: relative;
     z-index: 1;
