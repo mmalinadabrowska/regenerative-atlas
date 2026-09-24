@@ -552,23 +552,34 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
      the words and the line about who tends it. Behind the type it was clutter:
      a scatter of washed blots is not a texture you can read off. It is zoomed
      and cropped rather than shrunk, so a blot on a phone is still a blot. */
+  /* Edge to edge, past the page's own margin: the field is wider than the
+     phone and is meant to run off both sides, so a mark cut by the screen
+     reads as the drawing carrying on rather than as a cropped picture. */
   .hero__field {
     position: relative;
     order: 1;
-    width: 100%;
-    height: 15rem;
-    margin-top: 1.75rem;
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    aspect-ratio: 1;
+    height: auto;
+    margin-top: 1.25rem;
     overflow: hidden;
   }
 
+  /* A window on the field rather than the whole of it, centred on the clearing
+     the button stands in — so the marks surround the button here the way they
+     do on a wide screen, instead of being squeezed into a band across it. It
+     is zoomed rather than shrunk: a blot is very nearly the size on a phone
+     that it is on a laptop, which is the point of drawing it at all. 60.6% is
+     where the button's middle sits down the drawing. */
   .hero__drawing {
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 200%;
+    width: 300%;
     height: auto;
     margin: 0;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -60.6%);
   }
 
   /* Relative, to sit over the drawing — so the offsets that place it in the
