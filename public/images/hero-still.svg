@@ -1,22 +1,4 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" fill="none" role="presentation">
-<style>
-  .x { animation: swayX var(--t) cubic-bezier(0.37, 0, 0.63, 1) var(--d) infinite; }
-  .y { animation: swayY var(--ty) cubic-bezier(0.37, 0, 0.63, 1) var(--dy) infinite; }
-
-  @keyframes swayX {
-    from, to { translate: var(--ax) 0; }
-    50%      { translate: calc(var(--ax) * -1) 0; }
-  }
-
-  @keyframes swayY {
-    from, to { transform: translateY(var(--ay)); }
-    50%      { transform: translateY(calc(var(--ay) * -1)); }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .x, .y { animation: none; }
-  }
-</style>
 <!-- Non-scaling strokes: the outline of a blot is the same weight here as it
      is on the map, whatever size the drawing is laid out at. -->
 <g stroke="#100f0d" stroke-width="1.1" vector-effect="non-scaling-stroke">

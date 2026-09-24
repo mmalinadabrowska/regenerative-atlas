@@ -137,29 +137,98 @@ const crosses = [
   [713, 643, 4], [418, 686, 4],
 ].map(([x, y, r]) => keepClear({ ...at(x, y), r: r * SCALE }));
 
+/* --- the drift ------------------------------------------------------------ */
+
+/*
+ * The field breathes, the way the map's islands do.
+ *
+ * On the map each blot wanders a few pixels around where the simulation left
+ * it, on its own slow period: cos(t * rate) across and sin(t * rate * 0.8)
+ * down, which is a Lissajous figure rather than a circle — the two axes never
+ * quite come back into step, so no two marks ever trace the same loop.
+ *
+ * The same figure, in CSS, out of two animations on two elements: the outer
+ * one sways across, the inner one down, on a period a quarter longer. They
+ * compose, and 1 : 1.25 is the map's 1 : 0.8 the other way up. The easing is
+ * the sine curve's own bezier, so the marks are slowest at the ends of the
+ * swing, as a pendulum is.
+ *
+ * It lives inside the SVG because the SVG is loaded as an image: script cannot
+ * reach in there, and does not have to — this is CSS, and CSS in an image runs.
+ *
+ * What does not run in there is a media query about the reader. An SVG loaded
+ * as an image is rendered in its own world and asked for reduced motion it
+ * answers no, whatever the reader has actually asked for — measured, not
+ * assumed. So the still version is a second file, and the page chooses between
+ * the two with a <picture> whose own media attribute is evaluated where the
+ * preference lives.
+ */
+const DRIFT = `<style>
+  .x { animation: swayX var(--t) cubic-bezier(0.37, 0, 0.63, 1) var(--d) infinite; }
+  .y { animation: swayY var(--ty) cubic-bezier(0.37, 0, 0.63, 1) var(--dy) infinite; }
+
+  @keyframes swayX {
+    from, to { translate: var(--ax) 0; }
+    50%      { translate: calc(var(--ax) * -1) 0; }
+  }
+
+  @keyframes swayY {
+    from, to { transform: translateY(var(--ay)); }
+    50%      { transform: translateY(calc(var(--ay) * -1)); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .x, .y { animation: none; }
+  }
+</style>`;
+
+/**
+ * One mark's share of the drift: how far it wanders, how long it takes, and
+ * how far through that it already is. Small marks move less than large ones —
+ * a sway the width of its own body reads as a jitter rather than as a breath —
+ * and the phases come from the seed, so the field never pulses in unison.
+ */
+function drift(seed, r) {
+  const n = (salt, span) => (seedOf(`${seed}:${salt}`) % span) / span;
+  const across = 2.6 + r * 0.13;
+  const period = 26 + n('t', 1000) * 20;
+  return (
+    `--ax:${round(across)}px;--ay:${round(across * 0.78)}px;` +
+    `--t:${round(period)}s;--ty:${round(period * 1.25)}s;` +
+    `--d:-${round(n('d', 1000) * period)}s;--dy:-${round(n('e', 1000) * period * 1.25)}s`
+  );
+}
+
 /* --- the file ------------------------------------------------------------- */
 
 const round = (v) => Math.round(v * 10) / 10;
 
 const blotMarks = blots.map((blot) => {
-  const stretch = blot.tall === 1 ? '' : ` scale(1 ${round(blot.tall)})`;
-  return `  <path fill="${blot.wash}" transform="translate(${round(blot.x)} ${round(
-    blot.y,
-  )})${stretch}" d="${blobPath(seedOf(blot.seed), blot.r, { lobes: 8, wobble: 0.85 })}"/>`;
+  const stretch = blot.tall === 1 ? '' : ` transform="scale(1 ${round(blot.tall)})"`;
+  return `  <g class="x" transform="translate(${round(blot.x)} ${round(blot.y)})" style="${drift(
+    blot.seed,
+    blot.r,
+  )}"><g class="y"><path fill="${blot.wash}"${stretch} d="${blobPath(seedOf(blot.seed), blot.r, {
+    lobes: 8,
+    wobble: 0.85,
+  })}"/></g></g>`;
 });
 
 // The arms stop short of the ring, or at small sizes the cross closes the
 // circle up and the whole mark reads as a dot. Same rule as ink.js draws by.
-const crossMarks = crosses.map(({ x, y, r }) => {
+const crossMarks = crosses.map(({ x, y, r }, i) => {
   const arm = round(r * 0.82);
-  return `  <g transform="translate(${round(x)} ${round(y)})">
+  return `  <g class="x" transform="translate(${round(x)} ${round(y)})" style="${drift(
+    `field:cross:${i}`,
+    r,
+  )}"><g class="y">
     <circle r="${round(r)}"/>
     <path d="M 0 ${-arm} V ${arm} M ${-arm} 0 H ${arm}"/>
-  </g>`;
+  </g></g>`;
 });
 
-const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" fill="none" role="presentation">
-<!-- Non-scaling strokes: the outline of a blot is the same weight here as it
+const draw = (drift) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" fill="none" role="presentation">
+${drift ? `${DRIFT}\n` : ''}<!-- Non-scaling strokes: the outline of a blot is the same weight here as it
      is on the map, whatever size the drawing is laid out at. -->
 <g stroke="${INK}" stroke-width="1.1" vector-effect="non-scaling-stroke">
 ${blotMarks.join('\n')}
@@ -170,9 +239,11 @@ ${crossMarks.join('\n')}
 </svg>
 `;
 
-const out = resolve(ROOT, 'public', 'images', 'hero.svg');
-writeFileSync(out, svg);
+const images = resolve(ROOT, 'public', 'images');
+writeFileSync(resolve(images, 'hero.svg'), draw(true));
+writeFileSync(resolve(images, 'hero-still.svg'), draw(false));
 console.log(
   `  drew ${blotMarks.length} blots and ${crossMarks.length} research marks into ` +
-    `${out.replace(ROOT + '/', '')}${moved ? ` (${moved} nudged off the type)` : ''}`,
+    `public/images/hero.svg and hero-still.svg` +
+    `${moved ? ` (${moved} nudged off the type)` : ''}`,
 );

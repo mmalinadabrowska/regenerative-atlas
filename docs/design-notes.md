@@ -20,43 +20,60 @@ the map nodes are made by the same hand.
 
 ## The landing page
 
-One frame, 1920x1080: the title block in the clearing at the centre, the map around it,
-and `The Atlas` with the three sections in a row beneath, joined into it by its own lines.
-It is not a picture of the map, it is the map with the names taken off — the blots come
-from `blobPath`, the function the canvas draws its tags with, gathered into islands the
-way the islands gather. Pressing through is continuous rather than a jump to a different
-idea.
+One frame, 1920x1080, everything on its vertical centreline: the title block, `The Atlas`
+in the middle of a field of marks, and the line about who tends it. It is not a picture of
+the map, it is the map with the lines taken off — the blots come from `blobPath`, the
+function the canvas draws its tags with, washed in the map's own palette, and the crosses
+are the mark a piece of research wears on the map. There they gather into islands because
+their research shares a vocabulary; here they are simply scattered, unsorted, the way a
+library looks before anyone has drawn it, which is what the button in the middle of them
+is for. Every fifth blot is left unpainted: a theme nothing has been filed under yet is
+still a shape, and the field should look like a library with room in it.
 
-It is ink only. The map earns its colour by being explorable — a wash there is a
-territory you can open — and on a page you only look at, the same colour would be
-decoration. The lines are bowed rather than straight, because a hand does not join two
-points without leaning slightly one way, and the lean is seeded so the file is the same
-every time it is drawn.
+**The outlines are declared non-scaling.** A blot's edge is 1.1px here exactly as it is on
+the map, whatever size the drawing is laid out at. Scaled with the drawing it would have
+thinned to two thirds of that at laptop size, and the two pages would no longer have been
+drawn by the same hand.
 
-Nothing is hand-placed but the islands' anchors and the ground kept clear for the type.
-Each island is a weight for its biggest blot and a tail of smaller ones, scattered on a
-seed and rejected wherever they would touch another blot or the type; inside an island
-every blot hangs off the nearest one already placed, and between islands the shortest
-pair is bridged. The middle of the frame belongs to the words, and no
-line may cross them: every join is walked as a curve and rejected if any point of it
-lands on the title block or a button — a bowed line can miss a box at both ends and
-still go straight through it. Bridges between islands take the shortest pair that keeps
-clear rather than the shortest pair. The few lines that point *at* the type stop on its
-edge, and one runs from the Atlas button to the section menu so the buttons read as part
-of the constellation rather than as chrome dropped on top of it.
+**The layout is the design's, not a seed's.** A scatter from a seed was even where the
+design is not: the design crowds the middle, thins to one or two marks at the far left and
+right, and leaves a lane for the curator's line. That is composition, and it does not come
+out of a random number generator. So every mark is written down where it stands in the
+drawing the page was designed from — a 1273x789 sheet — and mapped onto the frame by the
+one anchor the two share, the middle of the Atlas button, both axes at the same scale so
+the field keeps its proportions. Only the shape of each blot is still generated, from its
+own seed. The two sheets are not the same shape, so a mark placed faithfully can still
+land on a line of type that runs lower here than it did there; rather than drop those,
+which would leave holes where the design has marks, each is pushed out of the words the
+shortest way it can go, out of boxes measured off the rendered page rather than guessed.
 
-It is generated rather than hand-authored (`scripts/draw-hero.mjs`) so it stays editable
-as intent: the file holds seven anchors, the weights of the blots each one carries, and
-which islands are near enough to bridge. Move an anchor, run `npm run draw`, and the
-island and every line that meets it follow — instead of path data nobody can adjust. Type is overlaid as real HTML on the same coordinates, sized in container-query
-units so it scales with the drawing and stays on the lines that point at it. Below 48rem
-the frame is too small to read type off, so the composition unstacks: type at ordinary
-sizes, left-aligned in the gutter, with the drawing going behind it as ground — wider
-than the screen so it runs off both edges. A drawing that small at the foot of the page
-was a postage stamp of a map; behind the words it is the paper the page is printed on.
-It is the same ink drawing it is on a wide screen rather than a faded one: the words
-carry their own paper instead, as a halo — which is the trick the map already prints its
-labels with, and it keeps one black drawing rather than two greys.
+**The field breathes.** Each mark wanders a few pixels around where it was placed, on its
+own slow period — the same drift the map's islands have, where a blot moves on
+`cos(t · rate)` across and `sin(t · rate · 0.8)` down, a Lissajous figure rather than a
+circle, so no two marks ever trace the same loop. In CSS that is two animations on two
+nested elements, across and down, on periods a quarter apart, easing on the sine curve's
+own bezier so the marks are slowest at the ends of the swing. Small marks move less than
+large ones: a sway the width of its own body reads as a jitter rather than as a breath.
+
+The animation lives inside the SVG, because the SVG is loaded as an image and script
+cannot reach in there — but CSS in an image runs. What does *not* run in there is a media
+query about the reader: an SVG loaded as an image is rendered in its own world, and asked
+for reduced motion it answers no whatever the reader has actually asked for. That was
+measured rather than assumed. So the generator writes the drawing twice, moving and still,
+and a `<picture>` chooses between them on its own `media` attribute, which is evaluated
+out in the page where the preference lives.
+
+It is generated rather than hand-authored (`scripts/draw-hero.mjs`) so it stays editable as
+intent: the file holds each mark's place and size in the design's own coordinates. Move one,
+run `npm run draw`, and the drawing follows — instead of path data nobody can adjust. Type is
+overlaid as real HTML on the same frame, sized in container-query units so it scales with the
+drawing. Below 48rem the frame is too small to hold both, so the composition unstacks: type
+at ordinary sizes, then the field as a square window on the same drawing, centred on the
+clearing the button stands in so the marks surround it there as they do on a wide screen. It
+is zoomed rather than shrunk — a blot is very nearly the size on a phone that it is on a
+laptop, which is the whole point of drawing it — and it runs edge to edge past the page's own
+margin, so a mark cut by the screen reads as the drawing carrying on rather than as a
+cropped picture.
 
 ## Decisions worth knowing about
 

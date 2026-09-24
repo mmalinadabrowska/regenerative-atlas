@@ -422,6 +422,10 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
    the hero, so the two travel together when the layout unstacks. */
 .hero__field { position: absolute; inset: 0; }
 
+/* The picture is only there to choose between the moving drawing and the still
+   one; the image inside it is what the layout places. */
+.hero__field picture { display: contents; }
+
 .hero__drawing {
   position: absolute;
   inset: 0;

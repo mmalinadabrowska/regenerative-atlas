@@ -24,7 +24,15 @@
        is the whole frame and the button stands in the clearing at its middle;
        on a phone it becomes a band of its own, with the button still on it. -->
   <div class="hero__field">
-    <img class="hero__drawing" src="/images/hero.svg" alt="" role="presentation" width="1920" height="1080">
+    <!-- The marks drift, on animations declared inside the drawing. A reader
+         who has asked for less movement gets the field at rest instead: a
+         media query inside an SVG loaded as an image cannot see that
+         preference, but a source element's own media attribute is evaluated
+         out here, where it can. -->
+    <picture>
+      <source srcset="/images/hero-still.svg" media="(prefers-reduced-motion: reduce)" type="image/svg+xml">
+      <img class="hero__drawing" src="/images/hero.svg" alt="" role="presentation" width="1920" height="1080">
+    </picture>
     <a class="label hero__atlas" href="/map/">The Atlas</a>
   </div>
 
