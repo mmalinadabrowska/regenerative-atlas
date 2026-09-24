@@ -1314,6 +1314,10 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 .prose strong { font-weight: 400; color: var(--ink); }
 .prose em { font-style: italic; }
 
+/* A button standing in the middle of the reading, rather than at the end of
+   it: it is the thing the paragraph under it is about. */
+.prose__action { margin: 1.6rem 0 1.1rem; }
+
 .about__ways {
   display: flex;
   flex-wrap: wrap;
