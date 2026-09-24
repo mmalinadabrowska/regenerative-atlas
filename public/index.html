@@ -5,9 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Regenerative Atlas</title>
 <meta name="description" content="An open-source, collective library of regenerative research, mapped as a constellation.">
-<!-- Fetched with the page, so the nav's curve is drawn in the same frame the
-     row first appears in rather than a frame or two after it. -->
-<link rel="modulepreload" href="/js/connected-nav.js">
 <link rel="preload" as="font" type="font/woff2" crossorigin
       href="/fonts/tremplin/webfont/Tremplin-Regular.woff2">
 <link rel="preload" as="font" type="font/woff2" crossorigin
@@ -23,7 +20,13 @@
   frame; type is sized in container-query units so it scales with the drawing.
 -->
 <main class="hero">
-  <img class="hero__drawing" src="/images/hero.svg" alt="" role="presentation" width="1920" height="1080">
+  <!-- The field and the way into it are one thing: on a wide screen the field
+       is the whole frame and the button stands in the clearing at its middle;
+       on a phone it becomes a band of its own, with the button still on it. -->
+  <div class="hero__field">
+    <img class="hero__drawing" src="/images/hero.svg" alt="" role="presentation" width="1920" height="1080">
+    <a class="label hero__atlas" href="/map/">The Atlas</a>
+  </div>
 
   <div class="hero__type">
     <h1 class="wordmark">Regenerative Atlas</h1>
@@ -35,32 +38,20 @@
     </p>
   </div>
 
-  <a class="label hero__atlas" href="/map/">The Atlas</a>
-
-  <nav class="hero__menu" data-connected-nav aria-label="Sections of the Atlas">
-    <a data-connect href="/map/">Explore</a>
-    <a data-connect href="/add/">Add</a>
-    <a data-connect href="/about/">About</a>
-  </nav>
+  <p class="hero__curator">
+    Curated by Malina Dabrowska, a designer and strategist exploring regenerative practice.
+  </p>
 </main>
 
 <footer class="landing-foot">
-  <div>
-    <!-- The themes index, the source and the export all live on the About page,
-         where somebody looking for them is already reading. The foot of the
-         landing page carries what the type licence asks for, and no more. -->
-    <p class="landing-foot__type">Set in
-      <a href="https://gitlab.com/bye-bye-binary/enby-gertrude">Enby Gertrude</a>
-      by Valentin Chauveau and Léna Salabert-Triby, and
-      <a href="https://gitlab.com/bye-bye-binary/tremplin">Tremplin</a> by Benjamin Dott —
-      post-binary faces from
-      <a href="https://typotheque.byebyebinary.space">Bye Bye Binary</a>.</p>
-  </div>
-  <p class="landing-foot__curator">
-    Curated by Malina Dabrowska, a designer and strategist exploring regenerative practice.
-  </p>
+  <!-- What the type licence asks for, and nothing else. -->
+  <p class="landing-foot__type">Set in
+    <a href="https://gitlab.com/bye-bye-binary/enby-gertrude">Enby Gertrude</a>
+    by Valentin Chauveau and Léna Salabert-Triby, and
+    <a href="https://gitlab.com/bye-bye-binary/tremplin">Tremplin</a> by Benjamin Dott —
+    post-binary faces from
+    <a href="https://typotheque.byebyebinary.space">Bye Bye Binary</a>.</p>
 </footer>
 
-<script type="module" src="/js/connected-nav.js"></script>
 </body>
 </html>

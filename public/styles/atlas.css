@@ -418,6 +418,10 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   container-type: inline-size;
 }
 
+/* The field is the frame; the button is placed against it rather than against
+   the hero, so the two travel together when the layout unstacks. */
+.hero__field { position: absolute; inset: 0; }
+
 .hero__drawing {
   position: absolute;
   inset: 0;
@@ -427,12 +431,16 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   user-select: none;
 }
 
-/* The text column: x 500-1420 of 1920, matching the drawing's clearing. */
+/* Everything on this page stands on the frame's vertical centreline: the type
+   column, the button, the line about who tends it. The boxes here are the same
+   boxes scripts/draw-hero.mjs keeps clear of marks, written as fractions of the
+   1920x1080 frame, so the words land in the clearing the drawing left them. */
 .hero__type {
   position: absolute;
-  left: 26.05%;
-  width: 47.9%;
-  top: 11.5%;
+  left: 50%;
+  translate: -50% 0;
+  width: 52%;
+  top: 10%;
   text-align: center;
 }
 
@@ -451,22 +459,20 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 .hero .blurb {
   font-size: 1.18cqw;
   line-height: 1.5;
-  text-align: left;
-  max-width: 96%;
-  margin: 2.5cqw 0 0;
+  max-width: 84%;
+  margin: 2.5cqw auto 0;
   color: var(--ink);
 }
 
-/* Centred on the hub the lines radiate from. Centring is done with `translate`
-   rather than `transform`, so the hover below has `scale` to itself and does not
-   have to know how the button is placed. */
+/* Centring is done with `translate` rather than `transform`, so the hover below
+   has `scale` to itself and does not have to know how the button is placed. */
 .hero__atlas {
   position: absolute;
   left: 50%;
-  top: 62.2%;
+  top: 56.5%;
   translate: -50% 0;
   font-size: 2cqw;
-  padding: 0.5em 1.5em 0.56em;
+  padding: calc(0.53em + var(--type-drop)) 1.5em calc(0.53em - var(--type-drop));
 }
 
 /* The one button that is filled at rest: it is the way in, and the page should
@@ -490,18 +496,20 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   scale: 1.05;
 }
 
-/* The sections, sitting in the clear ground below the Atlas button. */
-.hero__menu {
+/* Who tends it, in the clear ground below the button and inside the field
+   rather than under it — the drawing goes on around the words. */
+.hero__curator {
   position: absolute;
   left: 50%;
-  top: 74.5%;
-  transform: translateX(-50%);
-  gap: 1.15cqw;
-}
-
-.hero__menu > a {
-  font-size: 1.35cqw;
-  padding: 0.46em 1.5em 0.52em;
+  translate: -50% 0;
+  top: 68.5%;
+  width: 40%;
+  margin: 0;
+  text-align: center;
+  font-family: var(--display);
+  font-size: 1.18cqw;
+  line-height: 1.5;
+  color: var(--ink);
 }
 
 .landing-foot {
@@ -516,14 +524,11 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   color: var(--ink-80);
 }
 
-.landing-foot nav { display: flex; gap: 1.25rem; flex-wrap: wrap; }
 .landing-foot p { margin: 0; }
-.landing-foot__curator { max-width: 42ch; text-align: right; }
 
 /* The type credit the font's licence asks for — set small, because it is a
    colophon: there to be found rather than to be read on the way past. */
 .landing-foot__type {
-  margin-top: 0.5rem;
   max-width: 52ch;
   font-size: 0.66rem;
   line-height: 1.5;
@@ -543,74 +548,71 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
     overflow: hidden;
   }
 
-  /* The map goes behind the words rather than under them: wider than the screen
-     so it runs off both edges as ground, and faint enough to read type off. */
+  /* The field stops being the ground and becomes a band of its own, between
+     the words and the line about who tends it. Behind the type it was clutter:
+     a scatter of washed blots is not a texture you can read off. It is zoomed
+     and cropped rather than shrunk, so a blot on a phone is still a blot. */
+  .hero__field {
+    position: relative;
+    order: 1;
+    width: 100%;
+    height: 15rem;
+    margin-top: 1.75rem;
+    overflow: hidden;
+  }
+
   .hero__drawing {
     position: absolute;
-    order: 0;
     top: 50%;
     left: 50%;
-    width: 155vw;
+    width: 200%;
     height: auto;
     margin: 0;
     transform: translate(-50%, -50%);
   }
 
-  /* The drawing is the same ink drawing it is on a wide screen, so the words
-     carry their own paper — the halo the map already prints its labels with. */
-  .hero__type {
-    text-shadow:
-      0 0 0.32em var(--paper), 0 0 0.32em var(--paper),
-      0 0 0.7em var(--paper), 0 0 1.1em var(--paper);
-  }
-
   /* Relative, to sit over the drawing — so the offsets that place it in the
-     frame on a wide screen have to be undone rather than left inert. */
+     frame on a wide screen have to be undone rather than left inert. Still
+     centred: the composition is the same one, unstacked. */
   .hero__type {
     position: relative;
     z-index: 1;
     top: auto;
     left: auto;
     width: auto;
-    text-align: left;
+    translate: none;
+    text-align: center;
   }
 
   .hero .wordmark { font-size: clamp(2.4rem, 11vw, 3.4rem); }
   .hero .standfirst { font-size: 1.05rem; margin-top: 0.6rem; }
   .hero .blurb { font-size: 1rem; margin-top: 1.4rem; }
 
+  /* Still in the middle of the field, which is now a band rather than a frame. */
   .hero__atlas {
-    position: relative;
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
     z-index: 1;
-    top: auto;
-    left: auto;
-    order: 2;
-    translate: none;
-    transform: none;
-    align-self: flex-start;
-    margin-top: 2rem;
+    margin: 0;
     font-size: 1.25rem;
-    padding: 0.4em 1.2em 0.46em;
+    padding: calc(0.43em + var(--type-drop)) 1.2em calc(0.43em - var(--type-drop));
   }
 
-  .hero__menu {
-    /* Stays relative: it is the containing block for the curve drawn behind it,
-       and going static would anchor that SVG to the hero instead. */
+  .hero__curator {
     position: relative;
     z-index: 1;
     top: auto;
     left: auto;
-    order: 3;
-    transform: none;
-    align-self: flex-start;
-    margin-top: 1.25rem;
-    gap: 0.7rem;
+    translate: none;
+    order: 2;
+    width: auto;
+    max-width: 36ch;
+    margin: 1.75rem auto 0;
+    font-size: 0.95rem;
   }
-
-  .hero__menu > a { font-size: 0.95rem; padding: 0.34em 1.05em 0.4em; }
 
   .landing-foot { flex-direction: column; gap: 1rem; }
-  .landing-foot__curator { text-align: left; }
 }
 
 /* --- generic page body --------------------------------------------------- */
