@@ -187,11 +187,16 @@ const DRIFT = `<style>
  * how far through that it already is. Small marks move less than large ones —
  * a sway the width of its own body reads as a jitter rather than as a breath —
  * and the phases come from the seed, so the field never pulses in unison.
+ *
+ * The swing is about seven pixels on a laptop at the widest, which is roughly
+ * what a blot on the map moves; the field should be as alive as the thing it
+ * is a picture of. Short enough periods that a reader who stops to look sees
+ * it happen, long enough that it never asks to be watched.
  */
 function drift(seed, r) {
   const n = (salt, span) => (seedOf(`${seed}:${salt}`) % span) / span;
-  const across = 2.6 + r * 0.13;
-  const period = 26 + n('t', 1000) * 20;
+  const across = 4.6 + r * 0.2;
+  const period = 18 + n('t', 1000) * 14;
   return (
     `--ax:${round(across)}px;--ay:${round(across * 0.78)}px;` +
     `--t:${round(period)}s;--ty:${round(period * 1.25)}s;` +

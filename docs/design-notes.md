@@ -47,8 +47,12 @@ land on a line of type that runs lower here than it did there; rather than drop 
 which would leave holes where the design has marks, each is pushed out of the words the
 shortest way it can go, out of boxes measured off the rendered page rather than guessed.
 
-**The field breathes.** Each mark wanders a few pixels around where it was placed, on its
-own slow period — the same drift the map's islands have, where a blot moves on
+**The field floats.** Each mark wanders around where it was placed — seven pixels either
+way at the widest, on a laptop, which is about what a blot on the map moves; the field
+should be as alive as the thing it is a picture of — on its
+own period, eighteen to thirty-two seconds: short enough that a reader who stops to look
+sees it happen, long enough that it never asks to be watched. It is the same drift the
+map's islands have, where a blot moves on
 `cos(t · rate)` across and `sin(t · rate · 0.8)` down, a Lissajous figure rather than a
 circle, so no two marks ever trace the same loop. In CSS that is two animations on two
 nested elements, across and down, on periods a quarter apart, easing on the sine curve's
