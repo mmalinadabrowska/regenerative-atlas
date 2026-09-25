@@ -206,8 +206,16 @@ export function buildGraph(atlas, options = {}) {
   );
   const idf = idfWeights(tagMap, sources.length || 1);
 
-  const tagRows = rows.filter((t) => t.facet !== 'location').filter((t) => tagMap.size === 0
-    || [...tagMap.values()].some((tags) => tags.includes(t.slug)));
+  // Only the tags the surviving sources are actually filed under. A filter that
+  // matches nothing therefore draws nothing — which is the honest picture, and
+  // was not what happened before: an empty result fell back to the whole
+  // vocabulary, so a search for something the library does not hold drew the
+  // complete map, unfiltered, with every island in it. The map said "here is
+  // everything" while the legend said "0 sources", and the reader was left to
+  // work out which of the two to believe.
+  const tagRows = rows
+    .filter((t) => t.facet !== 'location')
+    .filter((t) => [...tagMap.values()].some((tags) => tags.includes(t.slug)));
   const tagCounts = new Map(tagRows.map((t) => [t.slug, t.count]));
   const liveTags = new Set(tagRows.map((t) => t.slug));
 

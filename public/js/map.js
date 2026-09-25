@@ -176,10 +176,13 @@ async function load() {
     map.setGraph(graph);
     renderLegend(graph, map.opened?.());
     renderFilters();
-    // Only ever said about a search: an Atlas with nothing in it yet is a
-    // different situation with a different answer, and this is not it.
+    // Said only when the map has nothing left to show. A filter that still
+    // leaves islands standing has found something, whatever else it lost, and
+    // a message over a drawn map contradicts the map. And only ever about a
+    // search: an Atlas with nothing in it yet is a different situation with a
+    // different answer, and this is not it.
     emptyState.hidden = !(
-      graph.stats.sources === 0 && (state.tags.size > 0 || Boolean(state.query))
+      graph.nodes.length === 0 && (state.tags.size > 0 || Boolean(state.query))
     );
   } catch (error) {
     legend.innerHTML = `<b>The map could not be drawn.</b> ${escapeHtml(error.message)}`;
