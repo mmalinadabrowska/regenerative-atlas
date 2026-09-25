@@ -418,7 +418,12 @@ const tagChips = (slugs) =>
       const style = wash
         ? ` style="--chip: ${wash}; --chip-ink: ${needsPaper(wash) ? 'var(--paper)' : 'var(--ink)'}"`
         : '';
-      return `<button class="tag tag--wash" type="button" data-tag="${escapeHtml(
+      // Travel, not filter. A tag named inside a record is a place on the map
+      // you have not been to yet, and the thing to do with it is go there —
+      // the map moves to that island and redraws itself around it, which is
+      // what clicking the island would have done. Narrowing the whole library
+      // is a different intention, and it has its own button above.
+      return `<button class="tag tag--wash" type="button" data-travel="${escapeHtml(
         slug,
       )}"${style}>${escapeHtml(labelOf(slug))}</button>`;
     })
@@ -996,6 +1001,20 @@ document.addEventListener('click', (event) => {
     printRecord();
     return;
   }
+  const travelChip = event.target.closest('[data-travel]');
+  if (travelChip) {
+    event.preventDefault();
+    const slug = travelChip.dataset.travel;
+    // Places are filed on records rather than drawn as islands, so there is
+    // nowhere to travel to; narrowing the library to one is the nearest thing
+    // to what was asked for, and is what the filter bar would have done.
+    if (!map.open(`t:${slug}`)) {
+      toggleTag(slug);
+      load();
+    }
+    return;
+  }
+
   const tagButton = event.target.closest('[data-tag]');
   if (tagButton) {
     event.preventDefault();

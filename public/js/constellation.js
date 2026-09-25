@@ -2034,12 +2034,19 @@ export function createConstellation(canvas, options = {}) {
       draw();
     },
     /** Open a node by id — used by the record panel's "read alongside" list. */
+    /**
+     * Travel to something and open it, exactly as clicking it on the map does.
+     * Answers whether there was anything of that name to travel to: a place is
+     * filed on a record rather than drawn as an island, so asking for one is
+     * not a mistake, it is a question with no answer here.
+     */
     open(id) {
       const node = allById.get(id);
-      if (!node) return;
+      if (!node) return false;
       selected = node.type === 'source' ? node : null;
       if (selected) onSelect(selected);
       setFocus(node);
+      return true;
     },
     /** What is currently open, or null for the islands. */
     opened: () => focused,
