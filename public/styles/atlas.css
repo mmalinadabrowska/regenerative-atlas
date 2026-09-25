@@ -1005,24 +1005,6 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 
 .tag-drawer .tag-cloud { gap: 0.4rem; }
 
-.map-search {
-  border: 1px solid var(--ink-32);
-  border-radius: 999px;
-  background: var(--paper);
-  padding: 0.4rem 1rem;
-  font: inherit;
-  font-size: 0.9rem;
-  color: inherit;
-  flex: 0 1 auto;
-  min-width: min(16rem, 60vw);
-}
-
-/* Room is room: on a narrower window the search gives some back to the tags. */
-@media (max-width: 78rem) {
-  .map-search { min-width: min(11rem, 40vw); }
-}
-
-.map-search:focus { border-color: var(--ink); outline: none; }
 
 .chip {
   font: inherit;
@@ -1036,6 +1018,46 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 }
 
 .chip.is-on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+/* A chip carrying a drawn mark rather than a word: square, so the circle in it
+   sits in the middle of a circle rather than at the end of a lozenge. */
+.chip--icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  width: 2.1rem;
+  height: 2.1rem;
+  flex: 0 0 auto;
+}
+
+.chip--icon svg {
+  width: 1.05rem;
+  height: 1.05rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+@media (hover: hover) {
+  .chip--icon:hover { background: var(--ink); color: var(--paper); }
+}
+.chip--icon:focus-visible, .chip--icon[aria-expanded='true'] { background: var(--ink); color: var(--paper); }
+
+/* Filled at rest. Everything else in this row is an outline until you point at
+   it; the way back to the whole library is the one control worth seeing before
+   you go looking for it. */
+.chip--filled {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+
+@media (hover: hover) {
+  .chip--filled:hover { background: var(--paper); color: var(--ink); }
+}
+.chip--filled:focus-visible { background: var(--paper); color: var(--ink); }
 
 /* A drawing rather than a letter, so it is centred on itself: the type drop
    above is a correction for the empty descender well under a line of type, and
@@ -1216,6 +1238,32 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 }
 
 .panel__glyph { width: 1.7rem; }
+
+/* When the drawer is a search, what it is about is what you are typing, so the
+   field takes the place the title would have had — a pill on the head's own
+   ground, in the head's own ink, so it reads as part of the bar rather than as
+   a form dropped onto it. */
+.panel__search {
+  display: none;
+  flex: 1 1 auto;
+  min-width: 0;
+  font: inherit;
+  font-family: var(--sans);
+  font-size: 0.95rem;
+  color: var(--head-ink);
+  background: none;
+  border: var(--stroke) solid var(--head-ink);
+  border-radius: 999px;
+  padding: calc(0.36em + var(--type-drop)) 1em calc(0.36em - var(--type-drop));
+}
+
+.panel__search::placeholder { color: var(--head-ink); opacity: 0.6; }
+.panel__search:focus { outline: none; box-shadow: 0 0 0 1px var(--head-ink); }
+
+/* The search head is the field and the way out, and nothing else. */
+.panel[data-kind='search'] .panel__glyph,
+.panel[data-kind='search'] .panel__title { display: none; }
+.panel[data-kind='search'] .panel__search { display: block; }
 
 .panel__glyph svg { display: block; width: 100%; height: auto; }
 .panel__glyph .crosshair circle,

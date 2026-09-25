@@ -41,7 +41,19 @@
 
   <div class="map-chrome">
     <div class="map-controls">
-      <input id="map-search" class="map-search" type="search" placeholder="Search the library…" aria-label="Search the library">
+      <!-- Searching is a thing you go and do, not a field standing open on the
+           chance that you might: the button opens the drawer the map's records
+           already come up in, and the typing happens there. -->
+      <button class="chip chip--icon" id="map-search-open" type="button"
+              aria-label="Search the library" aria-expanded="false" aria-controls="panel">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.4 15.4 L21 21"/>
+        </svg>
+      </button>
+      <!-- Filled, and first in the row: it is the way back from a filtered map
+           to the whole library, and the one control here you need most when you
+           can least see what is going on. -->
+      <button class="chip chip--filled" id="map-clear" type="button" hidden>Clear</button>
       <span class="tag-bar__name" id="tag-bar-name">Tags</span>
       <div id="map-filters" class="tag-cloud" aria-labelledby="tag-bar-name"></div>
       <!-- One button for two jobs: the rest of the tags on a wide screen, and the
@@ -61,7 +73,6 @@
         <span class="chip--more__narrow">Location</span>
         <svg class="chip__caret" viewBox="0 0 12 8" aria-hidden="true" focusable="false"><path d="M1 1.5 6 6.5 11 1.5"/></svg>
       </button>
-      <button class="chip" id="map-clear" type="button" hidden>Clear</button>
       <!-- On a phone this cluster leaves the scrolling row and floats over the
            map, where it can always be reached. -->
       <div class="map-zoom">
@@ -111,6 +122,11 @@
     <header class="panel__head" id="panel-head">
       <span class="panel__glyph" id="panel-glyph" aria-hidden="true"></span>
       <h3 class="panel__title" id="panel-title"></h3>
+      <!-- The drawer's other head: when what is open is a search, the thing
+           you are reading is what you are typing. -->
+      <input class="panel__search" id="panel-search" type="search"
+             placeholder="search the library…" aria-label="Search the library"
+             autocomplete="off" spellcheck="false">
       <button class="panel__close" id="panel-close" type="button" aria-label="Close">
         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
           <path d="M5 5 L19 19 M19 5 L5 19"/>

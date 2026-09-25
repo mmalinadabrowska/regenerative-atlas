@@ -7,7 +7,8 @@ import { A4, Sheet, toBlob } from './pdf.js';
 
 const canvas = document.getElementById('constellation');
 const zoomCluster = document.querySelector('.map-zoom');
-const searchInput = document.getElementById('map-search');
+const searchInput = document.getElementById('panel-search');
+const searchOpen = document.getElementById('map-search-open');
 const filterBox = document.getElementById('map-filters');
 const clearButton = document.getElementById('map-clear');
 const moreButton = document.getElementById('map-more');
@@ -184,6 +185,8 @@ async function load() {
     emptyState.hidden = !(
       graph.nodes.length === 0 && (state.tags.size > 0 || Boolean(state.query))
     );
+    // The open search is a reading of this graph, so it is re-read with it.
+    renderSearchResults();
   } catch (error) {
     legend.innerHTML = `<b>The map could not be drawn.</b> ${escapeHtml(error.message)}`;
   }
@@ -713,6 +716,63 @@ function showTag(node) {
   openPanel();
 }
 
+/**
+ * The drawer, as a search.
+ *
+ * Not a third kind of thing with a place of its own: the Atlas' answers all
+ * arrive in the same drawer, and a search is one more answer. The field sits
+ * where the title would be, because when a search is what is open, what you
+ * are typing is what it is about.
+ *
+ * What is listed is what the map is already showing — typing filters the map
+ * as it always did, and this is that same result read as a list. So the two
+ * never disagree, and a row you point at lights up out there.
+ */
+function showSearch() {
+  setHead('search', '', '', null);
+  renderSearchResults();
+  openPanel();
+  if (isSheet()) setSheet('open');
+  searchInput.focus();
+  searchOpen.setAttribute('aria-expanded', 'true');
+  shown = { kind: 'search' };
+}
+
+function renderSearchResults() {
+  if (panel.dataset.kind !== 'search') return;
+  const query = state.query.trim().toLowerCase();
+  if (!query) {
+    panelBody.innerHTML = `<p class="panel__meta">Type to search the library — the research in it,
+      and the themes it is filed under.</p>`;
+    return;
+  }
+
+  const nodes = state.graph?.nodes ?? [];
+  // A theme is listed when it is what you typed. Research is listed whenever it
+  // survived the search, which is what surviving the search means.
+  const themes = nodes.filter((n) => n.type === 'tag' && n.label.toLowerCase().includes(query));
+  const sources = nodes.filter((n) => n.type === 'source');
+
+  if (themes.length === 0 && sources.length === 0) {
+    panelBody.innerHTML = `<p class="panel__meta">Nothing in the library matches
+      “${escapeHtml(state.query.trim())}”.</p>`;
+    return;
+  }
+
+  panelBody.innerHTML = `
+    ${themes.length ? `<h4>Themes</h4>${tagChips(themes.map((t) => t.slug))}` : ''}
+    ${
+      sources.length
+        ? `<h4>Research</h4>
+           <ul class="panel__links">${sources
+             .map((source) =>
+               threadRow(source, escapeHtml(citationLine(source) || hostOf(source.url))),
+             )
+             .join('')}</ul>`
+        : ''
+    }`;
+}
+
 function showRecord(node) {
   if (!node) {
     closePanel();
@@ -801,7 +861,12 @@ if (window.ResizeObserver) new ResizeObserver(trackScroll).observe(panelBody);
 
 const pointAt = (event) => {
   const row = event.target.closest?.('[data-open]');
-  map.highlight(row ? row.dataset.open : null);
+  if (row) return map.highlight(row.dataset.open);
+  // A theme named in a list is a place on the map too, and pointing at it
+  // should light up the island it stands for — the same as pointing at a piece
+  // of research lights up its mark.
+  const chip = event.target.closest?.('[data-travel]');
+  map.highlight(chip ? `t:${chip.dataset.travel}` : null);
 };
 
 panelBody.addEventListener('pointerover', pointAt);
@@ -881,6 +946,7 @@ function closePanel() {
   panel.classList.remove('is-open');
   setSheet('peek');
   map.highlight(null);
+  searchOpen.setAttribute('aria-expanded', 'false');
 }
 
 // Whenever the sheet settles, the map reframes into whatever is left of it —
@@ -1090,6 +1156,16 @@ searchInput.addEventListener('input', () => {
   }, 260);
 });
 
+// The button opens the search, and closes it again if it is what is open —
+// the same press, the same drawer.
+searchOpen.addEventListener('click', () => {
+  if (panel.dataset.kind === 'search' && panel.classList.contains('is-open')) {
+    closePanel();
+    return;
+  }
+  showSearch();
+});
+
 /** Back to the whole library: every filter dropped and the search emptied. */
 function clearFilters() {
   state.tags.clear();
@@ -1116,7 +1192,7 @@ document.addEventListener('keydown', (event) => {
   }
   if (event.key === '/' && document.activeElement !== searchInput) {
     event.preventDefault();
-    searchInput.focus();
+    showSearch();
   }
 });
 
