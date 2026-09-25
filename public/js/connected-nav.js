@@ -108,14 +108,30 @@ export function capsulePath(cap, cy, r) {
   ].join(' ');
 }
 
+/**
+ * Which links are part of the curve at this width.
+ *
+ * Two ways out of it. A link hidden here has no box, and a box of no height
+ * dragged into the geometry puts the centreline nowhere and the curve with it.
+ * And a link the sheet has set `--connect: 0` on has been made something other
+ * than a capsule — an underlined word, on a phone — so there is nothing to
+ * join it to. The stylesheet decides both; this only reads the answer.
+ */
+const connecting = (container) =>
+  [...container.querySelectorAll('[data-connect]')].filter((item) => {
+    if (item.getBoundingClientRect().height === 0) return false;
+    return getComputedStyle(item).getPropertyValue('--connect').trim() !== '0';
+  });
+
 function draw(container) {
-  // Only the ones actually on the row. A link hidden at this width — Explore is,
-  // on a phone — has no box, and a box of no height dragged into the geometry
-  // puts the centreline nowhere and the curve with it.
-  const items = [...container.querySelectorAll('[data-connect]')].filter(
-    (item) => item.getBoundingClientRect().height > 0,
-  );
-  if (items.length === 0) return;
+  const items = connecting(container);
+  // Nothing to join: take the drawn curve away rather than leave the last
+  // width's one behind, and let each link carry its own outline again.
+  if (items.length === 0) {
+    container.classList.remove('is-connected');
+    container.querySelector('.connected__canvas')?.remove();
+    return;
+  }
 
   const box = container.getBoundingClientRect();
   if (box.width === 0) return;
