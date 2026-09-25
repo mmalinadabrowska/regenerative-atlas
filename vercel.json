@@ -1,0 +1,21 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "outputDirectory": "public",
+  "functions": {
+    "api/sources.js": { "maxDuration": 20 },
+    "api/describe.js": { "maxDuration": 20 },
+    "api/review.js": { "maxDuration": 20 },
+    "api/health.js": { "maxDuration": 10 }
+  },
+  "headers": [
+    {
+      "source": "/review/(.*)",
+      "headers": [
+        { "key": "referrer-policy", "value": "no-referrer" },
+        { "key": "x-robots-tag", "value": "noindex, nofollow" },
+        { "key": "cache-control", "value": "no-store" }
+      ]
+    }
+  ]
+}

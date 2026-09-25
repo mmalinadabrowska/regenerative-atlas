@@ -230,18 +230,41 @@ recordForm.addEventListener('submit', async (event) => {
   const data = Object.fromEntries(new FormData(recordForm));
 
   try {
-    const { source, created } = await api.submit({
+    const result = await api.submit({
       ...data,
       url: urlInput.value.trim(),
       tags: [...chosen],
     });
 
-    say(
-      `${created ? 'Added to the Atlas' : 'Folded into the record already there'} —
-       <a href="/map/?q=${encodeURIComponent(source.title)}">see it on the map</a>,
-       or <a href="/themes/?tag=${encodeURIComponent(source.tags[0]?.slug ?? '')}">browse its neighbours</a>.`,
-      'good',
-    );
+    // Two Atlases answer this form and they answer it differently. On the web
+    // an entry is queued: it goes to the curator, who decides, because the
+    // library is curated and this form is open to anyone. On the curator's own
+    // machine there is nobody to ask, and it is simply added. The wording
+    // follows whichever happened rather than promising one and doing the other.
+    if (result.alreadyInAtlas) {
+      say(
+        `That one is already on the map —
+         <a href="/map/?q=${encodeURIComponent(result.alreadyInAtlas.title)}">go and see it</a>.
+         Two people finding the same work is a signal in itself.`,
+        'good',
+      );
+    } else if (result.alreadyWaiting) {
+      say('Somebody sent this one in already — it is with the curator, waiting to be read.', 'good');
+    } else if (result.queued) {
+      say(
+        `Thank you — it is with the curator. Nothing reaches the map until a person has read it,
+         and you will find it there once it has been.`,
+        'good',
+      );
+    } else {
+      const { source, created } = result;
+      say(
+        `${created ? 'Added to the Atlas' : 'Folded into the record already there'} —
+         <a href="/map/?q=${encodeURIComponent(source.title)}">see it on the map</a>,
+         or <a href="/themes/?tag=${encodeURIComponent(source.tags[0]?.slug ?? '')}">browse its neighbours</a>.`,
+        'good',
+      );
+    }
 
     recordForm.reset();
     recordForm.hidden = true;
@@ -249,7 +272,7 @@ recordForm.addEventListener('submit', async (event) => {
     urlInput.value = '';
     chosen.clear();
     renderChosen();
-    lookupStatus.textContent = 'Add another.';
+    lookupStatus.textContent = 'Send another.';
     fillCount();
   } catch (error) {
     say(escapeHtml(error.message), 'bad');

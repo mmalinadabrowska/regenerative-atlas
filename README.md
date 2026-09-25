@@ -191,6 +191,36 @@ Cloudflare Pages, an S3 bucket and `python3 -m http.server` all serve it the sam
 and so does `server/index.js`. `404.html` is picked up as the not-found page by most of
 them without being asked.
 
+## Taking entries in
+
+The site can be served as files, and a folder of files cannot be added to. So
+the one thing it cannot do by itself is done by four small functions in
+[`api/`](api/) — the same validator, the same vocabulary, no framework — and
+what comes through them is **queued rather than published**: written to a
+`submissions` table in the Supabase project, announced to the curator by email,
+and put on the map only by a decision.
+
+```
+  a submission on           /api/sources         written to the submissions
+  the website        ───▶   on the host    ───▶  queue, and nowhere else
+                                                          │
+                                                          ▼
+  on the map at the        the scheduled        one email, one link, one
+  next publish       ◀───  publish rebuilds ◀── page with two buttons
+                           the snapshot
+```
+
+The review link carries a token that is a key to one submission and to nothing
+else — it cannot list the queue, read another entry, or touch the library — and
+the decision is a POST rather than a link, because inboxes are full of scanners
+that open every URL in a message.
+
+It is all opt-in: with no Supabase project the form says so plainly instead of
+swallowing a contribution, and with no mail key the queue still fills, it just
+fills quietly. **[docs/submissions.md](docs/submissions.md)** is the setup, end
+to end, and `/api/health` on the deployed site says in booleans which halves are
+wired up.
+
 ## Deploying
 
 Put it behind a reverse proxy and give it a persistent volume for `data/`.

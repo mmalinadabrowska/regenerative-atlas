@@ -11,6 +11,12 @@ import { mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { resolveTags } from './vocabulary.js';
+// Kept next door so the adapters and the host's functions can key a URL the
+// same way without opening a database; re-exported because everything that
+// already asks this module for it is still right to.
+import { urlKey } from './keys.js';
+
+export { urlKey };
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 export const DEFAULT_DB_PATH = process.env.ATLAS_DB ?? resolve(ROOT, 'data', 'atlas.db');
@@ -59,30 +65,6 @@ CREATE VIRTUAL TABLE IF NOT EXISTS sources_fts USING fts5(
   tokenize='unicode61'
 );
 `;
-
-/**
- * Normalise a URL for de-duplication: same paper submitted twice, once with
- * tracking params and once without, should be one node on the map.
- */
-export function urlKey(rawUrl) {
-  let u;
-  try {
-    u = new URL(String(rawUrl).trim());
-  } catch {
-    return String(rawUrl).trim().toLowerCase();
-  }
-  const host = u.hostname.toLowerCase().replace(/^www\./, '');
-  const params = new URLSearchParams();
-  for (const [k, v] of u.searchParams) {
-    if (/^(utm_|fbclid|gclid|mc_cid|mc_eid|ref|source)/i.test(k)) continue;
-    params.append(k, v);
-  }
-  params.sort();
-  const query = params.toString();
-  let path = u.pathname.replace(/\/+$/, '');
-  if (path === '') path = '/';
-  return `${host}${path}${query ? `?${query}` : ''}`;
-}
 
 export function openDatabase(path = DEFAULT_DB_PATH) {
   if (path !== ':memory:') mkdirSync(dirname(path), { recursive: true });

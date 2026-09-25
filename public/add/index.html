@@ -41,6 +41,12 @@
     <h1 class="wordmark" style="font-size:clamp(2rem,4.5vw,3.2rem)">Add</h1>
     <p class="blurb">Upload your regenerative design references, texts, papers. Paste a link and
       the Atlas will find it — you only need to check what it found and add a short summary.</p>
+    <!-- Said at the start rather than at the end: somebody about to write a
+         summary should know before they write it that a person will read it,
+         and roughly when it will appear. -->
+    <p class="blurb" style="color:var(--ink-55)">The Atlas is curated. What you send goes to the
+      curator, who reads it and decides — so it joins the map shortly after, rather than the
+      moment you press the button.</p>
   </div>
 
   <div id="notice"></div>
@@ -98,9 +104,19 @@
 
     <label class="field" style="max-width:22rem;margin-top:2rem"><span>Your name or handle</span>
       <input name="contributor" maxlength="120" placeholder="Optional">
+      <p class="field__hint">An email address here means the curator can write back
+        about your entry. A name is enough if you would rather not.</p>
     </label>
 
-    <p><button class="label" type="submit" id="submit-button">Add to the Atlas</button></p>
+    <!-- Nobody can see this and nobody will fill it in. A machine working its
+         way down the form will, which is the whole point: the submission is
+         thanked and dropped. Hidden from assistive technology too, so it is
+         never read out to somebody who would then have to wonder about it. -->
+    <div class="honeypot" aria-hidden="true">
+      <label>Website<input name="website" type="text" tabindex="-1" autocomplete="off"></label>
+    </div>
+
+    <p><button class="label" type="submit" id="submit-button">Send to the Atlas</button></p>
   </form>
 </main>
 

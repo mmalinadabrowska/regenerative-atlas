@@ -1,0 +1,78 @@
+# Bringing the accepted entries out onto the map.
+#
+# The site is static. What it draws is public/data/snapshot.json, a baked copy
+# of the library that is committed to this repository — which is why the Atlas
+# can be served from anywhere, and why accepting a submission does not, by
+# itself, put it on the map. Accepting writes it to the Supabase project; this
+# is what carries it the last step, on its own, about once an hour:
+#
+#   seed a fresh database  →  pull the project into it  →  bake the snapshot
+#   →  commit it if it changed, which is the push the host redeploys from.
+#
+# It reads with the anon key, which is the read-only one, and which is all this
+# needs: the published library is public by policy. The service role key — the
+# one that writes — is not here and has no business being here.
+#
+# Set two repository secrets to turn this on (Settings → Secrets and variables
+# → Actions): SUPABASE_URL and SUPABASE_ANON_KEY. Without them the run stops at
+# the first step and says so, rather than quietly publishing nothing.
+
+name: publish
+
+on:
+  schedule:
+    # Seventeen past, rather than on the hour, where every other scheduled job
+    # in the world is queuing.
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+# One at a time: two runs racing each other would each commit a snapshot built
+# without the other's entries.
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+
+      - name: Is there a project to publish from?
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "::error::No Supabase secrets are set, so there is nothing to publish from."
+            exit 1
+          fi
+
+      - name: Build the library from the project
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          npm run reset
+          npm run supabase pull
+          npm run build-static
+
+      - name: Commit the snapshot, if it moved
+        run: |
+          if git diff --quiet -- public/data/snapshot.json; then
+            echo "Nothing new — the map already shows everything the project holds."
+            exit 0
+          fi
+          git config user.name  'Regenerative Atlas'
+          git config user.email 'actions@users.noreply.github.com'
+          git add public/data/snapshot.json
+          git commit \
+            -m 'Publish the library as it stands' \
+            -m 'Built from the Supabase project by the scheduled publish, so that entries accepted since the last one are on the map.'
+          git push

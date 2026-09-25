@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Review · Regenerative Atlas</title>
+<!-- Not for the index, and not for anybody's logs: the token in this address
+     is the key to one submission, and a referrer header would hand it to
+     whatever site the entry links to the moment it is clicked. -->
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<link rel="preload" as="font" type="font/woff2" crossorigin
+      href="/fonts/tremplin/webfont/Tremplin-Regular.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin
+      href="/fonts/enby-gertrude/webfonts/woff2/Enby_Gertrude_roman.woff2">
+<link rel="stylesheet" href="/styles/atlas.css">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+</head>
+<body class="page">
+
+<header class="topbar">
+  <div class="topbar__id">
+    <a class="atlas-mark" href="/" aria-label="Regenerative Atlas home">
+      <svg viewBox="-11 -11 22 22" aria-hidden="true" focusable="false">
+        <path d="M -5 -5 A 5 5 0 0 1 5 -5 A 5 5 0 0 1 5 5 A 5 5 0 0 1 -5 5 A 5 5 0 0 1 -5 -5 Z"/>
+      </svg>
+    </a>
+    <a class="topbar__brand" href="/">Regenerative Atlas</a>
+  </div>
+  <span class="topbar__count" data-waiting></span>
+</header>
+
+<main class="sheet sheet--narrow">
+  <div class="masthead masthead--left" style="padding-inline:0">
+    <h1 class="wordmark" style="font-size:clamp(2rem,4.5vw,3.2rem)">An entry, waiting</h1>
+    <p class="blurb">Somebody has sent this to the Atlas. It is not on the map and will not be
+      until you say so. Read it as a stranger would — then accept it, or don't.</p>
+  </div>
+
+  <div id="review" class="review" aria-live="polite">
+    <p class="review__status">Fetching it…</p>
+  </div>
+</main>
+
+<script type="module" src="/js/review.js"></script>
+</body>
+</html>

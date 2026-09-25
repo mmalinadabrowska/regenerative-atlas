@@ -11,6 +11,16 @@
 let snapshot = typeof window !== 'undefined' ? window.__ATLAS_SNAPSHOT__ ?? null : null;
 let snapshotRequest = null;
 
+/**
+ * A single-file build carries the library inside it, and has nowhere to send a
+ * submission — no origin, sometimes not even a network. A folder of pages on a
+ * host is a different thing: the library it reads is baked, but the host may
+ * still answer a POST, which is exactly how the Atlas takes entries on the web.
+ * So reads falling back to the snapshot no longer means writes are off; only
+ * being the inlined copy does.
+ */
+const inlined = snapshot !== null;
+
 async function baked() {
   if (snapshot) return snapshot;
   if (!snapshotRequest) {
@@ -29,6 +39,14 @@ async function request(path, options) {
   });
   const body = await response.json().catch(() => null);
   if (!response.ok) {
+    // No endpoint at all reads differently from an endpoint that refused: this
+    // copy of the Atlas is pages and a snapshot, with nothing behind them.
+    if (!body?.error && [404, 405, 501].includes(response.status)) {
+      throw new Error(
+        'This copy of the Atlas has no way to take an entry in — it is a snapshot of the library, ' +
+          'served as files. Send the link to the curator instead.',
+      );
+    }
     throw new Error(body?.error ?? `The Atlas could not answer (${response.status}).`);
   }
   return body;
@@ -119,9 +137,13 @@ export const api = {
   graph: (params = {}) =>
     read(`/api/graph?${new URLSearchParams(params)}`, (baked_) => narrowGraph(baked_.graph, params)),
   describe: (url) =>
-    snapshot ? unavailable() : request('/api/describe', { method: 'POST', body: JSON.stringify({ url }) }),
+    inlined ? unavailable() : request('/api/describe', { method: 'POST', body: JSON.stringify({ url }) }),
   submit: (source) =>
-    snapshot ? unavailable() : request('/api/sources', { method: 'POST', body: JSON.stringify(source) }),
+    inlined ? unavailable() : request('/api/sources', { method: 'POST', body: JSON.stringify(source) }),
+  /** One queued submission, read by the token that came in the curator's email. */
+  review: (token) => request(`/api/review?token=${encodeURIComponent(token)}`),
+  decide: (token, decision) =>
+    request('/api/review', { method: 'POST', body: JSON.stringify({ token, decision }) }),
 };
 
 /** Escape anything that came from a contributor before it touches innerHTML. */

@@ -129,6 +129,64 @@ async function writeThrough(source) {
     };
   }
 }
+/**
+ * Reading and deciding one queued submission.
+ *
+ * Both return [status, body] so the router stays a router. Neither touches
+ * SQLite: a submission from the web was never written here, and accepting one
+ * writes it to the project — this machine catches up on the next pull, the
+ * same way it catches up on everything else.
+ */
+async function reviewRead(token) {
+  if (!supabase.configured()) return [503, { error: 'This Atlas keeps no queue — it is not connected to a project.' }];
+  const entry = await supabase.submission(String(token ?? '').trim());
+  if (!entry) return [404, { error: 'No entry answers to that link. It may have been reviewed already.' }];
+  return [200, { entry: forReview(entry), waiting: await supabase.waiting() }];
+}
+
+async function reviewWrite(body) {
+  if (!supabase.configured()) return [503, { error: 'This Atlas keeps no queue — it is not connected to a project.' }];
+  const decision = body?.decision === 'accept' ? 'accept' : 'decline';
+  const result = await supabase.decide(String(body?.token ?? '').trim(), decision);
+  if (!result.ok) {
+    return [
+      result.entry ? 409 : 404,
+      { error: result.entry ? `This one was ${result.reason.replace('already ', '')} already.` : 'No entry answers to that link.' },
+    ];
+  }
+  // Straight into the local copy as well, so the map in front of the curator
+  // shows what they have just accepted without waiting for a pull. The
+  // decision is already made and already written; this is a convenience, and a
+  // convenience that fails must not take the decision down with it.
+  if (decision === 'accept') {
+    try {
+      atlasRef?.addSource({ ...result.entry, tags: result.entry.tags ?? [] });
+    } catch (error) {
+      console.error('[atlas] accepted, but the local copy could not take it:', error.message);
+    }
+  }
+  return [200, { decision, entry: forReview(result.entry), waiting: await supabase.waiting() }];
+}
+
+/** What the review page may see. Not the token — it already holds that. */
+const forReview = (entry) => ({
+  status: entry.status,
+  url: entry.url,
+  title: entry.title,
+  authors: entry.authors,
+  publisher: entry.publisher,
+  year: entry.year,
+  summary: entry.summary,
+  note: entry.note,
+  contributor: entry.contributor,
+  tags: entry.tags ?? [],
+  submittedAt: entry.created_at,
+  reviewedAt: entry.reviewed_at,
+});
+
+/** The open database, for the two helpers above; set when the server is made. */
+let atlasRef = null;
+
 const describeLimit = createLimiter({ capacity: 20, refillPerMinute: 20 });
 
 const clientKey = (req) =>
@@ -175,6 +233,7 @@ async function serveStatic(req, res, pathname) {
 }
 
 export function createAtlasServer(atlas) {
+  atlasRef = atlas;
   return createServer(async (req, res) => {
     const url = new URL(req.url, `http://${req.headers.host ?? 'localhost'}`);
     const { pathname, searchParams } = url;
@@ -195,6 +254,13 @@ export function createAtlasServer(atlas) {
               return sendJson(res, 200, handlers.graph(atlas, searchParams));
             case '/api/stats':
               return sendJson(res, 200, handlers.stats(atlas));
+            // The queue is the website's, not this machine's — an entry sent
+            // from the web waits in the project, and is reviewed against it.
+            // Served here too so the curator can work the queue from a laptop
+            // with the Atlas running in front of them, rather than only from
+            // the deployment the email happened to come from.
+            case '/api/review':
+              return sendJson(res, ...(await reviewRead(searchParams.get('token'))));
             case '/api/export.json':
               return send(res, 200, JSON.stringify(exportJson(atlas), null, 2), {
                 'content-disposition': 'attachment; filename="regenerative-atlas.json"',
@@ -222,6 +288,9 @@ export function createAtlasServer(atlas) {
               return sendJson(res, 429, { error: 'One question at a time — try again in a moment.' });
             }
             return sendJson(res, 200, handlers.ask(atlas, body));
+          }
+          if (pathname === '/api/review') {
+            return sendJson(res, ...(await reviewWrite(body)));
           }
           if (pathname === '/api/sources') {
             if (!submitLimit(clientKey(req))) {

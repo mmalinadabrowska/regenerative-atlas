@@ -69,3 +69,44 @@ create policy "read tags" on tags for select using (true);
 
 drop policy if exists "read source tags" on source_tags;
 create policy "read source tags" on source_tags for select using (true);
+
+-- ---------------------------------------------------------------------------
+-- Submissions: where an entry waits.
+--
+-- The Atlas is curated, and its form is open to anyone, so the two facts have
+-- to meet somewhere. They meet here: a submission from the site is written to
+-- this table and nowhere else, the curator is emailed, and only a decision
+-- moves the record across into `sources`, where the map can see it.
+--
+-- `token` is what stands for the entry in that email — a long random string,
+-- unguessable, and the only key to the review page. It is not a password and
+-- is not tied to a person: whoever holds the link decides.
+
+create table if not exists submissions (
+  id          bigint generated always as identity primary key,
+  token       text not null unique,
+  status      text not null default 'pending' check (status in ('pending', 'accepted', 'declined')),
+  url         text not null,
+  url_key     text not null,
+  title       text not null,
+  authors     text not null default '',
+  publisher   text not null default '',
+  year        integer,
+  summary     text not null default '',
+  note        text not null default '',
+  contributor text not null default '',
+  tags        text[] not null default '{}',
+  source_id   bigint references sources(id) on delete set null,
+  created_at  timestamptz not null default now(),
+  reviewed_at timestamptz
+);
+
+create index if not exists idx_submissions_status on submissions(status);
+create index if not exists idx_submissions_url_key on submissions(url_key);
+
+-- Security by absence: the table has row-level security on and no policy at
+-- all, so the anon key — the one a browser may hold — can neither read the
+-- queue nor write to it. Only the service role, which bypasses these rules and
+-- lives on the server, can. An unreviewed submission is somebody's half-formed
+-- suggestion; it is not published, and it is not public.
+alter table submissions enable row level security;

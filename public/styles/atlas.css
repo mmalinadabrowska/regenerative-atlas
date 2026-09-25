@@ -1672,3 +1672,106 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
+
+/* A field for machines only. Taken out of the layout rather than hidden with
+   `display:none`, which the more careful sort of bot knows to skip. */
+.honeypot {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* --- the review page -------------------------------------------------------
+   One submission, read the way a stranger would read it, and a decision. It is
+   set narrow and quiet on purpose: this page is not part of the Atlas anybody
+   browses, it is the moment before something joins it. */
+
+.sheet--narrow { max-width: 46rem; }
+
+.review { margin-top: 2.5rem; }
+
+.review__status {
+  font-family: var(--display);
+  font-size: 1.05rem;
+  color: var(--ink-55);
+}
+
+.review__status.is-bad { color: var(--red); }
+.review__status.is-good { color: var(--ink); }
+
+.review__entry {
+  border-top: var(--stroke) solid var(--ink);
+  padding-top: 1.5rem;
+}
+
+.review__entry h2 {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(1.5rem, 3.2vw, 2.1rem);
+  line-height: 1.2;
+  margin: 0 0 0.4rem;
+}
+
+.review__cite { margin: 0 0 0.35rem; color: var(--ink-55); }
+
+.review__link { margin: 0 0 1.5rem; font-family: var(--sans); font-size: 0.9rem; }
+
+.review__prose { margin: 0 0 1.4rem; max-width: 40ch; line-height: 1.55; }
+
+.review__note {
+  border-left: var(--stroke) solid var(--ink-32);
+  padding-left: 1rem;
+  margin: 0 0 1.6rem;
+  max-width: 40ch;
+}
+
+.review__note h3, .review__tags h3 {
+  font-family: var(--sans);
+  font-weight: 400;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-55);
+  margin: 0 0 0.4rem;
+}
+
+.review__note p { margin: 0; line-height: 1.55; }
+
+.review__tags { margin: 0 0 1.2rem; }
+
+.review__tags ul {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+}
+
+/* A chip here is a label, not a control: nothing happens if you press it. */
+.review__tags li.chip { cursor: default; }
+
+.review__by {
+  margin: 1.6rem 0 0;
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  color: var(--ink-55);
+}
+
+.review__decide {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 2.25rem 0 0.9rem;
+}
+
+.review__caveat {
+  margin: 0;
+  max-width: 44ch;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--ink-55);
+}

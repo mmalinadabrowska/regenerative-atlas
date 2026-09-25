@@ -19,7 +19,10 @@
  * exactly what it was: a SQLite file you can delete.
  */
 
-import { urlKey } from './db.js';
+import { randomBytes } from 'node:crypto';
+
+import { urlKey } from './keys.js';
+import { resolveTags } from './vocabulary.js';
 
 const trimSlash = (value) => String(value ?? '').replace(/\/+$/, '');
 
@@ -196,4 +199,123 @@ export async function pushAll(atlas, { onProgress } = {}) {
     onProgress?.(sent, sources.length, source);
   }
   return sent;
+}
+
+// --- the submission queue ---------------------------------------------------
+//
+// The Atlas is curated and its form is open to anyone, so an entry from the
+// site is not added — it is queued. These four calls are the whole of that:
+// put one in, read one back, count what is waiting, and decide. Nothing here
+// touches SQLite: the queue lives in the project, because the machine that
+// receives a submission on the web is not the machine the map is drawn on, and
+// may not exist a second later.
+
+/** A key for one submission: unguessable, and the only way back to it. */
+export function reviewToken() {
+  return randomBytes(24).toString('base64url');
+}
+
+const QUEUE_FIELDS =
+  'id,token,status,url,url_key,title,authors,publisher,year,summary,note,contributor,tags,source_id,created_at,reviewed_at';
+
+/**
+ * Put a submission in the queue.
+ *
+ * A link already waiting is not queued twice — the second person to find the
+ * same paper is told it is already with the curator rather than made to feel
+ * ignored, and the curator is not asked the same question twice.
+ */
+export async function queue(submission) {
+  const key = urlKey(submission.url);
+
+  const waiting = await rest(
+    `submissions?url_key=eq.${encodeURIComponent(key)}&status=eq.pending&select=${QUEUE_FIELDS}&limit=1`,
+  );
+  if (waiting.length > 0) return { entry: waiting[0], queued: false, reason: 'already waiting' };
+
+  const [entry] = await rest(`submissions?select=${QUEUE_FIELDS}`, {
+    method: 'POST',
+    prefer: 'return=representation',
+    body: [
+      {
+        token: reviewToken(),
+        url: submission.url,
+        url_key: key,
+        title: submission.title,
+        authors: submission.authors ?? '',
+        publisher: submission.publisher ?? '',
+        year: submission.year ?? null,
+        summary: submission.summary ?? '',
+        note: submission.note ?? '',
+        contributor: submission.contributor ?? '',
+        tags: submission.tags ?? [],
+      },
+    ],
+  });
+  return { entry, queued: true };
+}
+
+/** Whether this link is already in the published library. */
+export async function published(url) {
+  const rows = await rest(
+    `sources?url_key=eq.${encodeURIComponent(urlKey(url))}&select=id,title&limit=1`,
+  );
+  return rows[0] ?? null;
+}
+
+/** One submission, by the token in the email. Null if the token is not a key to anything. */
+export async function submission(token) {
+  if (!token) return null;
+  const rows = await rest(
+    `submissions?token=eq.${encodeURIComponent(token)}&select=${QUEUE_FIELDS}&limit=1`,
+  );
+  return rows[0] ?? null;
+}
+
+/** How many are waiting — for the line at the top of a review page. */
+export async function waiting() {
+  const rows = await rest('submissions?status=eq.pending&select=id');
+  return rows.length;
+}
+
+/**
+ * Accept or decline one.
+ *
+ * Accepting writes the record across into `sources`, where the map can see it,
+ * and only then marks the submission — so a failure halfway leaves the entry
+ * still pending and reviewable rather than accepted and lost. Deciding twice is
+ * not an error: the second answer is told what the first one was.
+ */
+export async function decide(token, decision) {
+  if (decision !== 'accept' && decision !== 'decline') {
+    throw new SupabaseError(0, `A submission is accepted or declined, not "${decision}".`);
+  }
+
+  const entry = await submission(token);
+  if (!entry) return { ok: false, reason: 'no such submission' };
+  if (entry.status !== 'pending') {
+    return { ok: false, reason: `already ${entry.status}`, entry };
+  }
+
+  let sourceId = null;
+  if (decision === 'accept') {
+    // Resolved rather than passed through: the vocabulary knows a slug's label
+    // and which facet it belongs to, and a record that reaches the project
+    // without them is a record the map cannot file.
+    const tags = resolveTags(entry.tags ?? []);
+    const written = await push({ ...entry, tags, status: 'published', origin: 'submitted' });
+    sourceId = written.id;
+  }
+
+  const [updated] = await rest(`submissions?token=eq.${encodeURIComponent(token)}&select=${QUEUE_FIELDS}`, {
+    method: 'PATCH',
+    prefer: 'return=representation',
+    body: {
+      status: decision === 'accept' ? 'accepted' : 'declined',
+      reviewed_at: new Date().toISOString(),
+      source_id: sourceId,
+    },
+  });
+
+  return { ok: true, decision, entry: updated ?? entry, sourceId };
 }
