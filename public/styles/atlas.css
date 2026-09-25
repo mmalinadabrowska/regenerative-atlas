@@ -75,26 +75,21 @@
   --display: 'Enby Gertrude', 'EB Garamond', 'Hoefler Text', Garamond, Georgia, 'Times New Roman', serif;
   --sans: 'Tremplin', 'Century Gothic', Questrial, Futura, 'Avenir Next', 'Segoe UI', system-ui, sans-serif;
 
-  /* How far the type has to come down to sit in the middle of a button.
+  /* How far the type comes down to sit in the middle of a button.
 
-     Centring a line of type centres its *line box*, and a line box is cap
-     height plus a descender well that "Recentre" and "Explore" and "+" never
-     use — so the ink ends up above the middle and every pill on the site read
-     as slightly top-heavy. What should be centred is the band the letters
-     actually occupy, cap to baseline.
+     Zero, in the end. The argument for a drop is that centring a line of type
+     centres its *line box*, and a line box is cap height plus a descender well
+     that "Recentre" and "+" never use — so the ink should sit a little low to
+     come out even, cap to baseline. The argument is sound and the result was
+     wrong: at 0.14em the words read as sitting low on every pill on the site,
+     in the drawer's tags, in the filter bar and on the navigation's capsules
+     alike, because what the eye centres in a pill is the whole word, descenders
+     and all, not the band above the baseline. Trusting the line box is what the
+     browser already does.
 
-     The number is measured rather than derived. Tremplin's metrics as the
-     canvas reports them say 0.10em, and at 0.10em the type still sat two
-     thirds of a pixel high: what a font tells you about its ascent is not
-     quite what the browser lays a line box out with. So the drop was swept
-     until the ink above a capital and the ink below its baseline came out
-     even, and 0.14em is where that happens. What is left is a third of a
-     pixel, and it differs a little from button to button because each one's
-     padding rounds to the device grid its own way — no single constant can
-     take that out.
-
-     Drawings are exempt: a mark is already centred on what it is. */
-  --type-drop: 0.14em;
+     Kept as a token rather than deleted, because the correction is a real one
+     for a face whose descenders are deep, and the place to make it is here. */
+  --type-drop: 0em;
 
   --gutter: clamp(1.25rem, 4vw, 4.5rem);
   --rule: 1px solid var(--ink-14);
@@ -241,6 +236,12 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   gap: 0.7rem;
 }
 
+/* The one place on the site that does not take the type drop. Everywhere else
+   a pill is drawn around a line of type and the drop settles the ink into the
+   middle of it; here the capsule is drawn from the anchor's own box, so the
+   drop moves the type down inside a shape that did not move with it, and the
+   words sat low on the curve. Symmetric padding puts them back on its
+   centreline. */
 [data-connected-nav] > a {
   position: relative;
   z-index: 1;
@@ -249,7 +250,7 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   justify-content: center;
   text-align: center;
   background: var(--paper);
-  padding: calc(0.37em + var(--type-drop)) 1.05em calc(0.37em - var(--type-drop));
+  padding: 0.37em 1.05em;
   border: var(--stroke) solid var(--ink);
   border-radius: 999px;
   font-size: 0.95rem;
@@ -418,7 +419,7 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 .hero {
   position: relative;
   width: 100%;
-  max-width: calc((100svh - 10rem) * 16 / 9);
+  max-width: calc((100svh - 5rem) * 16 / 9);
   aspect-ratio: 16 / 9;
   margin: 0 auto;
   container-type: inline-size;
@@ -476,7 +477,11 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 
 /* Centring is done with `translate` rather than `transform`, so the hover below
    has `scale` to itself and does not have to know how the button is placed. */
+/* The way in is set in the display face, like the name above it: it is the
+   Atlas speaking, not the interface. Every other button on the site is the
+   interface, and stays in the sans. */
 .hero__atlas {
+  font-family: var(--display);
   position: absolute;
   left: 50%;
   top: 56.5%;
@@ -522,24 +527,22 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   color: var(--ink);
 }
 
-.landing-foot {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem 2rem;
-  align-items: baseline;
-  justify-content: space-between;
-  padding: 1.25rem var(--gutter) 1.75rem;
-  font-family: var(--display);
-  font-size: 0.88rem;
-  color: var(--ink-80);
+/* Her name is the one link in the line, so it is underlined rather than left
+   to be discovered by hovering. */
+.hero__curator a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: from-font;
 }
 
-.landing-foot p { margin: 0; }
-
-/* The type credit the font's licence asks for — set small, because it is a
-   colophon: there to be found rather than to be read on the way past. */
-.landing-foot__type {
+/* The type credit the licence asks for — set small and put at the very bottom
+   of the page about the Atlas, because it is a colophon: there to be found
+   rather than to be read on the way past. */
+.colophon {
   max-width: 52ch;
+  margin: 4rem 0 0;
+  font-family: var(--display);
   font-size: 0.66rem;
   line-height: 1.5;
   color: var(--ink-55);
@@ -564,7 +567,7 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
        the slack, so the sum is the viewport rather than the content. */
     flex: 1 1 auto;
     min-height: 0;
-    padding: clamp(1rem, 3.4svh, 2.5rem) var(--gutter) clamp(0.6rem, 1.8svh, 1.5rem);
+    padding: clamp(1rem, 3.4svh, 2.5rem) var(--gutter) clamp(1.25rem, 4svh, 3rem);
     /* The drawing is wider than the phone and is meant to run off both edges. */
     overflow: hidden;
   }
@@ -668,16 +671,6 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
     font-size: clamp(0.85rem, 1.9svh, 0.95rem);
   }
 
-  /* The colophon holds the bottom of the screen rather than a scroll of its
-     own, so it is set as small as it can be and still be read. */
-  .landing-foot {
-    flex-direction: column;
-    gap: 1rem;
-    flex: 0 0 auto;
-    padding: 0 var(--gutter) clamp(0.6rem, 1.6svh, 1.25rem);
-  }
-
-  .landing-foot__type { font-size: 0.6rem; line-height: 1.45; }
 }
 
 /* --- generic page body --------------------------------------------------- */
