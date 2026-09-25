@@ -282,12 +282,23 @@ function tuckTags() {
   fill(filterBox, room - forPlaces);
 }
 
-/** What the first `count` chips in a box would take, gaps included. */
+/**
+ * What the first `count` chips in a box would take, gaps included.
+ *
+ * Measured in real widths rather than in `offsetWidth`, which is rounded to
+ * whole pixels — and rounded *down* as often as not. A box sized from those
+ * roundings comes out a fraction of a pixel short of its own contents, and
+ * since it clips what it cannot hold, the shortfall lands on the last chip:
+ * the right-hand curve of its capsule shaved flat against whatever stands
+ * next to it. A third of a pixel is all it takes to see.
+ */
+const widthOfChip = (chip) => chip.getBoundingClientRect().width;
+
 function widthOf(box, count) {
   const gap = parseFloat(getComputedStyle(box).columnGap) || 0;
   return [...box.children]
     .slice(0, count)
-    .reduce((total, chip) => total + chip.offsetWidth + gap, -gap);
+    .reduce((total, chip) => total + widthOfChip(chip) + gap, -gap);
 }
 
 /**
@@ -300,7 +311,7 @@ function fill(box, room) {
   let used = 0;
   let full = false;
   for (const chip of box.children) {
-    const width = chip.offsetWidth;
+    const width = widthOfChip(chip);
     if (full || used + width > room) {
       full = true;
       chip.hidden = true;
@@ -308,7 +319,10 @@ function fill(box, room) {
     }
     used += width + gap;
   }
-  const width = Math.max(used - gap, 0);
+  // Rounded up, never down: a box a hair narrower than what is in it clips the
+  // last chip, and the whole point of hiding what does not fit is that nothing
+  // is ever shown cut in half.
+  const width = Math.ceil(Math.max(used - gap, 0));
   box.style.flexBasis = `${width}px`;
   return width ? width + gap : 0;
 }
