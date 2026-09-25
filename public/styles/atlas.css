@@ -597,7 +597,12 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
     min-height: min(8.5rem, 20svh);
     max-height: 100vw;
     margin-top: clamp(0.5rem, 1.6svh, 1.25rem);
-    overflow: hidden;
+    /* The band decides how much room the drawing gets, not where it stops. A
+       mark cut off in a straight line above a paragraph reads as a picture
+       with an edge; the same mark running on under the words reads as a field
+       the words are standing in, which is what it is. So the marks pass behind
+       the type and are cut only by the page itself. */
+    overflow: visible;
   }
 
   /* A window on the field rather than the whole of it, centred on the clearing
