@@ -682,6 +682,17 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   width: 100%;
 }
 
+/* The pages that are read rather than used — About and Add — share one column,
+   the same width and in the same place on both, so that clicking between them
+   moves nothing but the words. The column is the sheet rather than a measure
+   set inside a wider one, which is what puts it in the middle of the page
+   instead of against the left of an invisible box. */
+.sheet--reading { max-width: 44rem; }
+
+/* Inside it nothing sets a width of its own: the column is the measure. */
+.sheet--reading .blurb,
+.sheet--reading .prose { max-width: none; }
+
 .section-head {
   display: flex;
   flex-wrap: wrap;
@@ -1369,8 +1380,10 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
    being told something rather than shown it.
    -------------------------------------------------------------------------- */
 
+/* The same measure as the .blurb above it: two different good measures on one
+   page still read as two columns that do not quite line up. */
 .prose {
-  max-width: 62ch;
+  max-width: 46ch;
   margin-top: 2.25rem;
   font-family: var(--display);
   font-size: clamp(1rem, 1.2vw, 1.12rem);
