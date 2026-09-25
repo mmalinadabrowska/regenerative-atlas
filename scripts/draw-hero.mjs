@@ -65,8 +65,9 @@ const MARGIN = 16;
  */
 function keepClear(mark) {
   for (const box of reserved) {
-    // A stretched blot reaches further down than its radius says.
-    const reach = (mark.guard ?? mark.r) + MARGIN;
+    // A stretched blot reaches further down than its radius says, and a mark
+    // that orbits reaches a swing's width further in every direction.
+    const reach = (mark.guard ?? mark.r) + (mark.swing ?? 0) + MARGIN;
     const left = box.x - reach;
     const right = box.x + box.w + reach;
     const top = box.y - reach;
@@ -97,6 +98,15 @@ const at = (x, y) => ({
  * is still a shape, and the field should look like a library with room in it.
  * `tall` stretches a blot the way several of them are drawn, taller than wide.
  */
+/**
+ * How wide a mark's orbit is. Further out from the button means a wider circle,
+ * the way the outer track of anything turning is the longer one, and a bigger
+ * mark carries a little more than a small one so the field does not read as
+ * grit blowing about. Known before the marks are placed, because what a mark
+ * sweeps through is part of what has to be kept off the words.
+ */
+const swingOf = (x, y, r) => 8 + r * 0.2 + Math.hypot(x - HERE.x, y - HERE.y) * 0.012;
+
 const design = [
   [633, 295, 9, { tall: 1.25 }],
   [737, 341, 12],
@@ -124,6 +134,7 @@ const blots = design.map(([x, y, r, options = {}], i) => keepClear({
   ...at(x, y),
   r: r * SCALE,
   guard: r * SCALE * (options.tall ?? 1),
+  swing: swingOf(at(x, y).x, at(x, y).y, r * SCALE),
   tall: options.tall ?? 1,
   seed: `field:blot:${i}`,
   wash: options.wash === false ? 'none' : washFor((i * 7) % WASH_COUNT),
@@ -135,23 +146,27 @@ const crosses = [
   [633, 367, 8], [932, 412, 4], [521, 439, 4], [467, 497, 4],
   [745, 602, 8], [380, 631, 4], [517, 637, 8], [816, 627, 4],
   [713, 643, 4], [418, 686, 4],
-].map(([x, y, r]) => keepClear({ ...at(x, y), r: r * SCALE }));
+].map(([x, y, r]) => keepClear({ ...at(x, y), r: r * SCALE, swing: swingOf(at(x, y).x, at(x, y).y, r * SCALE) }));
 
 /* --- the drift ------------------------------------------------------------ */
 
 /*
- * The field breathes, the way the map's islands do.
+ * The field turns around the way in.
  *
- * On the map each blot wanders a few pixels around where the simulation left
- * it, on its own slow period: cos(t * rate) across and sin(t * rate * 0.8)
- * down, which is a Lissajous figure rather than a circle — the two axes never
- * quite come back into step, so no two marks ever trace the same loop.
+ * Every mark travels a small circle, all of them the same way round and at
+ * nearly the same rate — and each one starts at the point of its circle that
+ * matches where it sits around the button. Set like that the circles compose:
+ * the field reads as one slow current going round 'Open the Atlas' rather than
+ * as twenty marks each fidgeting on its own. Nothing travels far — a mark ends
+ * every lap where it began, so the composition read off the design sheet is
+ * still the composition, and the words stay in the clear.
  *
- * The same figure, in CSS, out of two animations on two elements: the outer
- * one sways across, the inner one down, on a period a quarter longer. They
- * compose, and 1 : 1.25 is the map's 1 : 0.8 the other way up. The easing is
- * the sine curve's own bezier, so the marks are slowest at the ends of the
- * swing, as a pendulum is.
+ * A circle, in CSS, out of two animations on two elements: the outer one moves
+ * across, the inner one down, on the same period with the inner one a quarter
+ * of a lap behind. Across is the cosine and down is the sine, which is a
+ * circle. The easing is the sine curve's own bezier, so each axis is slowest at
+ * the ends of its swing, which is what makes the pair come out round rather
+ * than square.
  *
  * It lives inside the SVG because the SVG is loaded as an image: script cannot
  * reach in there, and does not have to — this is CSS, and CSS in an image runs.
@@ -165,16 +180,16 @@ const crosses = [
  */
 const DRIFT = `<style>
   .x { animation: swayX var(--t) cubic-bezier(0.37, 0, 0.63, 1) var(--d) infinite; }
-  .y { animation: swayY var(--ty) cubic-bezier(0.37, 0, 0.63, 1) var(--dy) infinite; }
+  .y { animation: swayY var(--t) cubic-bezier(0.37, 0, 0.63, 1) var(--dy) infinite; }
 
   @keyframes swayX {
-    from, to { translate: var(--ax) 0; }
-    50%      { translate: calc(var(--ax) * -1) 0; }
+    from, to { translate: var(--a) 0; }
+    50%      { translate: calc(var(--a) * -1) 0; }
   }
 
   @keyframes swayY {
-    from, to { transform: translateY(var(--ay)); }
-    50%      { transform: translateY(calc(var(--ay) * -1)); }
+    from, to { transform: translateY(var(--a)); }
+    50%      { transform: translateY(calc(var(--a) * -1)); }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -183,24 +198,27 @@ const DRIFT = `<style>
 </style>`;
 
 /**
- * One mark's share of the drift: how far it wanders, how long it takes, and
- * how far through that it already is. Small marks move less than large ones —
- * a sway the width of its own body reads as a jitter rather than as a breath —
- * and the phases come from the seed, so the field never pulses in unison.
+ * One mark's share of the turn: how wide its circle is, how long a lap takes,
+ * and how far round it already is.
  *
- * The swing is about seven pixels on a laptop at the widest, which is roughly
- * what a blot on the map moves; the field should be as alive as the thing it
- * is a picture of. Short enough periods that a reader who stops to look sees
- * it happen, long enough that it never asks to be watched.
+ * The phase is the mark's own bearing from the button, so at any moment the
+ * whole field is at the same point of its rotation — that is what makes twenty
+ * separate circles read as one thing going round. The periods differ by a few
+ * seconds across the field, which keeps it from locking into a wheel, and the
+ * laps are short enough that somebody arriving on the page sees it moving
+ * rather than has to wait to be shown.
  */
-function drift(seed, r) {
+function drift(seed, r, x, y) {
   const n = (salt, span) => (seedOf(`${seed}:${salt}`) % span) / span;
-  const across = 4.6 + r * 0.2;
-  const period = 18 + n('t', 1000) * 14;
+  const across = swingOf(x, y, r);
+  const period = 11 + n('t', 1000) * 4;
+  // Its bearing from the button, as a fraction of a lap, played back as a
+  // head start. Negative, so the animation begins already that far in.
+  const bearing = (Math.atan2(y - HERE.y, x - HERE.x) / (Math.PI * 2) + 1) % 1;
+  const start = -(bearing * period + n('d', 1000) * 0.5);
   return (
-    `--ax:${round(across)}px;--ay:${round(across * 0.78)}px;` +
-    `--t:${round(period)}s;--ty:${round(period * 1.25)}s;` +
-    `--d:-${round(n('d', 1000) * period)}s;--dy:-${round(n('e', 1000) * period * 1.25)}s`
+    `--a:${round(across)}px;--t:${round(period)}s;` +
+    `--d:${round(start)}s;--dy:${round(start - period / 4)}s`
   );
 }
 
@@ -213,6 +231,8 @@ const blotMarks = blots.map((blot) => {
   return `  <g class="x" transform="translate(${round(blot.x)} ${round(blot.y)})" style="${drift(
     blot.seed,
     blot.r,
+    blot.x,
+    blot.y,
   )}"><g class="y"><path fill="${blot.wash}"${stretch} d="${blobPath(seedOf(blot.seed), blot.r, {
     lobes: 8,
     wobble: 0.85,
@@ -226,6 +246,8 @@ const crossMarks = crosses.map(({ x, y, r }, i) => {
   return `  <g class="x" transform="translate(${round(x)} ${round(y)})" style="${drift(
     `field:cross:${i}`,
     r,
+    x,
+    y,
   )}"><g class="y">
     <circle r="${round(r)}"/>
     <path d="M 0 ${-arm} V ${arm} M ${-arm} 0 H ${arm}"/>

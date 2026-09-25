@@ -1450,7 +1450,13 @@ export function createConstellation(canvas, options = {}) {
     // buys a gentler coastline everywhere.
     const drawn = [];
     const pad = Math.max(22 * view.k, 14);
-    const step = Math.max(9 * view.k, 6);
+    // The lattice does not answer to the zoom. It is pinned to the middle of
+    // the frame and ruled at a fixed spacing, so it behaves like a texture in
+    // the paper rather than like part of the drawing: zooming in enlarges the
+    // island and shows more of the same hatching, instead of sliding it. A
+    // spacing that scaled meant every line moved as you zoomed, and a hundred
+    // lines moving at once is the whole ground crawling.
+    const step = 9;
 
     for (const [cluster, members] of groups) {
       if (members.length < 2) continue;
@@ -1464,7 +1470,8 @@ export function createConstellation(canvas, options = {}) {
       // The fill is drawn straight onto the canvas and clipped to the outline:
       // cheaper than a pattern, and it stays put when the map is panned because
       // it is laid out in screen space with the marks.
-      const weight = Math.max(0.55 * view.k, 0.45);
+      // Fixed with the spacing it belongs to, for the same reason.
+      const weight = 0.55;
       ctx.strokeStyle = 'rgba(16,15,13,0.16)';
       ctx.fillStyle = 'rgba(16,15,13,0.22)';
       ctx.lineWidth = weight;
