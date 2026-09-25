@@ -762,10 +762,19 @@ function renderSearchResults() {
   }
 
   const nodes = state.graph?.nodes ?? [];
-  // A theme is listed when it is what you typed. Research is listed whenever it
-  // survived the search, which is what surviving the search means.
-  const themes = nodes.filter((n) => n.type === 'tag' && n.label.toLowerCase().includes(query));
+  // Everything the map is showing, because the drawer is a reading of the map
+  // and a reading that leaves things out is a different map. So: every theme
+  // still standing out there, not only the ones whose names happen to contain
+  // what was typed — the rest are what this research is filed under, which is
+  // the answer as much as the name is. What you typed leads, and behind it the
+  // company it keeps, heaviest first.
   const sources = nodes.filter((n) => n.type === 'source');
+  const themes = nodes
+    .filter((n) => n.type === 'tag')
+    .sort((a, b) => {
+      const named = (t) => (t.label.toLowerCase().includes(query) ? 0 : 1);
+      return named(a) - named(b) || (b.weight ?? 0) - (a.weight ?? 0) || a.label.localeCompare(b.label);
+    });
 
   if (themes.length === 0 && sources.length === 0) {
     panelBody.innerHTML = `<p class="panel__meta">Nothing in the library matches
