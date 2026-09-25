@@ -930,7 +930,11 @@ function showSearch() {
   renderSearchResults();
   openPanel();
   if (isSheet()) setSheet('open');
-  searchInput.focus();
+  // Without preventScroll the browser scrolls whatever holds the field until the
+  // field is in view — and on a phone, with the sheet still sliding up, that is
+  // the map's own frame: it was scrolled 412px, taking the drawer's head off the
+  // top of the screen with it. The sheet brings the field into view by itself.
+  searchInput.focus({ preventScroll: true });
   searchOpen.setAttribute('aria-expanded', 'true');
   shown = { kind: 'search' };
 }

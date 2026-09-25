@@ -1354,7 +1354,12 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 .panel__search::-webkit-search-decoration { -webkit-appearance: none; display: none; }
 
 .panel__search::placeholder { color: var(--head-ink); opacity: 0.6; }
-.panel__search:focus { outline: none; box-shadow: 0 0 0 1px var(--head-ink); }
+/* The same line as the link button beside it and nothing added on focus: a
+   ring drawn outside the border to say "you are typing here" made the field
+   read a weight heavier than every other outline in the head, while the caret
+   was already saying it. */
+.panel__search { -webkit-appearance: none; appearance: none; }
+.panel__search:focus { outline: none; box-shadow: none; }
 
 /* The search head is the field and the way out, and nothing else. */
 .panel[data-kind='search'] .panel__glyph,
