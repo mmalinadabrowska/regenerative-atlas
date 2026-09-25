@@ -1068,6 +1068,37 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
    in the row falls between the two, which is where the difference is. */
 .map-zoom > :first-child { margin-left: auto; }
 
+/* Nothing found.
+   In the middle of the ground it would otherwise be drawn on, because that is
+   where you are looking when the map goes blank — not at the corner where the
+   legend lives. It takes no pointer events but its own button does, so the map
+   underneath can still be dragged out from under the message. */
+.map-empty {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: -50% -50%;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 0 var(--gutter);
+  text-align: center;
+  pointer-events: none;
+}
+
+.map-empty > * { pointer-events: auto; }
+
+.map-empty__text {
+  margin: 0;
+  max-width: 28ch;
+  font-family: var(--display);
+  font-size: clamp(1.05rem, 1.6vw, 1.3rem);
+  line-height: 1.45;
+  color: var(--ink-80);
+}
+
 .map-legend {
   position: absolute;
   left: var(--gutter);
@@ -1296,6 +1327,19 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 .panel__links a:hover, .panel__links a:focus-visible { border-color: var(--ink); }
 .panel__links small { display: block; color: var(--ink-55); font-size: 0.78rem; }
 .thread__name { flex: 1 1 auto; }
+
+/* Where the work is grounded, on its own line under the citation and set in
+   the interface's face rather than the book's: it is a fact about the record
+   rather than part of how the record cites itself, and a list is scanned down
+   this column. */
+.thread__place {
+  display: block;
+  margin-top: 0.15rem;
+  font-family: var(--sans);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  color: var(--ink-32);
+}
 
 /* The mark a piece of research wears on the map, worn again in the list — and
    pointed at, it fills in here exactly as it fills in out there. */

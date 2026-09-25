@@ -93,6 +93,14 @@
     </div>
   </div>
 
+  <!-- When the filters meet in a place the library has nothing in, the map is
+       empty ground and says nothing at all. This is what it says instead:
+       what happened, and the one way out of it. -->
+  <div class="map-empty" id="map-empty" role="status" hidden>
+    <p class="map-empty__text">Nothing found in the library matching your search.</p>
+    <button class="chip" id="map-empty-clear" type="button">Clear</button>
+  </div>
+
   <div class="map-legend" id="map-legend"></div>
 
   <aside class="panel" id="panel" aria-live="polite">

@@ -21,6 +21,8 @@ const resetButton = document.getElementById('map-reset');
 const zoomInButton = document.getElementById('map-in');
 const zoomOutButton = document.getElementById('map-out');
 const legend = document.getElementById('map-legend');
+const emptyState = document.getElementById('map-empty');
+const emptyClear = document.getElementById('map-empty-clear');
 const panel = document.getElementById('panel');
 const panelBody = document.getElementById('panel-body');
 const panelGlyph = document.getElementById('panel-glyph');
@@ -123,9 +125,13 @@ function placePanel() {
 
 if (window.ResizeObserver) {
   new ResizeObserver(placePanel).observe(controlsRow);
-  // How many tags fit is a question about width, so it is asked again whenever
-  // the width changes rather than only when the list does.
-  new ResizeObserver(tuckTags).observe(filterBox);
+  // How many tags fit is a question about the width of the row, so it is asked
+  // of the row. Asking it of the tag box instead was a question that answered
+  // itself: tucking pins that box to the width its chips used, so widening the
+  // window never changed it, the observer never fired again, and the tags that
+  // had been tucked away stayed away. The row is the thing that follows the
+  // window; its own width is not something tucking touches.
+  new ResizeObserver(tuckTags).observe(controlsRow);
 }
 window.addEventListener('resize', placePanel);
 placePanel();
@@ -170,6 +176,11 @@ async function load() {
     map.setGraph(graph);
     renderLegend(graph, map.opened?.());
     renderFilters();
+    // Only ever said about a search: an Atlas with nothing in it yet is a
+    // different situation with a different answer, and this is not it.
+    emptyState.hidden = !(
+      graph.stats.sources === 0 && (state.tags.size > 0 || Boolean(state.query))
+    );
   } catch (error) {
     legend.innerHTML = `<b>The map could not be drawn.</b> ${escapeHtml(error.message)}`;
   }
@@ -435,11 +446,44 @@ const tagChips = (slugs) =>
  * citation, under another piece of research by what the two share — because it
  * is the same thing being listed, and the mark is how you find it on the map.
  */
-const threadRow = (node, under) =>
-  `<li><a href="#" data-open="${escapeHtml(node.id)}">
+/**
+ * Where a piece of research is grounded, said the way a person would say it.
+ *
+ * A record carries the region with the country — that is what makes asking for
+ * Europe find the work filed under Denmark — so filed on it are both. Naming
+ * both on one line reads as a hierarchy nobody asked to see, so the region is
+ * dropped wherever somewhere inside it is already named: "UK", not "UK,
+ * Europe". A record grounded in two countries of the same region keeps both.
+ */
+function groundedIn(node) {
+  const slugs = node.places ?? [];
+  if (slugs.length === 0) return '';
+  const implied = new Set(slugs.map((slug) => placeWithin(slug)).filter(Boolean));
+  const named = slugs.filter((slug) => !implied.has(slug));
+  return (named.length ? named : slugs).map((slug) => labelOf(slug)).join(', ');
+}
+
+const placeWithin = (slug) => places.find((p) => p.slug === slug)?.within ?? null;
+
+/**
+ * One row of the research list: the mark, the name, and what it is to you. The
+ * row is the same wherever research is listed — under a tag it is named by its
+ * citation, under another piece of research by what the two share — because it
+ * is the same thing being listed, and the mark is how you find it on the map.
+ *
+ * Where it is grounded comes last and in its own ink: a fact about the work
+ * rather than part of its citation, and the one thing on the row you can scan
+ * a list by.
+ */
+const threadRow = (node, under) => {
+  const ground = groundedIn(node);
+  return `<li><a href="#" data-open="${escapeHtml(node.id)}">
     ${CROSSHAIR}
     <span class="thread__name">${escapeHtml(node.label)}
-      <small>${under}</small></span></a></li>`;
+      <small>${under}${
+        ground ? `<span class="thread__place">${escapeHtml(ground)}</span>` : ''
+      }</small></span></a></li>`;
+};
 
 /* --- taking the reading away ---------------------------------------------
    A record is a reading list, and a reading list you cannot take with you is
@@ -1043,12 +1087,17 @@ searchInput.addEventListener('input', () => {
   }, 260);
 });
 
-clearButton.addEventListener('click', () => {
+/** Back to the whole library: every filter dropped and the search emptied. */
+function clearFilters() {
   state.tags.clear();
   state.query = '';
   searchInput.value = '';
   load();
-});
+}
+
+// The same way out, offered in the two places you might be looking for it.
+clearButton.addEventListener('click', clearFilters);
+emptyClear.addEventListener('click', clearFilters);
 
 resetButton.addEventListener('click', () => map.reset());
 

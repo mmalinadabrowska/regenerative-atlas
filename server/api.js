@@ -8,7 +8,7 @@
 
 import { buildGraph } from './graph.js';
 import { describeUrl } from './metadata.js';
-import { CORE_TAGS, FACETS, FACET_ORDER, aliasIndex, isLocation, resolveTag, resolveTags } from './vocabulary.js';
+import { CORE_TAGS, FACETS, FACET_ORDER, aliasIndex, isLocation, regionOf, resolveTag, resolveTags } from './vocabulary.js';
 import { ask } from './ask.js';
 
 const LIMITS = {
@@ -83,13 +83,25 @@ export const handlers = {
   vocabulary() {
     return {
       facets: FACET_ORDER.map((key) => ({ key, ...FACETS[key] })),
-      tags: CORE_TAGS,
+      // A place carries the region it sits in, which is how asking for Europe
+      // finds the work filed under Denmark. Saying so here lets anything
+      // reading this vocabulary tell a country from the region it implies —
+      // naming both in one breath is how a record ends up reading
+      // "UK, Europe" where it meant "UK".
+      tags: CORE_TAGS.map((tag) =>
+        tag.facet === 'location' ? { ...tag, within: regionOf(tag.slug) } : tag,
+      ),
       aliases: aliasIndex(),
     };
   },
 
   tags(atlas) {
-    const tags = atlas.tagsWithCounts();
+    // A place carries the region it sits in — see the vocabulary's WITHIN —
+    // and anything showing a record's ground needs to know which of the two it
+    // is looking at, or it says "UK, Europe" where the record means "UK".
+    const tags = atlas.tagsWithCounts().map((tag) =>
+      tag.facet === 'location' ? { ...tag, within: regionOf(tag.slug) } : tag,
+    );
     const byFacet = FACET_ORDER.map((key) => ({
       key,
       ...FACETS[key],
