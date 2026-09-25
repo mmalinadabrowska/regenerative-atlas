@@ -492,8 +492,31 @@ export function createConstellation(canvas, options = {}) {
     for (const list of kinOf.values()) list.sort((x, y) => y.weight - x.weight);
 
     affinity = tagAffinity();
-    focused = null;
+
+    // What was open stays open, when the new library still holds it.
+    //
+    // The whole of this used to be `focused = null`, and `selected` was left
+    // pointing at a node from the library that has just been replaced. Reading
+    // a piece of research, adding a filter and taking it off again therefore
+    // came back to the islands with a record selected that was on none of them
+    // — and since what is selected is what everything else is faded around,
+    // the map came back with every island greyed out and nothing to un-grey it.
+    //
+    // So both are re-found by name in the new library. Still there: it is
+    // opened again, and the map returns to where you were reading. Gone from
+    // the library the filter left behind: both let go of, and the map comes
+    // back to the islands with nothing faded.
+    const open = focused?.id ?? selected?.id ?? null;
+    const again = open ? allById.get(open) ?? null : null;
+    focused = again;
+    selected = again && again.type === 'source' ? again : null;
+
     compose({ animate: false });
+
+    // Told after the arrangement exists, so whatever is listening reads the
+    // new counts rather than the ones the filter has just changed.
+    if (selected) onSelect(selected);
+    onFocus(focused);
   }
 
   /**
@@ -2050,6 +2073,37 @@ export function createConstellation(canvas, options = {}) {
     },
     /** What is currently open, or null for the islands. */
     opened: () => focused,
+    /**
+     * The arrangement as it stands, in plain numbers: where every mark is, how
+     * big, what shape, and what is tied to what. For anything that has to draw
+     * this view somewhere that is not this canvas — the printed record, above
+     * all — so that the picture on the page is the picture on the screen rather
+     * than a second implementation of it that drifts.
+     */
+    trace() {
+      return {
+        focused: focused?.id ?? null,
+        nodes: nodes.map((node) => ({
+          id: node.id,
+          type: node.type,
+          label: node.label,
+          x: node.x,
+          y: node.y,
+          r: node.radius,
+          blob: node.blob,
+          open: node.id === focused?.id,
+        })),
+        links: (drawLinks ? links : []).map((link) => ({
+          a: link.a.id,
+          b: link.b.id,
+          ax: link.a.x,
+          ay: link.a.y,
+          bx: link.b.x,
+          by: link.b.y,
+          kind: link.kind,
+        })),
+      };
+    },
     zoomBy(factor) {
       userAdjusted = true;
       const next = Math.min(4, Math.max(0.25, view.k * factor));

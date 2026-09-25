@@ -3,12 +3,13 @@
 import { api, citationLine, escapeHtml, fillCount, hostOf, usingSnapshot } from './api.js';
 import { createConstellation } from './constellation.js';
 import { blobPath, needsPaper, seedOf } from './ink.js';
-import { A4, Sheet, toBlob } from './pdf.js';
+import { A4, MM, Sheet, toBlob, widthOf as textWidth } from './pdf.js';
 
 const canvas = document.getElementById('constellation');
 const zoomCluster = document.querySelector('.map-zoom');
 const searchInput = document.getElementById('panel-search');
 const searchOpen = document.getElementById('map-search-open');
+const shareButton = document.getElementById('panel-share');
 const filterBox = document.getElementById('map-filters');
 const clearButton = document.getElementById('map-clear');
 const moreButton = document.getElementById('map-more');
@@ -40,6 +41,9 @@ const map = createConstellation(canvas, {
   onFocus: (node) => {
     if (node?.type === 'tag') showTag(node);
     renderLegend(state.graph, node);
+    // The address follows what is open, so the link in the bar is always the
+    // view on the screen rather than the one you started from.
+    writeUrl();
   },
   // The filter row floats over the canvas on wide screens; node names should
   // not be printed underneath it.
@@ -144,12 +148,25 @@ function readUrl() {
   state.tags = new Set(params.getAll('tag').flatMap((t) => t.split(',')).filter(Boolean));
   state.query = params.get('q') ?? '';
   searchInput.value = state.query;
+  // Opened once the library it names has arrived, which is why it is kept here
+  // rather than acted on now.
+  state.arriveAt = params.get('open') ?? null;
 }
 
+/**
+ * The address, kept as the map is read.
+ *
+ * Filters were always in it; what is open is too, so that the address in the
+ * bar is the view on the screen — the theme or the record whose drawer you are
+ * reading, and not only the library it was narrowed from. That is what makes
+ * the link worth sending.
+ */
 function writeUrl() {
   const params = new URLSearchParams();
   for (const tag of state.tags) params.append('tag', tag);
   if (state.query) params.set('q', state.query);
+  const open = map.opened?.()?.id;
+  if (open) params.set('open', open);
   const search = params.toString();
   history.replaceState(null, '', search ? `?${search}` : location.pathname);
 }
@@ -187,6 +204,14 @@ async function load() {
     );
     // The open search is a reading of this graph, so it is re-read with it.
     renderSearchResults();
+
+    // Somebody arriving on a shared link lands where the sender was standing.
+    // Once only: after that the map is theirs to move.
+    if (state.arriveAt) {
+      const going = state.arriveAt;
+      state.arriveAt = null;
+      map.open(going);
+    }
   } catch (error) {
     legend.innerHTML = `<b>The map could not be drawn.</b> ${escapeHtml(error.message)}`;
   }
@@ -581,6 +606,160 @@ const fileNameOf = (label) =>
 
 const MAX_THEMES = 8;
 
+/* The frame the map is printed in: the same size on every record, whatever is
+   in it. A picture that grew with its contents would give a sheaf of printed
+   records a different shape on every page, and a record is a document rather
+   than a poster. Taken from the design: 80mm by 62mm, at the left margin. */
+const FRAME = { width: 80 * MM, height: 62 * MM, pad: 5 * MM };
+
+/** A blot's smooth outline, resampled as points a PDF can draw straight to. */
+function blobOutline(points, cx, cy, scale, steps = 5) {
+  const n = points.length;
+  const at = (i) => points[((i % n) + n) % n];
+  const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    const start = mid(at(i), at(i + 1));
+    const control = at(i + 1);
+    const end = mid(at(i + 1), at(i + 2));
+    for (let step = 0; step < steps; step++) {
+      const t = step / steps;
+      const u = 1 - t;
+      const x = u * u * start[0] + 2 * u * t * control[0] + t * t * end[0];
+      const y = u * u * start[1] + 2 * u * t * control[1] + t * t * end[1];
+      out.push([cx + x * scale, cy + y * scale]);
+    }
+  }
+  return out;
+}
+
+/**
+ * The map, as it stands, drawn into the record.
+ *
+ * Black on white and nothing else: the washes tell one theme from another on a
+ * screen, and on a page they would be twelve greys saying nothing. What is left
+ * is the drawing — where the marks sit, what is tied to what, how big a theme
+ * is — which is what the picture was for.
+ *
+ * The frame is fixed and the map is fitted to it, never the other way round.
+ */
+function printGraph(sheet) {
+  const trace = map.trace?.();
+  if (!trace || trace.nodes.length === 0) return;
+
+  const marks = trace.nodes;
+
+  // Named: what you opened, and what is tied straight to it. Everything else in
+  // the frame is the company it keeps — thirty-three names in a box this size
+  // is a thicket, and the drawing is what the page is for. The same choice the
+  // map makes when it puts a name under a mark you are looking at.
+  const tied = new Set(
+    trace.links
+      .filter((link) => link.a === trace.focused || link.b === trace.focused)
+      .map((link) => (link.a === trace.focused ? link.b : link.a)),
+  );
+  const named = tied.size <= 12;
+  const namesFor = new Set(named ? [trace.focused, ...tied] : [trace.focused]);
+
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  for (const node of marks) {
+    minX = Math.min(minX, node.x - node.r);
+    minY = Math.min(minY, node.y - node.r);
+    maxX = Math.max(maxX, node.x + node.r);
+    // Room under a mark for the name that hangs off it.
+    maxY = Math.max(maxY, node.y + node.r + (namesFor.has(node.id) ? 9 : 0));
+  }
+
+  sheet.draw(FRAME.height, (pen, box) => {
+    // The frame is the width the design gives it, not the width of the column.
+    pen.box = { ...box, w: FRAME.width };
+    pen.frame({ grey: 0.55, width: 0.5 });
+
+    const room = { w: FRAME.width - FRAME.pad * 2, h: FRAME.height - FRAME.pad * 2 };
+    const scale = Math.min(room.w / Math.max(maxX - minX, 1), room.h / Math.max(maxY - minY, 1));
+    const ox = box.x + FRAME.pad + (room.w - (maxX - minX) * scale) / 2 - minX * scale;
+    const oy = box.y + FRAME.pad + (room.h - (maxY - minY) * scale) / 2 - minY * scale;
+    const at = (node) => [ox + node.x * scale, oy + node.y * scale];
+
+    // Lines first, so the marks sit on them rather than under them.
+    for (const link of trace.links) {
+      pen.line(ox + link.ax * scale, oy + link.ay * scale, ox + link.bx * scale, oy + link.by * scale, {
+        grey: 0.72,
+        width: 0.25,
+      });
+    }
+
+    // Names are placed after the marks and only where they will be read: a
+    // name that lands on another name is two names lost, and the drawing is
+    // worth more than the caption. Nearest the middle goes down first, since
+    // that is what the picture is about; the rest take what room is left.
+    const wanted = [];
+
+    for (const node of marks) {
+      const [x, y] = at(node);
+      // A floor in points, not in world units: a crosshair below about two
+      // points is a full stop, and the mark is the whole of what tells a piece
+      // of research from a theme on the page.
+      const r = Math.max(node.r * scale, node.type === 'tag' ? 2 : 2.3);
+      if (node.type === 'tag') {
+        const outline = node.blob
+          ? blobOutline(node.blob, x, y, r)
+          : null;
+        // Filled paper-white so a line running under a blot stops at its edge;
+        // the one you opened is filled grey, which is the only weight the page
+        // gives to what the screen gives a colour.
+        const paint = { grey: 0, width: node.open ? 0.8 : 0.55, fill: node.open ? 0.82 : 1 };
+        if (outline) pen.shape(outline, paint);
+        else pen.ring(x, y, r, paint);
+      } else {
+        pen.crosshair(x, y, r, { grey: 0, width: 0.45 });
+      }
+      if (node.label && namesFor.has(node.id)) {
+        wanted.push({ node, x, y: y + r + 4.6, size: node.open ? 5.6 : 4.6 });
+      }
+    }
+
+    const middle = { x: box.x + FRAME.width / 2, y: box.y + FRAME.height / 2 };
+    wanted.sort(
+      (a, c) =>
+        Number(c.node.open) - Number(a.node.open) ||
+        Math.hypot(a.x - middle.x, a.y - middle.y) - Math.hypot(c.x - middle.x, c.y - middle.y),
+    );
+
+    const placed = [];
+    for (const name of wanted) {
+      const w = textWidth(name.node.label, 'sans', name.size);
+      const rect = {
+        left: name.x - w / 2,
+        right: name.x + w / 2,
+        top: name.y - name.size,
+        bottom: name.y + name.size * 0.3,
+      };
+      const outside =
+        rect.left < box.x + 1 ||
+        rect.right > box.x + FRAME.width - 1 ||
+        rect.bottom > box.y + FRAME.height - 1;
+      const clashes = placed.some(
+        (had) =>
+          rect.left < had.right + 1 &&
+          rect.right > had.left - 1 &&
+          rect.top < had.bottom + 1 &&
+          rect.bottom > had.top - 1,
+      );
+      if (outside || clashes) continue;
+      placed.push(rect);
+      pen.label(name.node.label, name.x, name.y, {
+        size: name.size,
+        grey: name.node.open ? 0 : 0.3,
+      });
+    }
+  });
+  sheet.space(9);
+}
+
 function printRecord() {
   if (!shown) return;
   const { kind, node, sources, themes = [], places: grounded = [] } = shown;
@@ -608,6 +787,8 @@ function printRecord() {
     sheet.text(passage, { font: 'serif', size: 11, leading: 1.5, grey: 0.1 });
     sheet.space(8);
   }
+
+  printGraph(sheet);
 
   if (shelf.length) {
     sheet.text(kind === 'tag' ? 'CONNECTED THEMES' : 'FILED UNDER', { size: 7.5, grey: 0.4 });
@@ -1200,6 +1381,44 @@ function clearFilters() {
 // The same way out, offered in the two places you might be looking for it.
 clearButton.addEventListener('click', clearFilters);
 emptyClear.addEventListener('click', clearFilters);
+
+/**
+ * The link to here.
+ *
+ * `location` is already the answer — the address is kept as the map is read —
+ * so this is only the handing over of it. The clipboard is asked first and a
+ * hidden field is the fallback, because a page served from a file, or from
+ * inside an app's web view, has no clipboard to ask.
+ */
+async function copyLink() {
+  const link = location.href;
+  let done = false;
+  try {
+    await navigator.clipboard.writeText(link);
+    done = true;
+  } catch {
+    const field = document.createElement('textarea');
+    field.value = link;
+    field.setAttribute('readonly', '');
+    field.style.cssText = 'position:fixed;top:-1000px';
+    document.body.append(field);
+    field.select();
+    try {
+      done = document.execCommand('copy');
+    } catch {
+      done = false;
+    }
+    field.remove();
+  }
+
+  // Said on the button itself and then taken back: the whole message is that
+  // the link is on the clipboard, and a message that stays is a label.
+  shareButton.classList.toggle('is-copied', done);
+  if (done) setTimeout(() => shareButton.classList.remove('is-copied'), 1800);
+  else window.prompt('Copy this link to share the view', link);
+}
+
+shareButton.addEventListener('click', copyLink);
 
 resetButton.addEventListener('click', () => map.reset());
 

@@ -20,7 +20,7 @@
  * the reader will break it in exactly the same place.
  */
 
-const MM = 72 / 25.4;
+export const MM = 72 / 25.4;
 export const A4 = { width: 210 * MM, height: 297 * MM };
 
 /** The base fourteen, by the name a PDF knows them by, and their stand-ins. */
@@ -71,7 +71,7 @@ function literal(text) {
 
 let ruler = null;
 
-function widthOf(text, key, size) {
+export function widthOf(text, key, size) {
   if (!ruler) ruler = document.createElement('canvas').getContext('2d');
   const font = FONTS[key];
   ruler.font = `${font.weight} ${size}px ${font.css}`;
@@ -119,6 +119,75 @@ export function wrap(text, key, size, room) {
  * a page fills; the flip into the PDF's own upward coordinates happens once,
  * at the moment a line is written.
  */
+/**
+ * What draws inside a frame: lines, closed shapes, rings and small type.
+ *
+ * It records rather than writes — each mark is kept as what it is and turned
+ * into operators when the page is, so the one place that knows a page's height
+ * stays the one place that flips a coordinate.
+ *
+ * Everything is grey: a printed record is black on white, and the map's colours
+ * are a way of telling one theme from another on a screen, not information the
+ * page has to carry. What survives the loss of colour is the drawing itself.
+ */
+class Pen {
+  constructor(marks, box) {
+    this.marks = marks;
+    this.box = box;
+  }
+
+  line(x1, y1, x2, y2, { grey = 0.55, width = 0.3 } = {}) {
+    this.marks.push({ kind: 'line', x1, y1, x2, y2, grey, width });
+    return this;
+  }
+
+  /** A closed shape through a run of points, drawn as it is given. */
+  shape(points, { grey = 0, width = 0.7, fill = null } = {}) {
+    if (points.length > 1) this.marks.push({ kind: 'shape', points, grey, width, fill });
+    return this;
+  }
+
+  ring(cx, cy, r, { grey = 0, width = 0.7, fill = null } = {}) {
+    this.marks.push({ kind: 'ring', cx, cy, r, grey, width, fill });
+    return this;
+  }
+
+  /** The mark a piece of research wears: a ring with a cross inside it. */
+  crosshair(cx, cy, r, { grey = 0, width = 0.7 } = {}) {
+    const arm = r * 0.82;
+    this.ring(cx, cy, r, { grey, width });
+    this.line(cx - arm, cy, cx + arm, cy, { grey, width });
+    this.line(cx, cy - arm, cx, cy + arm, { grey, width });
+    return this;
+  }
+
+  /** The frame itself. Drawn from `this.box`, which a caller may narrow. */
+  frame({ grey = 0.55, width = 0.5 } = {}) {
+    const { x, y, w, h } = this.box;
+    this.marks.push({
+      kind: 'shape',
+      points: [
+        [x, y],
+        [x + w, y],
+        [x + w, y + h],
+        [x, y + h],
+      ],
+      grey,
+      width,
+      fill: null,
+    });
+    return this;
+  }
+
+  /** Small type inside the drawing. `align` is 'left', 'centre' or 'right'. */
+  label(text, x, y, { size = 5, grey = 0.25, font = 'sans', align = 'centre' } = {}) {
+    const width = widthOf(text, font, size);
+    const at = align === 'centre' ? x - width / 2 : align === 'right' ? x - width : x;
+    this.marks.push({ kind: 'text', text, x: at, y, size, grey, font });
+    return this;
+  }
+}
+
 export class Sheet {
   constructor({ size = A4, margin = 15 * MM } = {}) {
     this.size = size;
@@ -164,6 +233,28 @@ export class Sheet {
     }
   }
 
+  /**
+   * A framed drawing, at a fixed size on the page.
+   *
+   * The frame is the point: a picture that grows and shrinks with what it holds
+   * gives a sheaf of printed records a different shape on every page, and a
+   * record is a document rather than a poster. So the box is always the same,
+   * and what goes in it is fitted to the box.
+   *
+   * The hand is given coordinates measured from the top of the page like
+   * everything else here; the flip into the PDF's upward coordinates happens
+   * once, where the page is written out.
+   */
+  draw(height, paint) {
+    this.reserve(height + 2);
+    const box = { x: this.margin, y: this.y, w: this.room, h: height };
+    const marks = [];
+    paint(new Pen(marks, box), box);
+    this.page.push({ marks });
+    this.y += height;
+    return box;
+  }
+
   rule({ grey = 0, width = 0.4, gap = 0 } = {}) {
     this.y += gap;
     if (this.y + 2 > this.floor) this.break();
@@ -176,10 +267,70 @@ export class Sheet {
 
 const bytes = (text) => new TextEncoder().encode(text);
 
+/** A circle, in the four curves PDF has for one. */
+const KAPPA = 0.5522847498;
+
+function circleOps(cx, cy, r, flip) {
+  const k = r * KAPPA;
+  const y = (v) => flip(v);
+  return [
+    `${(cx - r).toFixed(2)} ${y(cy).toFixed(2)} m`,
+    `${(cx - r).toFixed(2)} ${y(cy - k).toFixed(2)} ${(cx - k).toFixed(2)} ${y(cy - r).toFixed(2)} ${cx.toFixed(2)} ${y(cy - r).toFixed(2)} c`,
+    `${(cx + k).toFixed(2)} ${y(cy - r).toFixed(2)} ${(cx + r).toFixed(2)} ${y(cy - k).toFixed(2)} ${(cx + r).toFixed(2)} ${y(cy).toFixed(2)} c`,
+    `${(cx + r).toFixed(2)} ${y(cy + k).toFixed(2)} ${(cx + k).toFixed(2)} ${y(cy + r).toFixed(2)} ${cx.toFixed(2)} ${y(cy + r).toFixed(2)} c`,
+    `${(cx - k).toFixed(2)} ${y(cy + r).toFixed(2)} ${(cx - r).toFixed(2)} ${y(cy + k).toFixed(2)} ${(cx - r).toFixed(2)} ${y(cy).toFixed(2)} c`,
+  ];
+}
+
+/** Stroke, fill, or both — whichever the mark asked for. */
+const paintOp = (mark, closed) =>
+  mark.fill !== null && mark.fill !== undefined ? (closed ? 'b' : 'B') : closed ? 's' : 'S';
+
+function markOps(mark, flip) {
+  const y = (v) => flip(v).toFixed(2);
+  const parts = [];
+  if (mark.fill !== null && mark.fill !== undefined) parts.push(`${mark.fill.toFixed(2)} g`);
+  if (mark.kind !== 'text') parts.push(`${mark.grey.toFixed(2)} G`, `${mark.width} w`);
+
+  if (mark.kind === 'line') {
+    parts.push(
+      `${mark.x1.toFixed(2)} ${y(mark.y1)} m`,
+      `${mark.x2.toFixed(2)} ${y(mark.y2)} l`,
+      'S',
+    );
+  } else if (mark.kind === 'shape') {
+    const [first, ...rest] = mark.points;
+    parts.push(`${first[0].toFixed(2)} ${y(first[1])} m`);
+    for (const [px, py] of rest) parts.push(`${px.toFixed(2)} ${y(py)} l`);
+    parts.push(paintOp(mark, true));
+  } else if (mark.kind === 'ring') {
+    parts.push(...circleOps(mark.cx, mark.cy, mark.r, flip), paintOp(mark, true));
+  } else if (mark.kind === 'text') {
+    parts.push(
+      `${mark.grey.toFixed(2)} g`,
+      'BT',
+      `/${mark.font} ${mark.size} Tf`,
+      `${mark.x.toFixed(2)} ${y(mark.y)} Td`,
+      `(${literal(mark.text)}) Tj`,
+      'ET',
+    );
+  }
+  return parts;
+}
+
 function contentOf(page, height) {
   const parts = [];
   let grey = null;
   for (const item of page) {
+    // A drawing keeps its own colours and line weights, and hands them back:
+    // whatever the type around it had set is no longer what is set.
+    if (item.marks) {
+      parts.push('q');
+      for (const mark of item.marks) parts.push(...markOps(mark, (v) => height - v));
+      parts.push('Q');
+      grey = null;
+      continue;
+    }
     if (item.grey !== grey) {
       grey = item.grey;
       parts.push(`${grey.toFixed(2)} g`, `${grey.toFixed(2)} G`);
