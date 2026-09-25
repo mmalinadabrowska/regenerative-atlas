@@ -1203,6 +1203,7 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 /* --- the title bar -------------------------------------------------------- */
 
 .panel__head {
+  position: relative;
   flex: 0 0 auto;
   display: flex;
   align-items: flex-start;
@@ -1233,9 +1234,10 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
    title runs to one line or three: a box exactly one line tall, aligned to the
    top of the type, with the drawing centred inside it. Nudged by hand it drifts
    the moment the type changes size. */
-/* The share, in the head beside the way out: a filled disc, because the head
-   it sits on is already the record's colour and an outline on a wash reads as
-   a hole rather than as a button. */
+/* The share, in the head beside the way out. An empty circle with the mark
+   drawn in it, like every other round button on the site: the head is already
+   the record's own colour, and a filled disc on top of it reads as a second
+   thing sitting on the bar rather than as a control on it. */
 .panel__share {
   flex: 0 0 auto;
   display: flex;
@@ -1245,42 +1247,60 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   height: 1.7rem;
   margin-top: calc((var(--title-line) - 1.7rem) / 2);
   padding: 0;
-  border: none;
+  background: none;
+  border: var(--stroke) solid currentColor;
   border-radius: 999px;
-  background: var(--head-ink);
-  color: var(--head);
+  color: inherit;
   cursor: pointer;
-  transition: opacity 140ms ease;
+  transition: background 140ms ease, color 140ms ease;
 }
 
 .panel__share svg {
-  width: 0.95rem;
-  height: 0.95rem;
+  width: 0.92rem;
+  height: 0.92rem;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.9;
   stroke-linecap: round;
 }
 
-.panel__share:hover, .panel__share:focus-visible { opacity: 0.72; }
+/* Filled only while pointed at, the way the rest of them are. */
+@media (hover: hover) {
+  .panel__share:hover { background: var(--head-ink); color: var(--head); }
+}
+.panel__share:focus-visible { background: var(--head-ink); color: var(--head); }
 
-/* Said, then gone: the whole message is that the link is on the clipboard. */
-.panel__share.is-copied::after {
-  content: 'Link copied';
+/* What happened, said under the bar and then taken back. It is always in the
+   page and always transparent, because a message that is created when it is
+   needed has nothing to fade from — and the fade is the whole of the manners
+   here: long enough to read, gone without being dismissed. */
+.panel__said {
   position: absolute;
   top: 100%;
-  right: 0;
-  margin-top: 0.4rem;
-  padding: 0.25rem 0.6rem;
+  right: 0.9rem;
+  z-index: 2;
+  margin-top: 0.45rem;
+  padding: calc(0.3em + var(--type-drop)) 0.75em calc(0.3em - var(--type-drop));
   background: var(--ink);
   color: var(--paper);
   font-family: var(--sans);
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   border-radius: 999px;
   white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  translate: 0 -0.25rem;
+  transition: opacity 260ms ease, translate 260ms ease;
 }
 
-.panel__share { position: relative; }
+.panel__said.is-said {
+  opacity: 1;
+  translate: 0 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel__said { transition-duration: 1ms; }
+}
 
 .panel__glyph, .panel__close {
   flex: 0 0 auto;

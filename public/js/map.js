@@ -10,6 +10,7 @@ const zoomCluster = document.querySelector('.map-zoom');
 const searchInput = document.getElementById('panel-search');
 const searchOpen = document.getElementById('map-search-open');
 const shareButton = document.getElementById('panel-share');
+const said = document.getElementById('panel-said');
 const filterBox = document.getElementById('map-filters');
 const clearButton = document.getElementById('map-clear');
 const moreButton = document.getElementById('map-more');
@@ -1382,6 +1383,16 @@ function clearFilters() {
 clearButton.addEventListener('click', clearFilters);
 emptyClear.addEventListener('click', clearFilters);
 
+let saying;
+
+/** Say something under the drawer's head, and take it back once it is read. */
+function tell(words) {
+  said.textContent = words;
+  said.classList.add('is-said');
+  clearTimeout(saying);
+  saying = setTimeout(() => said.classList.remove('is-said'), 2200);
+}
+
 /**
  * The link to here.
  *
@@ -1411,11 +1422,13 @@ async function copyLink() {
     field.remove();
   }
 
-  // Said on the button itself and then taken back: the whole message is that
-  // the link is on the clipboard, and a message that stays is a label.
-  shareButton.classList.toggle('is-copied', done);
-  if (done) setTimeout(() => shareButton.classList.remove('is-copied'), 1800);
-  else window.prompt('Copy this link to share the view', link);
+  if (!done) {
+    window.prompt('Copy this link to share the view', link);
+    return;
+  }
+  // Said under the bar and then taken back. A message that stays is a label,
+  // and this is not a label — it is the answer to a press.
+  tell('Copied to clipboard');
 }
 
 shareButton.addEventListener('click', copyLink);
