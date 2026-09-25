@@ -109,7 +109,12 @@ export function capsulePath(cap, cy, r) {
 }
 
 function draw(container) {
-  const items = [...container.querySelectorAll('[data-connect]')];
+  // Only the ones actually on the row. A link hidden at this width — Explore is,
+  // on a phone — has no box, and a box of no height dragged into the geometry
+  // puts the centreline nowhere and the curve with it.
+  const items = [...container.querySelectorAll('[data-connect]')].filter(
+    (item) => item.getBoundingClientRect().height > 0,
+  );
   if (items.length === 0) return;
 
   const box = container.getBoundingClientRect();

@@ -1642,17 +1642,44 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   .atlas-mark { width: 2.3rem; height: 2.3rem; }
   .atlas-mark svg { width: 1.15rem; height: 1.15rem; }
 
+  /* The name gives up a little rather than the sections: at 360px the mark and
+     the two capsules leave it about 127 pixels, and "Regenerative Atla…" is a
+     worse thing to read than the whole name set slightly smaller. It takes its
+     full size back as soon as the screen can hold it. */
   .topbar__brand {
-    font-size: 1rem;
+    font-size: clamp(0.88rem, 3.8vw, 1rem);
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .topbar__count { margin-left: auto; text-align: right; }
+  /* On a phone the bar is two things, not three: who this is, and where else
+     to go. The count goes — a number nobody is going to act on is the first
+     thing to give up its room — and the sections take the right-hand end,
+     drawn exactly as they are on a wide screen.
+
+     Pushed there with a margin rather than placed there by a grid: this bar is
+     a flex row at this width, not the three-column grid it is on a wide
+     screen, and `justify-self` on a flex item is a line that does nothing. */
+  .topbar__count { display: none; }
 
   /* Written against the bar as well as the attribute, because `.topbar nav`
      further up the sheet already claims a display and would keep it. */
-  .topbar nav[data-connected-nav] { display: none; }
+  .topbar nav[data-connected-nav] {
+    display: inline-flex;
+    margin-left: auto;
+    flex-wrap: nowrap;
+    /* Tighter than on a wide screen, and still wide enough for the fillet
+       between two capsules to have something to curve through. */
+    gap: 0.5rem;
+  }
+
+  /* Explore is the map, and on a phone the map is where the Atlas' own mark
+     leads and where the way in on the landing page goes. Two capsules fit the
+     bar beside the name; three do not, and a name cut to "Regenera…" to make
+     room for a third is a worse bar than one with two. */
+  .topbar nav[data-connected-nav] > a[href='/map/'] { display: none; }
+
+  .topbar nav[data-connected-nav] > a { font-size: 0.9rem; }
 
   /* On a phone the record is a sheet at the bottom of the map rather than a
      card beside it: it comes up showing its title bar and the line under it,
