@@ -77,19 +77,31 @@
 
   /* How far the type comes down to sit in the middle of a button.
 
-     Zero, in the end. The argument for a drop is that centring a line of type
-     centres its *line box*, and a line box is cap height plus a descender well
-     that "Recentre" and "+" never use — so the ink should sit a little low to
-     come out even, cap to baseline. The argument is sound and the result was
-     wrong: at 0.14em the words read as sitting low on every pill on the site,
-     in the drawer's tags, in the filter bar and on the navigation's capsules
-     alike, because what the eye centres in a pill is the whole word, descenders
-     and all, not the band above the baseline. Trusting the line box is what the
-     browser already does.
+     Centring a line of type centres its *line box*, and a line box is cap
+     height plus a descender well that "Recentre" and "+" barely use — so
+     without a correction the ink sits high, and every pill on the site reads
+     as top-heavy.
 
-     Kept as a token rather than deleted, because the correction is a real one
-     for a face whose descenders are deep, and the place to make it is here. */
-  --type-drop: 0em;
+     The number is measured rather than argued. The word in each kind of pill
+     is swapped for capitals, so the band being measured is cap height exactly
+     with no ascender above it and no descender below, and the drop is swept
+     while the middle of that band is compared with the middle of the capsule.
+     At zero the ink sat between 1.3 and 1.8 pixels high in every family — the
+     buttons on the About page, the tags on Themes, the filter chips on the
+     map. At 0.14em it had gone past the middle on some of them. 0.12em is
+     where the worst case is smallest: about a third of a pixel high on the
+     buttons and a quarter low on the chips.
+
+     What is left differs from pill to pill because type is painted on whole
+     pixels: the position moves in steps of one, so no single constant can
+     take the last fraction out of all of them at once.
+
+     The navigation's capsules are exempt and set symmetrically — the curve
+     round them is drawn from the anchor's own box, so a drop moves the type
+     inside a shape that did not move with it.
+
+     Drawings are exempt too: a mark is already centred on what it is. */
+  --type-drop: 0.12em;
 
   --gutter: clamp(1.25rem, 4vw, 4.5rem);
   --rule: 1px solid var(--ink-14);
