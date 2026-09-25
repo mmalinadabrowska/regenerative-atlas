@@ -675,9 +675,10 @@ function printGraph(sheet) {
   }
 
   sheet.draw(FRAME.height, (pen, box) => {
-    // The frame is the width the design gives it, not the width of the column.
+    // The frame is a measure, not a line: it fixes where the drawing sits and
+    // how much room it has — the same on every record — and then gets out of
+    // the way. Drawn, it boxed the map in on a page that has no other box on it.
     pen.box = { ...box, w: FRAME.width };
-    pen.frame({ grey: 0.55, width: 0.5 });
 
     const room = { w: FRAME.width - FRAME.pad * 2, h: FRAME.height - FRAME.pad * 2 };
     const scale = Math.min(room.w / Math.max(maxX - minX, 1), room.h / Math.max(maxY - minY, 1));

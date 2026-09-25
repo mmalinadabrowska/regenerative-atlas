@@ -161,24 +161,6 @@ class Pen {
     return this;
   }
 
-  /** The frame itself. Drawn from `this.box`, which a caller may narrow. */
-  frame({ grey = 0.55, width = 0.5 } = {}) {
-    const { x, y, w, h } = this.box;
-    this.marks.push({
-      kind: 'shape',
-      points: [
-        [x, y],
-        [x + w, y],
-        [x + w, y + h],
-        [x, y + h],
-      ],
-      grey,
-      width,
-      fill: null,
-    });
-    return this;
-  }
-
   /** Small type inside the drawing. `align` is 'left', 'centre' or 'right'. */
   label(text, x, y, { size = 5, grey = 0.25, font = 'sans', align = 'centre' } = {}) {
     const width = widthOf(text, font, size);
