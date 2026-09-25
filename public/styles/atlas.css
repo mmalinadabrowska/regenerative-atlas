@@ -1088,6 +1088,12 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   pointer-events: none;
 }
 
+/* `hidden` is a property, not a wish: a class that sets `display` outranks the
+   browser's own rule for a hidden element, so without this the message was
+   painted over every map whatever the script said about it. Any rule that
+   gives an element a display has to say what hiding it means. */
+.map-empty[hidden] { display: none; }
+
 .map-empty > * { pointer-events: auto; }
 
 .map-empty__text {
