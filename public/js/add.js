@@ -43,6 +43,13 @@ const slugify = (text) =>
     .slice(0, 48);
 
 /**
+ * A country, filed as its continent. Places on this form are the continents
+ * and Global only: a finer grain than that is more than one contributor can
+ * say with confidence, and it splits the map into islands of one.
+ */
+const regionFor = (slug) => vocabulary.tags.find((t) => t.slug === slug)?.within ?? slug;
+
+/**
  * Fold a written tag onto the vocabulary's own name for it, so the chip says
  * what will actually be stored. The server canonicalises again on submit and
  * remains the authority; this only spares the contributor the surprise.
@@ -53,10 +60,13 @@ function canonicalise(written) {
   if (!key) return null;
 
   const exact = vocabulary.tags.find((t) => loose(t.slug) === key || loose(t.label) === key);
-  if (exact) return { slug: exact.slug, foldedFrom: null };
+  if (exact) {
+    const slug = regionFor(exact.slug);
+    return { slug, foldedFrom: slug === exact.slug ? null : written };
+  }
 
   for (const [slug, forms] of Object.entries(vocabulary.aliases ?? {})) {
-    if (forms.some((form) => loose(form) === key)) return { slug, foldedFrom: written };
+    if (forms.some((form) => loose(form) === key)) return { slug: regionFor(slug), foldedFrom: written };
   }
   return { slug: slugify(written), foldedFrom: null };
 }
@@ -104,7 +114,7 @@ async function renderVocabulary() {
   vocabulary = await api.vocabulary();
   vocabularyBox.innerHTML = vocabulary.facets
     .map((facet) => {
-      const tags = vocabulary.tags.filter((t) => t.facet === facet.key);
+      const tags = vocabulary.tags.filter((t) => t.facet === facet.key && !t.within);
       if (tags.length === 0) return '';
       return `<div class="section-head" style="margin-top:1.5rem">
           <h2 style="font-size:1.1rem">${escapeHtml(facet.label)}</h2>
@@ -119,6 +129,7 @@ async function renderVocabulary() {
     })
     .join('');
   tagOptions.innerHTML = vocabulary.tags
+    .filter((tag) => !tag.within)
     .map((tag) => `<option value="${escapeHtml(tag.label)}"></option>`)
     .join('');
 }
@@ -164,9 +175,10 @@ lookupForm.addEventListener('submit', async (event) => {
           ? 'Read from the page. Check it, publishers are careless with metadata.'
           : 'That link would not tell us anything about itself, so fill it in by hand.';
 
-    suggestedBox.innerHTML = found.suggestedTags?.length
+    const suggested = [...new Set((found.suggestedTags ?? []).map(regionFor))];
+    suggestedBox.innerHTML = suggested.length
       ? `<p class="field__hint" style="margin-top:0">Suggested from the text:</p>
-         <div class="tag-cloud" style="margin-bottom:1rem">${found.suggestedTags
+         <div class="tag-cloud" style="margin-bottom:1rem">${suggested
            .map(
              (slug) => `<button class="tag tag--ghost" type="button" data-pick="${escapeHtml(slug)}">
                + ${escapeHtml(labelOf(slug))}</button>`,
@@ -212,9 +224,12 @@ freeTagInput.addEventListener('keydown', (event) => {
   addTag(resolved.slug);
   freeTagInput.value = '';
 
-  freeTagHint.textContent = resolved.foldedFrom
-    ? `“${resolved.foldedFrom}” is already in the vocabulary as ${labelOf(resolved.slug)}.`
-    : FREE_TAG_HINT;
+  const place = vocabulary.tags.find((t) => t.slug === resolved.slug)?.facet === 'location';
+  freeTagHint.textContent = !resolved.foldedFrom
+    ? FREE_TAG_HINT
+    : place
+      ? `Places are filed by continent, so “${resolved.foldedFrom}” goes in as ${labelOf(resolved.slug)}.`
+      : `“${resolved.foldedFrom}” is already in the vocabulary as ${labelOf(resolved.slug)}.`;
 });
 
 /* --- submit ------------------------------------------------------------- */
