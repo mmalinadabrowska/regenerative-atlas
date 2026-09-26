@@ -70,10 +70,12 @@ const wanted = (params) => ({
 });
 
 const matches = (source, { tags, query }) => {
-  // Places are filed on the record rather than among the tags the map draws
-  // from, and they are filtered on exactly like any other tag — so the
-  // snapshot has to look in both, or asking for the UK finds nothing.
-  const slugs = [...(source.tags ?? []), ...(source.places ?? [])].map((t) => t.slug ?? t);
+  // Places and formats are filed on the record rather than among the tags the
+  // map draws from, and they are filtered on exactly like any other tag — so
+  // the snapshot has to look in all three, or asking for the UK finds nothing.
+  const slugs = [...(source.tags ?? []), ...(source.places ?? []), ...(source.formats ?? [])].map(
+    (t) => t.slug ?? t,
+  );
   if (!tags.every((slug) => slugs.includes(slug))) return false;
   if (!query) return true;
   return [source.title ?? source.label, source.authors, source.publisher, source.summary]

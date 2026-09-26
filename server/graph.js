@@ -197,12 +197,18 @@ export function buildGraph(atlas, options = {}) {
   // the vocabulary is clustered, and off the ties that make two sources kin:
   // sharing a continent is not sharing a thought. They are still on the
   // record, still in the filter bar, and still what `filterTags` matched on.
+  //
+  // Formats go the same way. Being a report is not what a report argues, and
+  // two papers are not kin because both are papers: drawn, "Paper" was an
+  // island of everything peer-reviewed. They filter from their own menu.
   const rows = atlas.tagsWithCounts();
   const places = new Set(rows.filter((t) => t.facet === 'location').map((t) => t.slug));
+  const formats = new Set(rows.filter((t) => t.facet === 'format').map((t) => t.slug));
+  const offMap = (slug) => places.has(slug) || formats.has(slug);
   const tagMap = new Map(
     [...atlas.tagMap()]
       .filter(([id]) => allowed.has(id))
-      .map(([id, tags]) => [id, tags.filter((slug) => !places.has(slug))]),
+      .map(([id, tags]) => [id, tags.filter((slug) => !offMap(slug))]),
   );
   const idf = idfWeights(tagMap, sources.length || 1);
 
@@ -214,7 +220,7 @@ export function buildGraph(atlas, options = {}) {
   // everything" while the legend said "0 sources", and the reader was left to
   // work out which of the two to believe.
   const tagRows = rows
-    .filter((t) => t.facet !== 'location')
+    .filter((t) => !offMap(t.slug))
     .filter((t) => [...tagMap.values()].some((tags) => tags.includes(t.slug)));
   const tagCounts = new Map(tagRows.map((t) => [t.slug, t.count]));
   const liveTags = new Set(tagRows.map((t) => t.slug));
@@ -308,6 +314,8 @@ export function buildGraph(atlas, options = {}) {
         .map((t) => t.slug)
         .filter((slug) => places.has(slug))
         .sort((a, b) => (regionOf(b) ? 1 : 0) - (regionOf(a) ? 1 : 0)),
+      // And what kind of thing it is, which is on the record and not the map.
+      formats: (source.tags ?? []).map((t) => t.slug).filter((slug) => formats.has(slug)),
       cluster: clusterOfSource.get(source.id),
       weight: (tagMap.get(source.id) ?? []).length,
     });

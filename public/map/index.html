@@ -73,6 +73,16 @@
         <span class="chip--more__narrow">Location</span>
         <svg class="chip__caret" viewBox="0 0 12 8" aria-hidden="true" focusable="false"><path d="M1 1.5 6 6.5 11 1.5"/></svg>
       </button>
+      <!-- What kind of thing the work is. Not drawn on the map at all — a paper
+           is not a subject — so it is only ever a filter, and one menu is all
+           it needs: the button names the format chosen, or says Any. -->
+      <span class="tag-bar__name" id="format-bar-name">Format</span>
+      <button class="chip chip--more" id="map-format-more" type="button" aria-expanded="false"
+              aria-controls="format-drawer" aria-describedby="format-bar-name">
+        <span class="chip--more__wide" id="map-format-name">Any</span>
+        <span class="chip--more__narrow" id="map-format-short">Format</span>
+        <svg class="chip__caret" viewBox="0 0 12 8" aria-hidden="true" focusable="false"><path d="M1 1.5 6 6.5 11 1.5"/></svg>
+      </button>
       <!-- On a phone this cluster leaves the scrolling row and floats over the
            map, where it can always be reached. -->
       <div class="map-zoom">
@@ -101,6 +111,10 @@
 
     <div class="tag-drawer" id="place-drawer" hidden>
       <div class="tag-cloud" id="place-drawer-list" aria-label="Everywhere the library is grounded"></div>
+    </div>
+
+    <div class="tag-drawer" id="format-drawer" hidden>
+      <div class="tag-cloud" id="format-drawer-list" aria-label="Every kind of work in the library"></div>
     </div>
   </div>
 

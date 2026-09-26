@@ -20,6 +20,11 @@ const placeBox = document.getElementById('map-places');
 const placeMoreButton = document.getElementById('map-place-more');
 const placeDrawer = document.getElementById('place-drawer');
 const placeDrawerList = document.getElementById('place-drawer-list');
+const formatButton = document.getElementById('map-format-more');
+const formatName = document.getElementById('map-format-name');
+const formatShort = document.getElementById('map-format-short');
+const formatDrawer = document.getElementById('format-drawer');
+const formatDrawerList = document.getElementById('format-drawer-list');
 const resetButton = document.getElementById('map-reset');
 const zoomInButton = document.getElementById('map-in');
 const zoomOutButton = document.getElementById('map-out');
@@ -173,9 +178,17 @@ function writeUrl() {
 }
 
 function toggleTag(slug) {
-  if (state.tags.has(slug)) state.tags.delete(slug);
-  else state.tags.add(slug);
+  if (state.tags.has(slug)) {
+    state.tags.delete(slug);
+    return;
+  }
+  // One format at a time: a work is a paper or a report, and asking for both
+  // at once would find nothing. Choosing another replaces the one chosen.
+  if (isFormat(slug)) for (const other of formats) state.tags.delete(other.slug);
+  state.tags.add(slug);
 }
+
+const isFormat = (slug) => formats.some((t) => t.slug === slug);
 
 /* --- loading ------------------------------------------------------------ */
 
@@ -228,6 +241,8 @@ let vocabulary = [];
 // and the few the map is filtered by — the continents and Global.
 let grounds = [];
 let places = [];
+// What kind of work each is — paper, report, toolkit. Filtered on, never drawn.
+let formats = [];
 
 const tagChip = (tag) => `<button class="tag" type="button" data-tag="${escapeHtml(tag.slug)}"
         aria-pressed="${state.tags.has(tag.slug)}">${escapeHtml(tag.label)}
@@ -250,7 +265,8 @@ async function renderFilters() {
     const { tags } = await api.tags();
     // Places are filtered on in the same way and drawn on the map in no way at
     // all, so they leave the vocabulary here and keep their own row.
-    vocabulary = tags.filter((t) => t.facet !== 'location');
+    vocabulary = tags.filter((t) => t.facet !== 'location' && t.facet !== 'format');
+    formats = tags.filter((t) => t.facet === 'format');
     // Filtered on by continent, and Global: a country is what a record says
     // about itself, in its drawer, and inside its continent here — a row of
     // two hundred places is not a filter anybody can read.
@@ -262,9 +278,17 @@ async function renderFilters() {
   drawerList.innerHTML = vocabulary.map(tagChip).join('');
   placeBox.innerHTML = leading(places, 8).map(tagChip).join('');
   placeDrawerList.innerHTML = places.map(tagChip).join('');
-  tuckTags();
-
+  formatDrawerList.innerHTML = formats.map(tagChip).join('');
+  formatButton.hidden = formats.length === 0;
+  formatButton.previousElementSibling.hidden = formats.length === 0;
+  const format = formats.find((t) => state.tags.has(t.slug));
+  formatName.textContent = format?.label ?? 'Any';
+  formatShort.textContent = format?.label ?? 'Format';
+  formatButton.classList.toggle('is-set', Boolean(format));
+  // Before the row is measured: Clear takes room in it, and a row measured
+  // without it clips the last chip of each group once it arrives.
   clearButton.hidden = state.tags.size === 0 && !state.query;
+  tuckTags();
 }
 
 /**
@@ -396,7 +420,11 @@ function hangDrawer(button, panel) {
 }
 
 const drawers = [];
-drawers.push(hangDrawer(moreButton, drawer), hangDrawer(placeMoreButton, placeDrawer));
+drawers.push(
+  hangDrawer(moreButton, drawer),
+  hangDrawer(placeMoreButton, placeDrawer),
+  hangDrawer(formatButton, formatDrawer),
+);
 
 /** True while any drawer is down; closing them all is what Escape does first. */
 const drawerOpen = () => drawers.some((d) => d.shown());
@@ -1029,6 +1057,7 @@ function showRecord(node) {
     </p>
     <h4>Tagged</h4>
     ${tagChips(node.tags ?? [])}
+    ${(node.formats ?? []).length ? `<h4>Format</h4>${tagChips(node.formats)}` : ''}
     ${
       (node.places ?? []).length
         ? `<h4>Grounded in</h4>${tagChips(node.places)}`
@@ -1054,6 +1083,7 @@ function showRecord(node) {
 const labelOf = (slug) =>
   vocabulary.find((t) => t.slug === slug)?.label ??
   grounds.find((t) => t.slug === slug)?.label ??
+  formats.find((t) => t.slug === slug)?.label ??
   state.graph?.nodes.find((n) => n.slug === slug)?.label ??
   slug;
 
@@ -1352,6 +1382,8 @@ document.addEventListener('click', (event) => {
   if (tagButton) {
     event.preventDefault();
     toggleTag(tagButton.dataset.tag);
+    // The format menu is a menu: choosing from it is done with it.
+    if (formatDrawer.contains(tagButton)) closeDrawers();
     load();
     return;
   }
