@@ -79,6 +79,20 @@ jobs:
             echo "Nothing new — the map already shows everything the project holds."
             exit 0
           fi
+          # The snapshot records when it was built, and this job seeds a fresh
+          # database each run, so every record is stamped with the time of the
+          # run too. It therefore differs on every run even when the library
+          # does not. Compared without those stamps: if they are all that moved,
+          # there is nothing to publish — and no commit, because every commit
+          # here is a redeploy of the site.
+          stamps='walk(if type == "object" then del(.created_at, .updated_at) else . end) | del(.builtAt, .graph.generatedAt)'
+          if diff -q \
+            <(git show HEAD:public/data/snapshot.json | jq -S "$stamps") \
+            <(jq -S "$stamps" public/data/snapshot.json) > /dev/null; then
+            echo "Only the build time moved — the map already shows everything the project holds."
+            git checkout -- public/data/snapshot.json
+            exit 0
+          fi
           git config user.name  'Regenerative Atlas'
           git config user.email 'actions@users.noreply.github.com'
           git add public/data/snapshot.json
