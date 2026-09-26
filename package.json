@@ -35,5 +35,7 @@
     "type": "git",
     "url": "https://github.com/mmalinadabrowska/regenerative-atlas.git"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@vercel/analytics": "^2.0.1"
+  }
 }
