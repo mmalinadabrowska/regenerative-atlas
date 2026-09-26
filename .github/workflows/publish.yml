@@ -14,8 +14,9 @@
 # one that writes — is not here and has no business being here.
 #
 # Set two repository secrets to turn this on (Settings → Secrets and variables
-# → Actions): SUPABASE_URL and SUPABASE_ANON_KEY. Without them the run stops at
-# the first step and says so, rather than quietly publishing nothing.
+# → Actions): SUPABASE_URL and SUPABASE_ANON_KEY. Without them each run leaves a
+# notice saying so and skips the rest — green, not red, because nothing is
+# broken; it has simply not been switched on.
 
 name: publish
 
@@ -44,17 +45,25 @@ jobs:
         with:
           node-version: '22.x'
 
+      # Not set up yet is not a failure. Before the two secrets exist this job
+      # ran hourly and went red every time, which is a great deal of noise
+      # about something that has not been started. It now says so once per run
+      # and stands down; everything after it is skipped.
       - name: Is there a project to publish from?
+        id: ready
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
           if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
-            echo "::error::No Supabase secrets are set, so there is nothing to publish from."
-            exit 1
+            echo "::notice::No Supabase secrets yet (SUPABASE_URL, SUPABASE_ANON_KEY under Settings → Secrets and variables → Actions), so there is nothing to publish from. Skipping."
+            echo "go=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "go=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Build the library from the project
+        if: steps.ready.outputs.go == 'true'
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
@@ -64,6 +73,7 @@ jobs:
           npm run build-static
 
       - name: Commit the snapshot, if it moved
+        if: steps.ready.outputs.go == 'true'
         run: |
           if git diff --quiet -- public/data/snapshot.json; then
             echo "Nothing new — the map already shows everything the project holds."

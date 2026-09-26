@@ -194,7 +194,10 @@ async function load() {
     state.graph = graph;
     map.setGraph(graph);
     renderLegend(graph, map.opened?.());
-    renderFilters();
+    // Awaited, because what arrives on a shared link is opened just below, and
+    // its drawer names places by the labels this loads — opened before them, a
+    // record read "uk, europe" where it means "UK".
+    await renderFilters();
     // Said only when the map has nothing left to show. A filter that still
     // leaves islands standing has found something, whatever else it lost, and
     // a message over a drawn map contradicts the map. And only ever about a
