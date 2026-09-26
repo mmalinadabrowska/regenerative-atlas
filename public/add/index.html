@@ -120,6 +120,20 @@
   </form>
 </main>
 
+<!-- Said over the page, not in it: a duplicate is the one answer that means
+     the form should stop, and a line of text above it is easy to scroll past
+     and carry on. -->
+<dialog class="duplicate" id="duplicate" aria-labelledby="duplicate-title">
+  <form method="dialog">
+    <h2 id="duplicate-title">This is already in the Atlas</h2>
+    <p id="duplicate-text"></p>
+    <p class="duplicate__actions">
+      <a class="label label--small" id="duplicate-see" href="/map/">See it on the map</a>
+      <button class="label label--small label--filled" value="close" id="duplicate-close" autofocus>Add a different link</button>
+    </p>
+  </form>
+</dialog>
+
 <script type="module" src="/js/add.js"></script>
 <script type="module" src="/js/connected-nav.js"></script>
 </body>

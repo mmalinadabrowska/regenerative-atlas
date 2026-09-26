@@ -199,6 +199,12 @@ export class Atlas {
     for (const { id } of this.db.prepare('SELECT id FROM sources').all()) this.reindex(id);
   }
 
+  /** The record a link already belongs to, matched the way a duplicate is. */
+  findByUrl(url) {
+    const row = this.db.prepare('SELECT * FROM sources WHERE url_key = ?').get(urlKey(url));
+    return row ? this.hydrate(row) : null;
+  }
+
   getSource(id) {
     const row = this.db.prepare('SELECT * FROM sources WHERE id = ?').get(id);
     return row ? this.hydrate(row) : null;

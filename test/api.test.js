@@ -131,13 +131,20 @@ test('stats count distinct contributors, not submissions', () => {
   assert.equal(stats.newest.length, 2);
 });
 
-test('submitting through the handler reports whether a node was created', () => {
+test('a link already in the library is refused, not added again or merged', () => {
   const atlas = seeded();
   const first = handlers.submit(atlas, { url: 'https://example.org/new', title: 'New', tags: ['soil'] });
   assert.equal(first.created, true);
-  const second = handlers.submit(atlas, { url: 'https://example.org/new', title: 'New', tags: ['water'] });
+  // The same work, reached with a tracking parameter and a trailing slash.
+  const second = handlers.submit(atlas, {
+    url: 'https://www.example.org/new/?utm_source=x',
+    title: 'New again',
+    tags: ['water'],
+  });
   assert.equal(second.created, false);
+  assert.equal(second.alreadyInAtlas.title, 'New');
   assert.equal(atlas.count(), 3);
+  assert.deepEqual(atlas.findByUrl('https://example.org/new').tags.map((t) => t.slug).sort(), ['global', 'soil']);
 });
 
 test('the JSON export omits empty fields and keeps the tags', () => {

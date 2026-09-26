@@ -8,6 +8,7 @@
  */
 
 import { api, escapeHtml, fillCount } from './api.js';
+import { urlKey } from './keys.js';
 
 const lookupForm = document.getElementById('lookup-form');
 const lookupButton = document.getElementById('lookup-button');
@@ -15,6 +16,10 @@ const lookupStatus = document.getElementById('lookup-status');
 const urlInput = document.getElementById('url');
 const recordForm = document.getElementById('record-form');
 const notice = document.getElementById('notice');
+const duplicate = document.getElementById('duplicate');
+const duplicateTitle = document.getElementById('duplicate-title');
+const duplicateText = document.getElementById('duplicate-text');
+const duplicateSee = document.getElementById('duplicate-see');
 const suggestedBox = document.getElementById('suggested');
 const chosenBox = document.getElementById('chosen-tags');
 const vocabularyBox = document.getElementById('vocabulary');
@@ -84,6 +89,56 @@ function say(message, tone = '') {
     : '';
   if (message) notice.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
+
+/* --- duplicates --------------------------------------------------------- */
+
+/**
+ * The library as this page can see it — the live one, or the baked copy the
+ * website draws — asked once and kept. A duplicate is caught here, before
+ * anything is sent, by the same rule the server uses (keys.js): the same
+ * work reached with a tracking tag or a trailing slash is still the same work.
+ */
+let library = null;
+async function inLibrary(url) {
+  try {
+    library ??= (await api.sources({ limit: 5000 })).sources ?? [];
+  } catch {
+    return null; // The server checks again; this only saves the contributor the trouble.
+  }
+  const key = urlKey(url);
+  return library.find((source) => urlKey(source.url) === key) ?? null;
+}
+
+/**
+ * Stop, over the page. Nothing below it can be pressed until it is answered,
+ * and the form it interrupts is put away, so a duplicate cannot be sent by
+ * carrying on regardless.
+ */
+function warnDuplicate(found, { waiting = false } = {}) {
+  duplicateTitle.textContent = waiting ? 'This has already been sent in' : 'This is already in the Atlas';
+  duplicateText.innerHTML = waiting
+    ? `Somebody has already sent in this link, and it is waiting for the curator to check it.
+       There is no need to add it again.`
+    : `<span class="duplicate__title">${escapeHtml(found.title)}</span> is already in the library,
+       so it can’t be added again.`;
+  duplicateSee.hidden = waiting;
+  duplicateSee.href = found?.id
+    ? `/map/?open=${encodeURIComponent(`s:${found.id}`)}`
+    : `/map/?q=${encodeURIComponent(found?.title ?? '')}`;
+  recordForm.hidden = true;
+  lookupStatus.textContent = 'That link is already taken care of — paste a different one.';
+  duplicate.showModal();
+}
+
+// Answering "a different link" goes straight back to where one is pasted.
+// Deferred a frame: closing a dialog hands focus back to whatever had it
+// before, and that would otherwise win.
+duplicate.addEventListener('close', () => {
+  requestAnimationFrame(() => {
+    urlInput.focus();
+    urlInput.select();
+  });
+});
 
 /* --- tags --------------------------------------------------------------- */
 
@@ -185,15 +240,21 @@ lookupForm.addEventListener('submit', async (event) => {
   lookupStatus.textContent = 'Reading the link…';
   say('');
 
+  // Asked before the page is read: there is no point reading a link the
+  // library already has, and no form to fill in for it.
+  const known = await inLibrary(url);
+  if (known) {
+    lookupButton.disabled = false;
+    warnDuplicate(known);
+    return;
+  }
+
   try {
     const found = await api.describe(url);
 
     if (found.alreadyInAtlas) {
-      say(
-        `That one is already here — <a href="/themes/?q=${encodeURIComponent(found.alreadyInAtlas.title)}">${escapeHtml(found.alreadyInAtlas.title)}</a>.
-         Adding it again will fold your tags into the existing record rather than making a second node.`,
-        'good',
-      );
+      warnDuplicate(found.alreadyInAtlas);
+      return;
     }
 
     recordForm.hidden = false;
@@ -304,6 +365,13 @@ recordForm.addEventListener('submit', async (event) => {
     return;
   }
 
+  // The link can be changed after it was looked up, so it is asked again.
+  const known = await inLibrary(urlInput.value.trim());
+  if (known) {
+    warnDuplicate(known);
+    return;
+  }
+
   submitButton.disabled = true;
   const data = Object.fromEntries(new FormData(recordForm));
 
@@ -319,16 +387,12 @@ recordForm.addEventListener('submit', async (event) => {
     // library is curated and this form is open to anyone. On the curator's own
     // machine there is nobody to ask, and it is simply added. The wording
     // follows whichever happened rather than promising one and doing the other.
-    if (result.alreadyInAtlas) {
-      say(
-        `That one is already on the map —
-         <a href="/map/?q=${encodeURIComponent(result.alreadyInAtlas.title)}">go and see it</a>.
-         Two people finding the same work is a signal in itself.`,
-        'good',
-      );
-    } else if (result.alreadyWaiting) {
-      say('Somebody sent this one in already — it is with the curator, waiting to be read.', 'good');
-    } else if (result.queued) {
+    // Stopped rather than thanked: the form is put away and nothing is reset,
+    // so the lines below — which clear a form that was sent — are not reached.
+    if (result.alreadyInAtlas) return warnDuplicate(result.alreadyInAtlas);
+    if (result.alreadyWaiting) return warnDuplicate({ title: result.title }, { waiting: true });
+
+    if (result.queued) {
       say(
         `Thank you — it is now with the curator. The entry doesn’t reach the map until it is verified,
          and you will find it there once it’s been checked.`,

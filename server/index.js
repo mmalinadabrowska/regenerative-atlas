@@ -304,7 +304,7 @@ export function createAtlasServer(atlas) {
             // told plainly if the second half did not happen: their source is
             // on the map either way, but only one of the two copies outlives
             // this machine.
-            const synced = await writeThrough(result.source);
+            const synced = result.source ? await writeThrough(result.source) : {};
             return sendJson(res, result.created ? 201 : 200, { ...result, ...synced });
           }
           return sendJson(res, 404, { error: 'No such endpoint.' });

@@ -2070,3 +2070,39 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   color: var(--ink-55);
 }
 
+
+/* --- the duplicate warning ------------------------------------------------ */
+
+/* The Add page's one popup: a link already in the library stops the form, so
+   it is said over the page rather than in a line above it. Paper and ink like
+   the drawers, and the page dimmed behind it rather than hidden. */
+.duplicate {
+  width: min(30rem, calc(100vw - 2rem));
+  background: var(--paper);
+  color: var(--ink);
+  border: var(--stroke) solid var(--ink);
+  border-radius: 1rem;
+  padding: 1.5rem 1.6rem 1.35rem;
+}
+
+.duplicate::backdrop { background: rgb(20 18 14 / 0.35); }
+
+.duplicate h2 {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: 1.45rem;
+  line-height: 1.2;
+  margin: 0 0 0.6rem;
+  text-wrap: balance;
+}
+
+.duplicate p { margin: 0 0 1.1rem; }
+
+.duplicate__title { font-style: italic; }
+
+.duplicate__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0 !important;
+}

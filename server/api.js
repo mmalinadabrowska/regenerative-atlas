@@ -175,12 +175,19 @@ export const handlers = {
     const url = text(body?.url, LIMITS.url);
     if (!url) throw new ApiError(400, 'Paste a link first.');
     const described = await describeUrl(url);
-    const existing = atlas.listSources({ limit: 5000 }).find((s) => s.url === url);
+    const existing = atlas.findByUrl(url);
     return { ...described, alreadyInAtlas: existing ? { id: existing.id, title: existing.title } : null };
   },
 
   submit(atlas, body) {
     const submission = validateSubmission(body);
+    // A link already in the library is not added again, and nothing is folded
+    // into the record it belongs to: the form stops it before it is sent, and
+    // this is the same answer for anything that gets past the form.
+    const existing = atlas.findByUrl(submission.url);
+    if (existing) {
+      return { created: false, alreadyInAtlas: { id: existing.id, title: existing.title } };
+    }
     const { source, created } = atlas.addSource(submission);
     return { created, source };
   },
