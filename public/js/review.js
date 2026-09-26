@@ -33,8 +33,18 @@ async function loadLabels() {
   }
 }
 
-const labelOf = (slug) => labels.get(slug)?.label ?? slug;
-const facetOf = (slug) => labels.get(slug)?.facet ?? 'open';
+/**
+ * A tag the contributor coined arrives as "material:cork" — the facet it was
+ * added under, then the word. Said as the word, marked as new, because that is
+ * the thing a curator most wants to notice before accepting it.
+ */
+const coined = (slug) => /^([a-z]+):(.+)$/.exec(slug);
+const labelOf = (slug) => {
+  const own = coined(slug);
+  if (own) return `${own[2].replace(/-/g, ' ').replace(/^./, (c) => c.toUpperCase())} (new ${own[1]})`;
+  return labels.get(slug)?.label ?? slug;
+};
+const facetOf = (slug) => (coined(slug) ? coined(slug)[1] : (labels.get(slug)?.facet ?? 'open'));
 
 function chips(slugs) {
   const places = slugs.filter((slug) => facetOf(slug) === 'location');

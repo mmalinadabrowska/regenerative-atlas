@@ -22,7 +22,7 @@
 import { randomBytes } from 'node:crypto';
 
 import { urlKey } from './keys.js';
-import { resolveTags } from './vocabulary.js';
+import { resolveTag, resolveTags, writeTag } from './vocabulary.js';
 
 const trimSlash = (value) => String(value ?? '').replace(/\/+$/, '');
 
@@ -113,7 +113,12 @@ export async function fetchLibrary({ pageSize = 500 } = {}) {
         note: row.note ?? '',
         contributor: row.contributor ?? '',
         created_at: row.created_at,
-        tags: (row.source_tags ?? []).map((link) => link.tags?.slug).filter(Boolean),
+        // Written with their facet, so a tag coined among the materials is
+        // still a material when it reaches the local database.
+        tags: (row.source_tags ?? [])
+          .map((link) => link.tags)
+          .filter((tag) => tag?.slug)
+          .map(writeTag),
       });
     }
     if (!page || page.length < pageSize) break;
@@ -163,10 +168,23 @@ export async function push(source) {
     ],
   });
 
-  const tags = (source.tags ?? []).map((tag) =>
-    typeof tag === 'string' ? { slug: tag, label: tag, facet: 'open', core: false } : tag,
-  );
+  // A tag given as a word is resolved the way the local database resolves it,
+  // so a curated one keeps its facet and a coined one ("material:cork") gets its.
+  const tags = (source.tags ?? [])
+    .map((tag) => (typeof tag === 'string' ? resolveTag(tag) : { ...tag }))
+    .filter(Boolean);
   if (tags.length === 0) return { id: row.id, tags: 0 };
+
+  // A word written without a facet must not knock one that has a facet out of
+  // it: "cork" typed loose, after someone filed Cork among the materials, is
+  // still the material. So open tags take whatever facet is already there.
+  const loose = tags.filter((tag) => (tag.facet ?? 'open') === 'open' && !tag.core);
+  if (loose.length) {
+    const slugs = loose.map((tag) => `"${tag.slug}"`).join(',');
+    const known = await rest(`tags?select=slug,facet&slug=in.(${encodeURIComponent(slugs)})`);
+    const facetOf = new Map((known ?? []).map((tag) => [tag.slug, tag.facet]));
+    for (const tag of loose) if (facetOf.has(tag.slug)) tag.facet = facetOf.get(tag.slug);
+  }
 
   const saved = await rest('tags?on_conflict=slug&select=id,slug', {
     method: 'POST',

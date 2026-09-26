@@ -792,6 +792,33 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 
 .tag--ghost { border-style: dashed; }
 
+/* The box at the end of a facet's chips for a tag of your own: a chip you
+   write in. It is a chip to look at — same height, same text line — and a field
+   to use, so it never fills on hover the way a chip you press does, and its
+   outline goes solid while you are typing in it. */
+.tag--own { cursor: text; }
+.tag--own:hover, .tag--own:active { background: none; color: inherit; }
+.tag--own:focus-within { border-style: solid; }
+
+.tag--own input {
+  font: inherit;
+  color: inherit;
+  line-height: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  outline: none;
+  width: 8.5em;
+  field-sizing: content;
+  min-width: 8.5em;
+  max-width: 18em;
+}
+
+.tag--own input::placeholder { color: var(--ink-55); opacity: 1; }
+
+.country-field { max-width: 22rem; margin-top: 1rem; }
+
 /* --- fields -------------------------------------------------------------- */
 
 .field { display: block; margin-bottom: 1.25rem; }

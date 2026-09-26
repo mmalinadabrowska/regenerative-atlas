@@ -224,6 +224,9 @@ async function load() {
 /* --- chrome ------------------------------------------------------------- */
 
 let vocabulary = [];
+// Every place a record can be grounded in, countries included, for naming them;
+// and the few the map is filtered by — the continents and Global.
+let grounds = [];
 let places = [];
 
 const tagChip = (tag) => `<button class="tag" type="button" data-tag="${escapeHtml(tag.slug)}"
@@ -248,7 +251,11 @@ async function renderFilters() {
     // Places are filtered on in the same way and drawn on the map in no way at
     // all, so they leave the vocabulary here and keep their own row.
     vocabulary = tags.filter((t) => t.facet !== 'location');
-    places = tags.filter((t) => t.facet === 'location');
+    // Filtered on by continent, and Global: a country is what a record says
+    // about itself, in its drawer, and inside its continent here — a row of
+    // two hundred places is not a filter anybody can read.
+    grounds = tags.filter((t) => t.facet === 'location');
+    places = grounds.filter((t) => !t.within);
   }
 
   filterBox.innerHTML = leading(vocabulary, 18).map(tagChip).join('');
@@ -512,7 +519,7 @@ function groundedIn(node) {
   return (named.length ? named : slugs).map((slug) => labelOf(slug)).join(', ');
 }
 
-const placeWithin = (slug) => places.find((p) => p.slug === slug)?.within ?? null;
+const placeWithin = (slug) => grounds.find((p) => p.slug === slug)?.within ?? null;
 
 /**
  * One row of the research list: the mark, the name, and what it is to you. The
@@ -1046,7 +1053,7 @@ function showRecord(node) {
 
 const labelOf = (slug) =>
   vocabulary.find((t) => t.slug === slug)?.label ??
-  places.find((t) => t.slug === slug)?.label ??
+  grounds.find((t) => t.slug === slug)?.label ??
   state.graph?.nodes.find((n) => n.slug === slug)?.label ??
   slug;
 

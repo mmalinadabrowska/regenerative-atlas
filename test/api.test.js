@@ -167,3 +167,21 @@ test('BibTeX escapes braces that would break a .bib file', () => {
   assert.equal(bib.includes('{tricky}'), false);
   assert.match(bib, /title = \{A tricky title here\}/);
 });
+
+test('a tag coined among the materials stays a material, in the queue and on the map', () => {
+  const entry = validateSubmission({
+    url: 'https://example.org/cork',
+    title: 'Cork',
+    tags: ['material:Cork', 'method:Mapping', 'Kenya'],
+  });
+  // Written with its facet while it waits; a word the vocabulary has is just itself.
+  assert.deepEqual(entry.tags, ['material:cork', 'mapping', 'kenya', 'africa']);
+
+  const atlas = openDatabase(':memory:');
+  atlas.addSource(entry);
+  // Somebody later writes the same word with no facet: it is still the material.
+  atlas.addSource({ url: 'https://example.org/cork-2', title: 'More cork', tags: ['cork', 'global'] });
+  const cork = atlas.tagsWithCounts().find((t) => t.slug === 'cork');
+  assert.equal(cork.facet, 'material');
+  assert.equal(cork.count, 2);
+});

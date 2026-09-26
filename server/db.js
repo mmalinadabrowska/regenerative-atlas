@@ -89,7 +89,8 @@ export class Atlas {
     this.db
       .prepare(
         `INSERT INTO tags (slug, label, facet, note, core) VALUES (?, ?, ?, ?, ?)
-         ON CONFLICT(slug) DO UPDATE SET label = excluded.label, facet = excluded.facet,
+         ON CONFLICT(slug) DO UPDATE SET label = excluded.label,
+           facet = CASE WHEN excluded.facet = 'open' THEN tags.facet ELSE excluded.facet END,
            note = COALESCE(excluded.note, tags.note), core = excluded.core`,
       )
       .run(tag.slug, tag.label, tag.facet, tag.note ?? null, tag.core ? 1 : 0);

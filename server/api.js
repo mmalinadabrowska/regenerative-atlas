@@ -8,7 +8,7 @@
 
 import { buildGraph } from './graph.js';
 import { describeUrl } from './metadata.js';
-import { CORE_TAGS, FACETS, FACET_ORDER, aliasIndex, isLocation, regionOf, resolveTag, resolveTags } from './vocabulary.js';
+import { CORE_TAGS, FACETS, FACET_ORDER, aliasIndex, isLocation, regionOf, resolveTag, resolveTags, writeTag } from './vocabulary.js';
 import { ask } from './ask.js';
 
 const LIMITS = {
@@ -75,7 +75,9 @@ export function validateSubmission(body) {
     summary: paragraph(body?.summary, LIMITS.summary),
     note: paragraph(body?.note, LIMITS.note),
     contributor: text(body?.contributor, LIMITS.contributor),
-    tags: tags.map((t) => t.slug),
+    // Written so a tag coined among the materials is still one when the
+    // curator accepts it, however long it waits in the queue.
+    tags: tags.map(writeTag),
   };
 }
 

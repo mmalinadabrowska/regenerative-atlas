@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { CORE_TAGS, aliasIndex, resolveTag, resolveTags, slugify, titleize } from '../server/vocabulary.js';
+import { CORE_TAGS, aliasIndex, regionOf, resolveTag, resolveTags, slugify, titleize, writeTag } from '../server/vocabulary.js';
 
 test('slugify flattens punctuation, case and accents', () => {
   assert.equal(slugify('  Circular Economy!  '), 'circular-economy');
@@ -97,10 +97,26 @@ test('written forms of a place fold onto the one the Atlas files it under', () =
   }
 });
 
-test('a country the vocabulary does not name is folded to its region, not lost', () => {
-  assert.equal(resolveTag('Ghana').slug, 'africa');
-  assert.equal(resolveTag('Vietnam').slug, 'asia');
-  assert.equal(resolveTag('Peru').slug, 'south-america');
+test('every country is a place of its own, filed inside its continent', () => {
+  assert.deepEqual(resolveTags(['Ghana']).map((t) => t.slug), ['ghana', 'africa']);
+  assert.deepEqual(resolveTags(['Vietnam']).map((t) => t.slug), ['vietnam', 'asia']);
+  assert.deepEqual(resolveTags(['Peru']).map((t) => t.slug), ['peru', 'south-america']);
+  assert.equal(resolveTag("Côte d'Ivoire").slug, 'cote-divoire');
+  assert.equal(resolveTag('Ivory Coast').slug, 'cote-divoire');
+  assert.equal(resolveTag('Turkey').slug, 'turkiye');
+
+  const regions = new Set(['global', 'africa', 'asia', 'europe', 'north-america', 'south-america', 'oceania']);
+  for (const tag of CORE_TAGS.filter((t) => t.facet === 'location')) {
+    if (regions.has(tag.slug)) assert.equal(regionOf(tag.slug), null, tag.slug);
+    else assert.ok(regions.has(regionOf(tag.slug)), `${tag.slug} has no continent`);
+  }
+});
+
+test('no alias hides a tag the vocabulary names', () => {
+  const slugs = new Set(CORE_TAGS.map((t) => t.slug));
+  for (const forms of Object.values(aliasIndex())) {
+    for (const form of forms) assert.ok(!slugs.has(slugify(form)), `${form} is an alias and a tag`);
+  }
 });
 
 test('a place brings its region with it, so asking for the region finds it', () => {
@@ -133,4 +149,16 @@ test('every place that sits inside a region is a tag the vocabulary knows', () =
   for (const tag of CORE_TAGS.filter((t) => t.facet === 'location')) {
     for (const { slug } of resolveTags([tag.slug])) assert.ok(slugs.has(slug), slug);
   }
+});
+
+test('a tag coined under a facet keeps it, unless the vocabulary already has the word', () => {
+  const cork = resolveTag('material: Cork');
+  assert.equal(cork.slug, 'cork');
+  assert.equal(cork.facet, 'material');
+  assert.equal(writeTag(cork), 'material:cork');
+  assert.equal(resolveTag(writeTag(cork)).facet, 'material');
+  // The vocabulary wins: Timber is a material wherever it was written.
+  assert.equal(writeTag(resolveTag('format:Timber')), 'timber');
+  // A place is not something a contributor coins.
+  assert.equal(resolveTag('location:Atlantis').facet, 'open');
 });

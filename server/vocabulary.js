@@ -49,6 +49,74 @@ export const FACETS = {
 export const FACET_ORDER = ['theme', 'location', 'material', 'method', 'scale', 'format', 'open'];
 
 /**
+ * Every country, by continent: 'Label' or 'Label|the name a sentence uses'.
+ *
+ * A record is grounded in a country and filed under its continent too (WITHIN,
+ * built from this). The continent is what the map filters on — six places and
+ * Global are a choice a reader can take in at a glance; two hundred are not —
+ * and the country is what the record says about itself.
+ */
+const COUNTRIES = {
+  'africa': [
+    'Algeria', 'Angola', 'Benin', 'Botswana', 'Burkina Faso', 'Burundi', 'Cabo Verde',
+    'Cameroon', 'Central African Republic|the Central African Republic', 'Chad',
+    'Comoros|the Comoros', 'Congo|the Republic of the Congo',
+    'DR Congo|the Democratic Republic of the Congo', "Côte d'Ivoire", 'Djibouti', 'Egypt',
+    'Equatorial Guinea', 'Eritrea', 'Eswatini', 'Ethiopia', 'Gabon', 'Gambia|the Gambia',
+    'Ghana', 'Guinea', 'Guinea-Bissau', 'Kenya', 'Lesotho', 'Liberia', 'Libya', 'Madagascar',
+    'Malawi', 'Mali', 'Mauritania', 'Mauritius', 'Morocco', 'Mozambique', 'Namibia', 'Niger',
+    'Nigeria', 'Rwanda', 'São Tomé and Príncipe', 'Senegal', 'Seychelles|the Seychelles',
+    'Sierra Leone', 'Somalia', 'South Africa', 'South Sudan', 'Sudan', 'Tanzania', 'Togo',
+    'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe',
+  ],
+  'asia': [
+    'Afghanistan', 'Armenia', 'Azerbaijan', 'Bahrain', 'Bangladesh', 'Bhutan', 'Brunei',
+    'Cambodia', 'China', 'Georgia', 'India', 'Indonesia', 'Iran', 'Iraq', 'Israel', 'Japan',
+    'Jordan', 'Kazakhstan', 'Kuwait', 'Kyrgyzstan', 'Laos', 'Lebanon', 'Malaysia',
+    'Maldives|the Maldives', 'Mongolia', 'Myanmar', 'Nepal', 'North Korea', 'Oman', 'Pakistan',
+    'Palestine', 'Philippines|the Philippines', 'Qatar', 'Saudi Arabia', 'Singapore',
+    'South Korea', 'Sri Lanka', 'Syria', 'Taiwan', 'Tajikistan', 'Thailand', 'Timor-Leste',
+    'Türkiye', 'Turkmenistan', 'United Arab Emirates|the United Arab Emirates', 'Uzbekistan',
+    'Vietnam', 'Yemen',
+  ],
+  'europe': [
+    'Albania', 'Andorra', 'Austria', 'Belarus', 'Belgium', 'Bosnia and Herzegovina', 'Bulgaria',
+    'Croatia', 'Cyprus', 'Czechia', 'Denmark', 'Estonia', 'Finland', 'France', 'Germany',
+    'Greece', 'Hungary', 'Iceland', 'Ireland', 'Italy', 'Kosovo', 'Latvia', 'Liechtenstein',
+    'Lithuania', 'Luxembourg', 'Malta', 'Moldova', 'Monaco', 'Montenegro',
+    'Netherlands|the Netherlands', 'North Macedonia', 'Norway', 'Poland', 'Portugal', 'Romania',
+    'Russia', 'San Marino', 'Serbia', 'Slovakia', 'Slovenia', 'Spain', 'Sweden', 'Switzerland',
+    'UK|the United Kingdom', 'Ukraine', 'Vatican City',
+  ],
+  'north-america': [
+    'Antigua and Barbuda', 'Bahamas|the Bahamas', 'Barbados', 'Belize', 'Canada', 'Costa Rica',
+    'Cuba', 'Dominica', 'Dominican Republic|the Dominican Republic', 'El Salvador', 'Grenada',
+    'Guatemala', 'Haiti', 'Honduras', 'Jamaica', 'Mexico', 'Nicaragua', 'Panama',
+    'Saint Kitts and Nevis', 'Saint Lucia', 'Saint Vincent and the Grenadines',
+    'Trinidad and Tobago', 'USA|the United States',
+  ],
+  'south-america': [
+    'Argentina', 'Bolivia', 'Brazil', 'Chile', 'Colombia', 'Ecuador', 'Guyana', 'Paraguay',
+    'Peru', 'Suriname', 'Uruguay', 'Venezuela',
+  ],
+  'oceania': [
+    'Australia', 'Fiji', 'Kiribati', 'Marshall Islands|the Marshall Islands', 'Micronesia',
+    'Nauru', 'New Zealand|Aotearoa New Zealand', 'Palau', 'Papua New Guinea', 'Samoa',
+    'Solomon Islands|the Solomon Islands', 'Tonga', 'Tuvalu', 'Vanuatu',
+  ],
+};
+
+/** The countries as vocabulary rows: [slug, 'location', label, note]. */
+function countryRows() {
+  return Object.values(COUNTRIES).flatMap((names) =>
+    names.map((name) => {
+      const [label, spoken = label] = name.split('|');
+      return [slugify(label), 'location', label, `Grounded in ${spoken}.`];
+    }),
+  );
+}
+
+/**
  * Curated tags: [slug, facet, label, note]
  */
 const CORE = [
@@ -130,44 +198,14 @@ const CORE = [
   ['global', 'location', 'Global', 'Not bound to one place — planetary in scope, or read the same anywhere.'],
 
   ['africa', 'location', 'Africa', 'Grounded in Africa.'],
-  ['kenya', 'location', 'Kenya', 'Grounded in Kenya.'],
-  ['nigeria', 'location', 'Nigeria', 'Grounded in Nigeria.'],
-  ['south-africa', 'location', 'South Africa', 'Grounded in South Africa.'],
-
   ['asia', 'location', 'Asia', 'Grounded in Asia.'],
-  ['china', 'location', 'China', 'Grounded in China.'],
-  ['india', 'location', 'India', 'Grounded in India.'],
-  ['indonesia', 'location', 'Indonesia', 'Grounded in Indonesia.'],
-  ['japan', 'location', 'Japan', 'Grounded in Japan.'],
-  ['singapore', 'location', 'Singapore', 'Grounded in Singapore.'],
-
   ['europe', 'location', 'Europe', 'Grounded in Europe.'],
-  ['uk', 'location', 'UK', 'Grounded in the United Kingdom.'],
-  ['ireland', 'location', 'Ireland', 'Grounded in Ireland.'],
-  ['france', 'location', 'France', 'Grounded in France.'],
-  ['germany', 'location', 'Germany', 'Grounded in Germany.'],
-  ['netherlands', 'location', 'Netherlands', 'Grounded in the Netherlands.'],
-  ['denmark', 'location', 'Denmark', 'Grounded in Denmark.'],
-  ['sweden', 'location', 'Sweden', 'Grounded in Sweden.'],
-  ['norway', 'location', 'Norway', 'Grounded in Norway.'],
-  ['finland', 'location', 'Finland', 'Grounded in Finland.'],
-  ['spain', 'location', 'Spain', 'Grounded in Spain.'],
-  ['italy', 'location', 'Italy', 'Grounded in Italy.'],
-  ['switzerland', 'location', 'Switzerland', 'Grounded in Switzerland.'],
-
-  ['north-america', 'location', 'North America', 'Grounded in North America.'],
-  ['usa', 'location', 'USA', 'Grounded in the United States.'],
-  ['canada', 'location', 'Canada', 'Grounded in Canada.'],
-  ['mexico', 'location', 'Mexico', 'Grounded in Mexico.'],
-
+  ['north-america', 'location', 'North America', 'Grounded in North America, Central America and the Caribbean.'],
   ['south-america', 'location', 'South America', 'Grounded in South America.'],
-  ['brazil', 'location', 'Brazil', 'Grounded in Brazil.'],
-  ['chile', 'location', 'Chile', 'Grounded in Chile.'],
-  ['colombia', 'location', 'Colombia', 'Grounded in Colombia.'],
-
   ['oceania', 'location', 'Oceania', 'Grounded in Australia, Aotearoa New Zealand and the Pacific.'],
-  ['australia', 'location', 'Australia', 'Grounded in Australia.'],
-  ['new-zealand', 'location', 'New Zealand', 'Grounded in Aotearoa New Zealand.'],
+
+  // Every country, each filed inside its continent — see COUNTRIES below.
+  ...countryRows(),
 ];
 
 export const CORE_TAGS = CORE.map(([slug, facet, label, note]) => ({ slug, facet, label, note }));
@@ -382,14 +420,6 @@ const ALIASES = new Map(Object.entries({
   'scandinavian': 'europe',
   'baltics': 'europe',
   'balkans': 'europe',
-  'belgium': 'europe',
-  'austria': 'europe',
-  'portugal': 'europe',
-  'poland': 'europe',
-  'czechia': 'europe',
-  'greece': 'europe',
-  'iceland': 'europe',
-  'estonia': 'europe',
   'holland': 'netherlands',
   'dutch': 'netherlands',
   'deutschland': 'germany',
@@ -410,11 +440,6 @@ const ALIASES = new Map(Object.entries({
   'caribbean': 'north-america',
   'latin-america': 'south-america',
   'south-american': 'south-america',
-  'argentina': 'south-america',
-  'peru': 'south-america',
-  'ecuador': 'south-america',
-  'bolivia': 'south-america',
-  'uruguay': 'south-america',
   'aotearoa': 'new-zealand',
   'aotearoa-new-zealand': 'new-zealand',
   'nz': 'new-zealand',
@@ -427,14 +452,6 @@ const ALIASES = new Map(Object.entries({
   'southern-africa': 'africa',
   'north-africa': 'africa',
   'african': 'africa',
-  'ghana': 'africa',
-  'tanzania': 'africa',
-  'uganda': 'africa',
-  'ethiopia': 'africa',
-  'rwanda': 'africa',
-  'egypt': 'africa',
-  'morocco': 'africa',
-  'senegal': 'africa',
   'asian': 'asia',
   'east-asia': 'asia',
   'south-asia': 'asia',
@@ -444,17 +461,18 @@ const ALIASES = new Map(Object.entries({
   'bharat': 'india',
   'prc': 'china',
   'hong-kong': 'china',
-  'taiwan': 'asia',
-  'korea': 'asia',
-  'south-korea': 'asia',
-  'vietnam': 'asia',
-  'thailand': 'asia',
-  'philippines': 'asia',
-  'malaysia': 'asia',
-  'bangladesh': 'asia',
-  'pakistan': 'asia',
-  'nepal': 'asia',
-  'sri-lanka': 'asia',
+  'korea': 'south-korea',
+  'turkey': 'turkiye',
+  'ivory-coast': 'cote-divoire',
+  'czech-republic': 'czechia',
+  'burma': 'myanmar',
+  'swaziland': 'eswatini',
+  'east-timor': 'timor-leste',
+  'drc': 'dr-congo',
+  'democratic-republic-of-the-congo': 'dr-congo',
+  'uae': 'united-arab-emirates',
+  'holy-see': 'vatican-city',
+  'cape-verde': 'cabo-verde',
 }));
 
 /**
@@ -463,36 +481,11 @@ const ALIASES = new Map(Object.entries({
  * asking the library for Europe is a plain tag match, and it finds the work
  * filed under Denmark because Denmark put Europe there when it was stored.
  */
-const WITHIN = new Map(Object.entries({
-  'kenya': 'africa',
-  'nigeria': 'africa',
-  'south-africa': 'africa',
-  'china': 'asia',
-  'india': 'asia',
-  'indonesia': 'asia',
-  'japan': 'asia',
-  'singapore': 'asia',
-  'uk': 'europe',
-  'ireland': 'europe',
-  'france': 'europe',
-  'germany': 'europe',
-  'netherlands': 'europe',
-  'denmark': 'europe',
-  'sweden': 'europe',
-  'norway': 'europe',
-  'finland': 'europe',
-  'spain': 'europe',
-  'italy': 'europe',
-  'switzerland': 'europe',
-  'usa': 'north-america',
-  'canada': 'north-america',
-  'mexico': 'north-america',
-  'brazil': 'south-america',
-  'chile': 'south-america',
-  'colombia': 'south-america',
-  'australia': 'oceania',
-  'new-zealand': 'oceania',
-}));
+const WITHIN = new Map(
+  Object.entries(COUNTRIES).flatMap(([region, names]) =>
+    names.map((name) => [slugify(name.split('|')[0]), region]),
+  ),
+);
 
 /** Loose text -> a safe, comparable tag slug. */
 export function slugify(input) {
@@ -521,6 +514,15 @@ export function titleize(slug) {
  * Returns null for input that slugifies to nothing.
  */
 export function resolveTag(input) {
+  // "material:Cork" is a tag coined under a facet: the contributor added it
+  // among the materials, and it should sit with them rather than among the
+  // open tags. If the word is already in the vocabulary, the vocabulary wins.
+  const coined = String(input ?? '').match(COINED);
+  if (coined) {
+    const tag = resolveTag(coined[2]);
+    if (!tag || tag.core) return tag;
+    return { ...tag, facet: coined[1].toLowerCase() };
+  }
   const slug = slugify(input);
   if (!slug) return null;
   const canonical = ALIASES.get(slug) ?? slug;
@@ -533,6 +535,24 @@ export function resolveTag(input) {
     core: Boolean(core),
     aliasOf: canonical !== slug ? slug : null,
   };
+}
+
+/**
+ * The facets a contributor may coin a tag in. Places are a fixed list, and a
+ * tag with no facet is simply an open one.
+ */
+export const COINABLE = ['theme', 'material', 'method', 'scale', 'format'];
+
+const COINED = new RegExp(`^\\s*(${COINABLE.join('|')})\\s*:\\s*(.+)$`, 'i');
+
+/**
+ * A resolved tag as it is written down wherever a list of plain strings has
+ * to carry it — a submission waiting in the queue, a record in seed.json. A
+ * curated or open tag is its slug; a coined one keeps its facet in front, so
+ * it reads back into the same place.
+ */
+export function writeTag(tag) {
+  return tag.core || !tag.facet || tag.facet === 'open' ? tag.slug : `${tag.facet}:${tag.slug}`;
 }
 
 /**

@@ -42,12 +42,17 @@ const slugify = (text) =>
     .replace(/^-+|-+$/g, '')
     .slice(0, 48);
 
+/** The continent a country sits in, or null for anything that is not a country. */
+const regionOf = (slug) => vocabulary.tags.find((t) => t.slug === slug)?.within ?? null;
+
+/** The facets a contributor can coin a tag in, from the box at the end of each. */
+const COINABLE = new Set(['material', 'method', 'format']);
+
 /**
- * A country, filed as its continent. Places on this form are the continents
- * and Global only: a finer grain than that is more than one contributor can
- * say with confidence, and it splits the map into islands of one.
+ * A tag coined in one of those facets travels as "material:cork", so it is
+ * filed among the materials rather than the open tags. Null for anything else.
  */
-const regionFor = (slug) => vocabulary.tags.find((t) => t.slug === slug)?.within ?? slug;
+const coined = (slug) => /^([a-z]+):(.+)$/.exec(slug);
 
 /**
  * Fold a written tag onto the vocabulary's own name for it, so the chip says
@@ -60,20 +65,18 @@ function canonicalise(written) {
   if (!key) return null;
 
   const exact = vocabulary.tags.find((t) => loose(t.slug) === key || loose(t.label) === key);
-  if (exact) {
-    const slug = regionFor(exact.slug);
-    return { slug, foldedFrom: slug === exact.slug ? null : written };
-  }
+  if (exact) return { slug: exact.slug, foldedFrom: null };
 
   for (const [slug, forms] of Object.entries(vocabulary.aliases ?? {})) {
-    if (forms.some((form) => loose(form) === key)) return { slug: regionFor(slug), foldedFrom: written };
+    if (forms.some((form) => loose(form) === key)) return { slug, foldedFrom: written };
   }
   return { slug: slugify(written), foldedFrom: null };
 }
 
+const titled = (slug) => slug.replace(/-/g, ' ').replace(/^./, (c) => c.toUpperCase());
+
 const labelOf = (slug) =>
-  vocabulary.tags.find((t) => t.slug === slug)?.label ??
-  slug.replace(/-/g, ' ').replace(/^./, (c) => c.toUpperCase());
+  vocabulary.tags.find((t) => t.slug === slug)?.label ?? titled(coined(slug)?.[2] ?? slug);
 
 function say(message, tone = '') {
   notice.innerHTML = message
@@ -100,15 +103,51 @@ function renderChosen() {
   }
 }
 
+/**
+ * A country brings its continent with it, as the server would anyway: the
+ * continent is what the map filters by, so it is shown chosen here too rather
+ * than turning up unannounced on the record.
+ */
 function addTag(slug) {
   if (!slug) return;
-  if (chosen.size >= 12) {
+  const adding = [slug, regionOf(slug)].filter((s) => s && !chosen.has(s));
+  if (chosen.size + adding.length > 12) {
     say('Twelve tags is the limit — a source that is about everything is about nothing.', 'bad');
     return;
   }
-  chosen.add(slug);
+  for (const s of adding) chosen.add(s);
   renderChosen();
 }
+
+/** Countries by continent, for the list under the location chips. */
+function countryPicker() {
+  const regions = vocabulary.tags.filter((t) => t.facet === 'location' && !t.within);
+  const groups = regions
+    .map((region) => {
+      const countries = vocabulary.tags
+        .filter((t) => t.within === region.slug)
+        .sort((a, b) => a.label.localeCompare(b.label));
+      if (countries.length === 0) return '';
+      return `<optgroup label="${escapeHtml(region.label)}">${countries
+        .map((c) => `<option value="${escapeHtml(c.slug)}">${escapeHtml(c.label)}</option>`)
+        .join('')}</optgroup>`;
+    })
+    .join('');
+  return `<label class="field country-field"><span>Country</span>
+      <select id="country" data-country>
+        <option value="">Add a country…</option>${groups}
+      </select>
+      <p class="field__hint">Optional. The country is shown on the record; the map filters by its continent.</p>
+    </label>`;
+}
+
+/** A box at the end of a facet's chips for a tag the vocabulary has not got yet. */
+const ownTagBox = (facet) =>
+  `<label class="tag tag--ghost tag--own">
+     <span class="visually-hidden">Add your own ${escapeHtml(facet.label.toLowerCase())} tag</span>
+     <input type="text" id="own-${escapeHtml(facet.key)}" data-own="${escapeHtml(facet.key)}"
+       maxlength="40" autocomplete="off" placeholder="+ Add your own">
+   </label>`;
 
 async function renderVocabulary() {
   vocabulary = await api.vocabulary();
@@ -125,7 +164,8 @@ async function renderVocabulary() {
             (tag) => `<button class="tag" type="button" data-pick="${escapeHtml(tag.slug)}"
               title="${escapeHtml(tag.note ?? '')}">${escapeHtml(tag.label)}</button>`,
           )
-          .join('')}</div>`;
+          .join('')}${COINABLE.has(facet.key) ? ownTagBox(facet) : ''}</div>
+        ${facet.key === 'location' ? countryPicker() : ''}`;
     })
     .join('');
   tagOptions.innerHTML = vocabulary.tags
@@ -175,7 +215,7 @@ lookupForm.addEventListener('submit', async (event) => {
           ? 'Read from the page. Check it, publishers are careless with metadata.'
           : 'That link would not tell us anything about itself, so fill it in by hand.';
 
-    const suggested = [...new Set((found.suggestedTags ?? []).map(regionFor))];
+    const suggested = found.suggestedTags ?? [];
     suggestedBox.innerHTML = suggested.length
       ? `<p class="field__hint" style="margin-top:0">Suggested from the text:</p>
          <div class="tag-cloud" style="margin-bottom:1rem">${suggested
@@ -224,12 +264,35 @@ freeTagInput.addEventListener('keydown', (event) => {
   addTag(resolved.slug);
   freeTagInput.value = '';
 
-  const place = vocabulary.tags.find((t) => t.slug === resolved.slug)?.facet === 'location';
-  freeTagHint.textContent = !resolved.foldedFrom
-    ? FREE_TAG_HINT
-    : place
-      ? `Places are filed by continent, so “${resolved.foldedFrom}” goes in as ${labelOf(resolved.slug)}.`
-      : `“${resolved.foldedFrom}” is already in the vocabulary as ${labelOf(resolved.slug)}.`;
+  freeTagHint.textContent = resolved.foldedFrom
+    ? `“${resolved.foldedFrom}” is already in the vocabulary as ${labelOf(resolved.slug)}.`
+    : FREE_TAG_HINT;
+});
+
+vocabularyBox.addEventListener('change', (event) => {
+  const picker = event.target.closest('[data-country]');
+  if (!picker || !picker.value) return;
+  addTag(picker.value);
+  picker.value = '';
+});
+
+/**
+ * A tag coined among the materials, methods or formats. If the vocabulary has
+ * the word already — under any facet — that is the tag, as it would be from the
+ * box above; only a word it has not got is coined, and it is coined where it
+ * was written.
+ */
+vocabularyBox.addEventListener('keydown', (event) => {
+  const box = event.target.closest('[data-own]');
+  if (!box || (event.key !== 'Enter' && event.key !== ',')) return;
+  event.preventDefault();
+  const written = box.value.trim();
+  if (!written) return;
+  const resolved = canonicalise(written);
+  if (!resolved?.slug) return;
+  const known = vocabulary.tags.some((t) => t.slug === resolved.slug);
+  addTag(known ? resolved.slug : `${box.dataset.own}:${resolved.slug}`);
+  box.value = '';
 });
 
 /* --- submit ------------------------------------------------------------- */

@@ -27,7 +27,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { urlKey } from '../server/keys.js';
-import { CORE_TAGS, FACETS, isLocation, resolveTag } from '../server/vocabulary.js';
+import { CORE_TAGS, FACETS, isLocation, resolveTag, writeTag } from '../server/vocabulary.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const SEED = resolve(ROOT, 'data', 'seed.json');
@@ -229,11 +229,14 @@ export function readLibrary(rows, { allowNewTags = false } = {}) {
       for (const written of [...splitTags(cell(row, 'tags')), ...splitTags(cell(row, 'places'))]) {
         const tag = resolveTag(written);
         if (!tag) continue;
+        // A coined tag keeps its facet in front — "material:cork" — so it goes
+        // back among the materials rather than the open tags.
+        const stored = writeTag(tag);
         if (!CORE.has(tag.slug)) {
-          if (!newTags.has(tag.slug)) newTags.set(tag.slug, []);
-          newTags.get(tag.slug).push(line);
+          if (!newTags.has(stored)) newTags.set(stored, []);
+          newTags.get(stored).push(line);
         }
-        if (!slugs.includes(tag.slug)) slugs.push(tag.slug);
+        if (!slugs.includes(stored)) slugs.push(stored);
       }
       if (!slugs.some((slug) => !isLocation(slug))) {
         throw new RowError('it has no tags besides places — everything on the map needs at least one');
