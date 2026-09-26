@@ -330,8 +330,8 @@ recordForm.addEventListener('submit', async (event) => {
       say('Somebody sent this one in already — it is with the curator, waiting to be read.', 'good');
     } else if (result.queued) {
       say(
-        `Thank you — it is with the curator. Nothing reaches the map until a person has read it,
-         and you will find it there once it has been.`,
+        `Thank you — it is now with the curator. The entry doesn’t reach the map until it is verified,
+         and you will find it there once it’s been checked.`,
         'good',
       );
     } else {
