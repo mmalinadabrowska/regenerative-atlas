@@ -145,6 +145,13 @@ To propose entries as a pull request instead, add them to `data/seed.json` and r
 `npm run reset`. Please run `npm run check-seed` first: link rot is what kills a
 bibliography, and a reference nobody can open is not a reference.
 
+To read or correct the whole library at once, `npm run library:export` writes it to
+`data/library.csv` (with the tag vocabulary in `data/vocabulary.csv`). Edit it in any
+spreadsheet, save it as CSV UTF-8 in the same place, and `npm run library:import` checks
+every row and writes the changes back to `data/seed.json` — listing each one, and writing
+nothing if any row is wrong. Then `npm run reset`, `npm run build-static`, and
+`npm run supabase-sql`, pasting `supabase/replace-library.sql` into Supabase.
+
 > **The starter links are unverified.** They were written from knowledge of the field,
 > not checked against the live web, so some will have moved or rotted. `npm run
 > check-seed` reports what is unreachable and what has redirected; fixing those is a

@@ -3,15 +3,22 @@
  * browser.
  *
  *   npm run supabase-sql        -> supabase/seed.sql
+ *                                  supabase/replace-library.sql
  *
  * `npm run supabase push` does the same job over the network, and is the right
  * tool once the Atlas is running somewhere with credentials. This is for before
  * that: paste the file into the project's SQL editor and the library is there,
  * with no terminal, no Node, and no keys copied anywhere.
  *
- * Everything it writes can be run twice. Sources are matched on their URL key,
- * tags on their slug, and the ties between them on both — so a second run adds
- * what is new and leaves the rest alone.
+ * seed.sql can be run twice. Sources are matched on their URL key, tags on
+ * their slug, and the ties between them on both — so a second run adds what is
+ * new and leaves the rest alone. Which also means it never changes a record
+ * that is already there.
+ *
+ * replace-library.sql is for when the library itself has been edited (see
+ * scripts/library.mjs): it takes out every record that came from the seed and
+ * puts the library back as it now reads — corrected, retitled, re-tagged, or
+ * gone. Records that arrived through the Add page are not touched.
  */
 
 import { writeFileSync } from 'node:fs';
@@ -33,15 +40,9 @@ const atlas = openDatabase();
 const sources = atlas.listSources({ limit: 10000 });
 const tags = atlas.tagsWithCounts();
 
+const written = `-- ${sources.length} sources, ${tags.length} tags. Written ${new Date().toISOString().slice(0, 10)}.`;
+
 const lines = [
-  '-- The Regenerative Atlas library, as SQL.',
-  '--',
-  '-- Paste this into the Supabase project\'s SQL editor and run it, after',
-  '-- supabase/schema.sql has made the tables. Safe to run more than once:',
-  '-- sources are matched on their link, tags on their slug.',
-  `--`,
-  `-- ${sources.length} sources, ${tags.length} tags. Written ${new Date().toISOString().slice(0, 10)}.`,
-  '',
   '-- The vocabulary first, so the ties below have something to point at.',
   'insert into tags (slug, label, facet, note, core) values',
 ];
@@ -87,11 +88,42 @@ const ties = sources.flatMap((source) =>
 // first-timer does not need a warning about one already being in progress.
 lines.push(ties.join(',\n'), ') on conflict do nothing;', '');
 
-const sql = lines.join('\n');
-writeFileSync(resolve(ROOT, 'supabase', 'seed.sql'), sql);
+const body = lines.join('\n');
+
+const seed = [
+  '-- The Regenerative Atlas library, as SQL.',
+  '--',
+  '-- Paste this into the Supabase project\'s SQL editor and run it, after',
+  '-- supabase/schema.sql has made the tables. Safe to run more than once:',
+  '-- sources are matched on their link, tags on their slug.',
+  '--',
+  written,
+  '',
+  body,
+].join('\n');
+
+const replace = [
+  '-- The Regenerative Atlas library, replacing the one in Supabase.',
+  '--',
+  '-- For after data/seed.json has been edited. Paste this into the Supabase',
+  '-- project\'s SQL editor and run it: every record that came from the seed is',
+  '-- taken out, with its tags, and the library goes back in as it now reads.',
+  '-- Records that arrived through the Add page are left exactly as they are.',
+  '-- It all runs as one query, so it either all happens or none of it does.',
+  '--',
+  written,
+  '',
+  "delete from sources where origin = 'seed';",
+  '',
+  body,
+].join('\n');
+
+writeFileSync(resolve(ROOT, 'supabase', 'seed.sql'), seed);
+writeFileSync(resolve(ROOT, 'supabase', 'replace-library.sql'), replace);
 atlas.close();
 
 console.log(
-  `\n  supabase/seed.sql — ${sources.length} sources, ${tags.length} tags, ${ties.length} ties` +
-    `  (${(sql.length / 1024).toFixed(0)} KB)\n`,
+  `\n  supabase/seed.sql             ${sources.length} sources, ${tags.length} tags, ${ties.length} ties` +
+    `  (${(seed.length / 1024).toFixed(0)} KB)` +
+    `\n  supabase/replace-library.sql  the same, replacing what the seed put there before\n`,
 );

@@ -101,6 +101,11 @@ The file can be run again any time without making duplicates: a source is matche
 link and a tag on its slug. When the library here grows, `npm run supabase-sql` writes a
 fresh one.
 
+Because it matches and skips, `seed.sql` never *changes* a record already there. When
+records have been edited (see `npm run library:import`), paste
+`supabase/replace-library.sql` instead: it takes out everything the seed put in and puts
+the library back as it now reads. Records that came through the Add page are untouched.
+
 ## Step 3 — Get the two keys
 
 *From here on is route B: connecting a running Atlas, so that new sources go up as they
@@ -191,6 +196,7 @@ second. That is the whole thing working.
 | send this machine's library up | `npm run supabase push` |
 | bring the library down | `npm run supabase pull` |
 | write the library out as SQL to paste | `npm run supabase-sql` |
+| read or edit the library in a spreadsheet | `npm run library:export`, then `library:import` |
 | go back to no Supabase at all | delete `.env` |
 
 `pull` is the useful one on a second machine: clone the repository, make the same `.env`,
