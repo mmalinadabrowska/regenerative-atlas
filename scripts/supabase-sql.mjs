@@ -36,6 +36,13 @@ const text = (value) =>
 
 const number = (value) => (Number.isFinite(value) ? String(value) : 'null');
 
+/**
+ * The same, for a column the schema says is never null: nothing to say is an
+ * empty string there, not a null — `note text not null default ''` refuses a
+ * null outright, and one record without a note fails the whole query.
+ */
+const words = (value) => `'${String(value ?? '').replace(/'/g, "''")}'`;
+
 const atlas = openDatabase();
 const sources = atlas.listSources({ limit: 10000 });
 const tags = atlas.tagsWithCounts();
@@ -67,8 +74,8 @@ lines.push(
     .map(
       (source) =>
         `  (${text(source.url)}, ${text(urlKey(source.url))}, ${text(source.title)}, ` +
-        `${text(source.authors)}, ${text(source.publisher)}, ${number(source.year)}, ` +
-        `${text(source.summary)}, ${text(source.note)}, ${text(source.contributor)}, ` +
+        `${words(source.authors)}, ${words(source.publisher)}, ${number(source.year)}, ` +
+        `${words(source.summary)}, ${words(source.note)}, ${words(source.contributor)}, ` +
         `${text(source.status ?? 'published')}, ${text(source.origin ?? 'seed')}, ` +
         `${text(source.created_at)}::timestamptz)`,
     )
