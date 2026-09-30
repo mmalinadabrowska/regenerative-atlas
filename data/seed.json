@@ -7,7 +7,7 @@
       "authors": "Donella Meadows",
       "publisher": "The Donella Meadows Project",
       "year": 1999,
-      "summary": "Twelve places to intervene in a system, ordered from the shallow (adjusting numbers) to the deep (changing the paradigm the system arises from). The foundational text for why regenerative work is rarely a technical problem.",
+      "summary": "Useful framing for regenerative design which considers how to understand and intervene in complex systems. It describes twelve places to intervene in a system- foundational text for why regenerative work is rarely a technical problem but a systems problem.",
       "tags": [
         "systems-thinking",
         "regenerative-systems",
@@ -55,7 +55,7 @@
       "authors": "Ellen MacArthur Foundation",
       "publisher": "Ellen MacArthur Foundation",
       "year": 2013,
-      "summary": "The butterfly diagram and the three principles — eliminate waste, circulate materials, regenerate nature. The most-borrowed diagram in the field.",
+      "summary": "The butterfly diagram and the three principles — eliminate waste, circulate materials, regenerate nature. On of the most-borrowed diagrams in the field.",
       "tags": [
         "circular-economy",
         "materials",
@@ -87,7 +87,7 @@
       "authors": "Johan Rockström, Will Steffen and colleagues",
       "publisher": "Stockholm Resilience Centre",
       "year": 2009,
-      "summary": "The nine processes that regulate the stability of the Earth system, and how far past several of them we already are. The ceiling that regenerative targets are measured against.",
+      "summary": "Definition and of the nine processes that regulate the stability of the Earth systems, and how far we already transgressed several of them. The ceiling that regenerative targets are measured against.",
       "tags": [
         "planetary",
         "ecology",
@@ -103,7 +103,7 @@
       "authors": "The Biomimicry Institute",
       "publisher": "Biomimicry Institute",
       "year": 2008,
-      "summary": "A searchable library of biological strategies indexed by the design function they solve — how does nature manage water, resist fracture, cool itself.",
+      "summary": "A searchable library of biological strategies indexed by the design function they address — how does nature manage water, resist fracture, cool itself.",
       "tags": [
         "biomimicry",
         "ecology",
@@ -215,7 +215,7 @@
       "authors": "Low Energy Transformation Initiative",
       "publisher": "LETI",
       "year": 2017,
-      "summary": "Volunteer-built guidance — the Climate Emergency Design Guide and the Embodied Carbon Primer — that turned UK net-zero targets into numbers a design team can work to.",
+      "summary": "Volunteer-built guidance, the Climate Emergency Design Guide and the Embodied Carbon Primer, that turned UK net-zero targets into numbers a design team can work to.",
       "tags": [
         "carbon",
         "energy",
@@ -263,7 +263,7 @@
       "authors": "Circle Economy",
       "publisher": "Circle Economy",
       "year": 2018,
-      "summary": "An annual measurement of what share of the global economy is actually circular. The number has been going the wrong way.",
+      "summary": "An annual measurement of what share of the global economy is actually circular.",
       "tags": [
         "circular-economy",
         "measurement",
@@ -359,7 +359,7 @@
       "authors": "Robin Wall Kimmerer",
       "publisher": "Milkweed Editions",
       "year": 2013,
-      "summary": "Indigenous knowledge and plant science held together, and the honourable harvest as a working ethic for taking anything from a living system.",
+      "summary": "Indigenous knowledge and plant science held together. The honourable harvest as a working ethic for taking anything from a living system.",
       "tags": [
         "indigenous-knowledge",
         "ecology",
@@ -391,7 +391,7 @@
       "authors": "European Commission",
       "publisher": "European Commission",
       "year": 2020,
-      "summary": "The EU's attempt to bind the Green Deal to beauty, sustainability and togetherness — and a live argument about whether aesthetics belong in climate policy.",
+      "summary": "The EU's attempt to bind the Green Deal to beauty, sustainability and community — and a live argument about whether aesthetics belong in climate policy.",
       "tags": [
         "governance",
         "community",
@@ -439,7 +439,7 @@
       "authors": "ACAN",
       "publisher": "ACAN",
       "year": 2019,
-      "summary": "Organising within the profession — retrofit-first campaigning, embodied carbon regulation, and the argument for building less.",
+      "summary": "Organising within the architecture profession — retrofit-first campaigning, embodied carbon regulation, and the argument for building less.",
       "tags": [
         "degrowth",
         "governance",
