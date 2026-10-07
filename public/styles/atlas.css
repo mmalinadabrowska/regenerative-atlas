@@ -1711,6 +1711,9 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
      a flex row at this width, not the three-column grid it is on a wide
      screen, and `justify-self` on a flex item is a line that does nothing. */
   .topbar__count { display: none; }
+  /* …except on the review page, where the count is the way to everything
+     waiting — and a phone is where a link from an email gets opened. */
+  .topbar .review__waiting:not([hidden]) { display: inline; margin-left: auto; font-size: 0.9rem; }
 
   /* Written against the bar as well as the attribute, because `.topbar nav`
      further up the sheet already claims a display and would keep it. */
@@ -2069,6 +2072,52 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   line-height: 1.5;
   color: var(--ink-55);
 }
+
+
+/* The count of what is waiting is the way to all of it: underlined, as a link
+   in running text is, and in ink rather than the bar's quieter grey. */
+.review__waiting {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 1px;
+}
+.review__waiting:hover { text-decoration-thickness: 2px; }
+.review__caveat a { color: inherit; text-underline-offset: 0.2em; }
+
+/* The waiting list: one rule above each entry, as the single entry has, and
+   the whole row the way in. */
+.review__queue {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.review__item {
+  display: block;
+  border-top: var(--stroke) solid var(--ink);
+  padding: 1.1rem 0 1.25rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.review__queue li:last-child .review__item { border-bottom: var(--stroke) solid var(--ink); }
+
+.review__item-title {
+  display: block;
+  font-family: var(--display);
+  font-size: clamp(1.25rem, 2.6vw, 1.6rem);
+  line-height: 1.2;
+  margin-bottom: 0.3rem;
+}
+
+@media (hover: hover) {
+  .review__item:hover .review__item-title { text-decoration: underline; text-underline-offset: 0.18em; }
+}
+.review__item:focus-visible { outline: var(--stroke) solid var(--ink); outline-offset: 4px; }
+
+.review__item .review__cite,
+.review__item .review__by { display: block; margin: 0 0 0.15rem; }
 
 
 /* --- the duplicate warning ------------------------------------------------ */

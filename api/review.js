@@ -6,14 +6,27 @@
  * and link scanners follow links, and a decision that could be made by
  * something merely looking at a message is not a decision.
  *
- * The token is the whole of the authorisation. It is long, random and single-
- * purpose — it is a key to one submission and to nothing else, it cannot read
- * the queue and it cannot touch the library — and whoever holds it decides.
- * That is the bargain of a link in an inbox, and it is why the email says so.
+ * The token is the whole of the authorisation. It is long and random, and only
+ * ever sent to the curator. It opens its own entry, and — because whoever holds
+ * one is the curator — the list of entries still waiting, each with the link to
+ * its own page; never a decided entry, and never the library. Whoever holds it
+ * decides. That is the bargain of a link in an inbox, and the email says so.
  */
 
 import * as supabase from '../server/supabase.js';
 import { json, readBody, wrongMethod } from './_shared.js';
+
+/** One line of the waiting list: enough to recognise it, and the way in. */
+const forList = (entry) => ({
+  token: entry.token,
+  title: entry.title,
+  url: entry.url,
+  authors: entry.authors,
+  publisher: entry.publisher,
+  year: entry.year,
+  contributor: entry.contributor,
+  submittedAt: entry.created_at,
+});
 
 /** What the review page is allowed to see. The token it already has. */
 const forReading = (entry) => ({
@@ -48,6 +61,11 @@ export default async function handler(req, res) {
     if (req.method === 'GET') {
       const entry = await supabase.submission(token);
       if (!entry) return json(res, 404, { error: 'No entry answers to that link. It may have been reviewed already.' });
+      // The list of everything still waiting, opened by any real review link.
+      if (url.searchParams.has('queue')) {
+        const queue = (await supabase.pending()).map(forList);
+        return json(res, 200, { queue, waiting: queue.length });
+      }
       return json(res, 200, { entry: forReading(entry), waiting: await supabase.waiting() });
     }
 

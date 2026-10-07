@@ -137,10 +137,24 @@ async function writeThrough(source) {
  * writes it to the project — this machine catches up on the next pull, the
  * same way it catches up on everything else.
  */
-async function reviewRead(token) {
+async function reviewRead(token, { queue = false } = {}) {
   if (!supabase.configured()) return [503, { error: 'This Atlas keeps no queue — it is not connected to a project.' }];
   const entry = await supabase.submission(String(token ?? '').trim());
   if (!entry) return [404, { error: 'No entry answers to that link. It may have been reviewed already.' }];
+  // Any real review link also opens the list of what is still waiting.
+  if (queue) {
+    const list = (await supabase.pending()).map((row) => ({
+      token: row.token,
+      title: row.title,
+      url: row.url,
+      authors: row.authors,
+      publisher: row.publisher,
+      year: row.year,
+      contributor: row.contributor,
+      submittedAt: row.created_at,
+    }));
+    return [200, { queue: list, waiting: list.length }];
+  }
   return [200, { entry: forReview(entry), waiting: await supabase.waiting() }];
 }
 
@@ -260,7 +274,7 @@ export function createAtlasServer(atlas) {
             // with the Atlas running in front of them, rather than only from
             // the deployment the email happened to come from.
             case '/api/review':
-              return sendJson(res, ...(await reviewRead(searchParams.get('token'))));
+              return sendJson(res, ...(await reviewRead(searchParams.get('token'), { queue: searchParams.has('queue') })));
             case '/api/export.json':
               return send(res, 200, JSON.stringify(exportJson(atlas), null, 2), {
                 'content-disposition': 'attachment; filename="regenerative-atlas.json"',

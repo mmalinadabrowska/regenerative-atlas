@@ -290,6 +290,17 @@ export async function submission(token) {
   return rows[0] ?? null;
 }
 
+/**
+ * Everything still waiting, oldest first — the curator's list. Only what a
+ * list needs, and each entry's token, which is the way into its own page.
+ */
+export async function pending() {
+  return rest(
+    'submissions?status=eq.pending&order=created_at.asc' +
+      '&select=token,title,url,authors,publisher,year,contributor,created_at',
+  );
+}
+
 /** How many are waiting — for the line at the top of a review page. */
 export async function waiting() {
   const rows = await rest('submissions?status=eq.pending&select=id');

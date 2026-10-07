@@ -70,7 +70,7 @@ export function compose(entry, { reviewUrl } = {}) {
       'It is not on the map. Nothing is, until you say so:',
       reviewUrl,
       '',
-      'That link is the only key to this entry — it decides for whoever opens it.',
+      'That link is the key to this entry and to the list of everything else waiting — it decides for whoever opens it.',
     );
   }
 
@@ -112,7 +112,7 @@ export function compose(entry, { reviewUrl } = {}) {
                 font-size:16px;padding:.62em 1.5em .5em;border-radius:999px">Read it and decide</a>
     </p>
     <p style="margin:0;font-size:13px;color:${FAINT}">
-      That link is the only key to this entry — it decides for whoever opens it, so keep it to yourself.
+      That link is the key to this entry and to the list of everything else waiting — it decides for whoever opens it, so keep it to yourself.
     </p>`
         : ''
     }

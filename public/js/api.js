@@ -144,6 +144,7 @@ export const api = {
     inlined ? unavailable() : request('/api/sources', { method: 'POST', body: JSON.stringify(source) }),
   /** One queued submission, read by the token that came in the curator's email. */
   review: (token) => request(`/api/review?token=${encodeURIComponent(token)}`),
+  reviewQueue: (token) => request(`/api/review?token=${encodeURIComponent(token)}&queue=1`),
   decide: (token, decision) =>
     request('/api/review', { method: 'POST', body: JSON.stringify({ token, decision }) }),
 };

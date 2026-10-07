@@ -27,13 +27,14 @@
     </a>
     <a class="topbar__brand" href="/">Regenerative Atlas</a>
   </div>
-  <span class="topbar__count" data-waiting></span>
+  <!-- How many are waiting, and the way to all of them. -->
+  <a class="topbar__count review__waiting" data-waiting hidden></a>
 </header>
 
 <main class="sheet sheet--narrow">
   <div class="masthead masthead--left" style="padding-inline:0">
-    <h1 class="wordmark" style="font-size:clamp(2rem,4.5vw,3.2rem)">An entry, waiting</h1>
-    <p class="blurb">Somebody has sent this to the Atlas. It is not on the map and will not be
+    <h1 class="wordmark" style="font-size:clamp(2rem,4.5vw,3.2rem)" data-heading>An entry, waiting</h1>
+    <p class="blurb" data-blurb>Somebody has sent this to the Atlas. It is not on the map and will not be
       until you say so. Read it as a stranger would — then accept it, or don't.</p>
   </div>
 

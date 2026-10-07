@@ -296,7 +296,7 @@ test('mail that fails does not fail the submission', async () => {
   clearEnvironment();
 });
 
-test('the review link reads one entry and nothing else', async () => {
+test('the review link reads its own entry', async () => {
   clearEnvironment();
   const project = await fakeProject();
   const mail = await fakeMail();
@@ -313,6 +313,39 @@ test('the review link reads one entry and nothing else', async () => {
 
   const unaddressed = await call(reviewFunction, { url: '/api/review' });
   assert.equal(unaddressed.status, 400);
+
+  project.close();
+  mail.close();
+  clearEnvironment();
+});
+
+test('a review link also opens the list of everything still waiting', async () => {
+  clearEnvironment();
+  const project = await fakeProject();
+  const mail = await fakeMail();
+  await call(submitFunction, { method: 'POST', url: '/api/sources', body: entry });
+  await call(submitFunction, {
+    method: 'POST',
+    url: '/api/sources',
+    body: { ...entry, url: 'https://example.org/water', title: 'Water as a design system' },
+  });
+  const [first, second] = project.queue;
+
+  // Decide the first; its link still opens the list, which holds only the second.
+  await call(reviewFunction, { method: 'POST', url: '/api/review', body: { token: first.token, decision: 'decline' } });
+  const listed = await call(reviewFunction, { url: `/api/review?token=${encodeURIComponent(first.token)}&queue=1` });
+  assert.equal(listed.status, 200);
+  assert.equal(listed.body.waiting, 1);
+  assert.deepEqual(listed.body.queue.map((row) => row.title), ['Water as a design system']);
+  // Each line carries the way into its own page, and no more than a list needs.
+  assert.equal(listed.body.queue[0].token, second.token);
+  assert.equal(listed.body.queue[0].summary, undefined);
+  assert.equal(listed.body.queue[0].note, undefined);
+
+  // A link that is not a key opens nothing.
+  const refused = await call(reviewFunction, { url: '/api/review?token=not-a-token&queue=1' });
+  assert.equal(refused.status, 404);
+  assert.equal(refused.body.queue, undefined);
 
   project.close();
   mail.close();
