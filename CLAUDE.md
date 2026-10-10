@@ -32,6 +32,8 @@
   lines of code can do.
 - **Secrets never go in the repository** — `.env` is gitignored and stays so.
   The Supabase `service_role` key belongs only in Vercel's environment
-  variables; the GitHub Actions secret is the read-only `anon` key.
+  variables; the GitHub Actions secret is the read-only `anon` key. The same
+  goes for `ANTHROPIC_API_KEY` (the librarian): Vercel's environment variables
+  or a local `.env`, nowhere else.
 - `npm test` runs everything (Node's built-in test runner); it should pass
   before anything is pushed.

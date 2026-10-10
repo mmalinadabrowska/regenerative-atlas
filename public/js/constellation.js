@@ -140,6 +140,11 @@ export function createConstellation(canvas, options = {}) {
     // How much of the frame the page's own panels are covering, so the map is
     // fitted to the part of it you can actually see.
     inset = () => ({ top: 0, right: 0, bottom: 0, left: 0 }),
+    // A constellation rather than an archipelago: the whole of a small graph
+    // on show at once — every theme and every piece of research, tied by
+    // dotted lines — instead of the islands with their research tucked inside.
+    // The librarian's answers are drawn this way.
+    constellation = false,
   } = options;
   const ctx = canvas.getContext('2d');
 
@@ -658,7 +663,14 @@ export function createConstellation(canvas, options = {}) {
     const wasIslands = !drawLinks;
     const heldKeys = new Set(wasDrawn.map(linkKey));
 
-    if (!focused) {
+    if (!focused && constellation) {
+      nodes = [...library.nodes];
+      links = [...sourcesOfTag.entries()].flatMap(([id, sources]) =>
+        sources.map((source) => ({ a: allById.get(id), b: source, kind: 'tagged', weight: 1 })),
+      );
+      drawLinks = true;
+      islandLayout(previouslyPlaced);
+    } else if (!focused) {
       nodes = library.nodes.filter((n) => n.type === 'tag');
       links = affinity.filter((l) => l.a && l.b);
       drawLinks = false;
@@ -1172,6 +1184,7 @@ export function createConstellation(canvas, options = {}) {
     // the collision pass decides which fit. Inside an opened view everything on
     // screen is there because you asked for it, so it is named too — the map
     // only rations names when it is showing you the whole library at once.
+    if (!focused && constellation) return node.type === 'tag' ? { limit: 34 } : { limit: 30 };
     if (!focused) return node.type === 'tag' ? { limit: 26 } : null;
     if (node === focused) return { limit: node.type === 'tag' ? 30 : 76 };
     // The orbit stays quiet until you point at it, or it would be a second
@@ -1608,7 +1621,9 @@ export function createConstellation(canvas, options = {}) {
     // names it writes are cleared here rather than there, so a frame that draws
     // no territory leaves none of last frame's behind for the labels to avoid.
     territoryNames.length = 0;
-    if (!focused) paintTerritories(transition ? enterFade : 1);
+    if (constellation) {
+      // No ground: a constellation is points and the lines between them.
+    } else if (!focused) paintTerritories(transition ? enterFade : 1);
     else if (leaving.islands) paintTerritories(exitFade);
 
     ctx.lineCap = 'round';
@@ -1642,8 +1657,16 @@ export function createConstellation(canvas, options = {}) {
         ctx.strokeStyle = lit ? 'rgba(16,15,13,0.55)' : muted ? 'rgba(16,15,13,0.04)' : 'rgba(16,15,13,0.16)';
         ctx.lineWidth = Math.max(0.8 * stroke, 0.4);
       }
+      if (constellation) {
+        // Dots, not rules: a line of round dabs reads as a route between two
+        // stars rather than a wire.
+        ctx.strokeStyle = lit ? THEME.ink : muted ? 'rgba(16,15,13,0.12)' : 'rgba(16,15,13,0.5)';
+        ctx.lineWidth = Math.max(2.1 * stroke, 1.4);
+        ctx.setLineDash([0, Math.max(6.5 * stroke, 4.5)]);
+      }
       inkLine(ctx, a.x, a.y, b.x, b.y, link.kind === 'kin' ? 0.05 : 0.02);
       ctx.stroke();
+      ctx.setLineDash([]);
       ctx.globalAlpha = 1;
     }
 

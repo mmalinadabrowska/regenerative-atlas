@@ -135,6 +135,20 @@
 
   <div class="map-legend" id="map-legend"></div>
 
+  <!-- The librarian: a mark on the map that offers to help, and, if you take
+       it up, the way to a map of your own question. -->
+  <div class="librarian-call">
+    <div class="librarian-pill" id="librarian-pill" role="dialog" aria-label="The librarian" hidden>
+      <p class="librarian-pill__text">Would you like to search the map for a specific question or idea you're exploring? I can help you navigate the map.</p>
+      <p class="librarian-pill__actions">
+        <a class="chip chip--filled" href="/librarian/">Ask</a>
+        <button class="chip" type="button" id="librarian-dismiss">Not now</button>
+      </p>
+    </div>
+    <button class="librarian-button" id="librarian-open" type="button"
+            aria-label="The librarian" aria-expanded="false" aria-controls="librarian-pill"></button>
+  </div>
+
   <aside class="panel" id="panel" aria-live="polite">
     <button class="sheet-grip" id="sheet-grip" type="button" aria-expanded="false" aria-controls="panel-body">
       <span class="sheet-grip__bar" aria-hidden="true"></span>

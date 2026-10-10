@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Librarian · Regenerative Atlas</title>
+<meta name="description" content="Describe a question or idea you are exploring, and the librarian draws what the Regenerative Atlas holds on it.">
+<link rel="modulepreload" href="/js/connected-nav.js">
+<link rel="preload" as="font" type="font/woff2" crossorigin
+      href="/fonts/tremplin/webfont/Tremplin-Regular.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin
+      href="/fonts/enby-gertrude/webfonts/woff2/Enby_Gertrude_roman.woff2">
+<link rel="stylesheet" href="/styles/atlas.css">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<!-- Vercel Web Analytics: page views only. What is asked is never sent. -->
+<script>
+  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+</script>
+<script defer src="/_vercel/insights/script.js"></script>
+</head>
+<body class="page page--map page--librarian">
+
+<header class="topbar">
+  <div class="topbar__id">
+    <a class="atlas-mark" href="/" aria-label="Regenerative Atlas home">
+      <svg viewBox="-11 -11 22 22" aria-hidden="true" focusable="false">
+        <path d="M -5 -5 A 5 5 0 0 1 5 -5 A 5 5 0 0 1 5 5 A 5 5 0 0 1 -5 5 A 5 5 0 0 1 -5 -5 Z"/>
+      </svg>
+    </a>
+    <a class="topbar__brand" href="/">Regenerative Atlas</a>
+  </div>
+  <nav class="navgroup" data-connected-nav aria-label="Sections of the Atlas">
+    <a data-connect href="/map/" aria-current="page">Explore</a>
+    <a data-connect href="/add/">Add</a>
+    <a data-connect href="/about/">About</a>
+  </nav>
+  <span class="topbar__count" data-count></span>
+</header>
+
+<div class="map-shell">
+  <canvas id="constellation" aria-label="The librarian's map of your question. Everything on it is listed in the librarian's drawer."></canvas>
+
+  <div class="map-chrome">
+    <div class="map-controls">
+      <!-- The whole of the controls: the librarian, who opens the drawer. -->
+      <button class="librarian-button librarian-toggle" id="librarian-toggle" type="button"
+              aria-label="The librarian" aria-expanded="false" aria-controls="panel"></button>
+      <div class="map-zoom">
+        <button class="chip chip--round" id="map-out" type="button" title="Zoom out" aria-label="Zoom out">
+          <svg class="chip__mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12H19"/></svg>
+        </button>
+        <button class="chip chip--round" id="map-in" type="button" title="Zoom in" aria-label="Zoom in">
+          <svg class="chip__mark" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5V19M5 12H19"/></svg>
+        </button>
+        <button class="chip chip--round" id="map-reset" type="button" title="Recentre" aria-label="Recentre the map">
+          <svg class="chip__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/>
+            <circle cx="12" cy="12" r="2.1"/>
+          </svg>
+          <span class="chip__label">Recentre</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="map-legend" id="map-legend"></div>
+
+  <aside class="panel" id="panel" aria-live="polite">
+    <button class="sheet-grip" id="sheet-grip" type="button" aria-expanded="false" aria-controls="panel-body">
+      <span class="sheet-grip__bar" aria-hidden="true"></span>
+      <span class="visually-hidden">Expand the drawer</span>
+    </button>
+    <header class="panel__head" id="panel-head">
+      <span class="panel__glyph" id="panel-glyph" aria-hidden="true"></span>
+      <h3 class="panel__title" id="panel-title">The librarian</h3>
+      <button class="panel__close" id="panel-close" type="button" aria-label="Close">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M5 5 L19 19 M19 5 L5 19"/>
+        </svg>
+      </button>
+    </header>
+    <div class="panel__scroll">
+      <div id="panel-body"></div>
+      <div class="scroll-rail" id="scroll-rail" aria-hidden="true">
+        <span class="scroll-rail__dot" id="scroll-dot"></span>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<script type="module" src="/js/librarian.js"></script>
+<script type="module" src="/js/connected-nav.js"></script>
+</body>
+</html>

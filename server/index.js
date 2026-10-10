@@ -16,6 +16,7 @@ import { loadEnv } from './env.js';
 import { openDatabase } from './db.js';
 import { ApiError, exportBibtex, exportJson, handlers } from './api.js';
 import * as supabase from './supabase.js';
+import { LibrarianError, librarian } from './librarian.js';
 
 // Before anything reads process.env — the Supabase credentials live in .env
 // when they live anywhere on this machine at all.
@@ -202,6 +203,8 @@ const forReview = (entry) => ({
 let atlasRef = null;
 
 const describeLimit = createLimiter({ capacity: 20, refillPerMinute: 20 });
+// A question to the librarian costs money where there is a key behind it.
+const librarianLimit = createLimiter({ capacity: 5, refillPerMinute: 5 });
 
 const clientKey = (req) =>
   (req.headers['x-forwarded-for']?.split(',')[0] ?? req.socket.remoteAddress ?? 'unknown').trim();
@@ -302,6 +305,17 @@ export function createAtlasServer(atlas) {
               return sendJson(res, 429, { error: 'One question at a time — try again in a moment.' });
             }
             return sendJson(res, 200, handlers.ask(atlas, body));
+          }
+          if (pathname === '/api/librarian') {
+            if (!librarianLimit(clientKey(req))) {
+              return sendJson(res, 429, { error: 'One question at a time — try again in a minute.' });
+            }
+            try {
+              return sendJson(res, 200, await librarian(body, atlas.listSources({ limit: 5000 })));
+            } catch (error) {
+              if (error instanceof LibrarianError) return sendJson(res, error.status, { error: error.message });
+              throw error;
+            }
           }
           if (pathname === '/api/review') {
             return sendJson(res, ...(await reviewWrite(body)));

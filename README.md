@@ -132,8 +132,9 @@ Everything the pages use is public and unauthenticated for reading.
 | `GET` | `/api/export.bib` | The whole library as BibTeX |
 | `POST` | `/api/describe` | `{url}` → what that link says about itself |
 | `POST` | `/api/sources` | `{url, title, tags[], …}` → adds a source |
+| `POST` | `/api/librarian` | `{question}` → themes from the library that bear on it, with reasoning |
 
-Both `POST` routes are rate-limited per address. `POST /api/describe` makes the server
+Every `POST` route is rate-limited per address. `POST /api/describe` makes the server
 fetch a URL a stranger supplied, so it resolves the host first and refuses private,
 loopback and link-local addresses.
 
@@ -227,6 +228,21 @@ swallowing a contribution, and with no mail key the queue still fills, it just
 fills quietly. **[docs/submissions.md](docs/submissions.md)** is the setup, end
 to end, and `/api/health` on the deployed site says in booleans which halves are
 wired up.
+
+## The librarian
+
+The glyph in the corner of the map opens the librarian (`/librarian/`): describe a
+question or idea, and Claude reads the whole published library against it and answers
+with a few themes, the reasoning for each, and the research that belongs to them —
+drawn as a constellation and printable as a PDF. It only answers questions about
+regenerative design and the map, and it can only name records that are in the
+library; anything else it names is dropped before the page sees it
+([`server/librarian.js`](server/librarian.js)).
+
+It needs `ANTHROPIC_API_KEY` in the environment (Vercel's environment variables, or
+`.env` locally). Without one it still answers, by keyword only. Give the key a monthly
+spending limit in the Anthropic console: the site is public, and that limit is the real
+ceiling on what it can cost.
 
 ## Deploying
 

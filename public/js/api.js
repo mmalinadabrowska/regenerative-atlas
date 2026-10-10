@@ -147,6 +147,23 @@ export const api = {
   reviewQueue: (token) => request(`/api/review?token=${encodeURIComponent(token)}&queue=1`),
   decide: (token, decision) =>
     request('/api/review', { method: 'POST', body: JSON.stringify({ token, decision }) }),
+  /** A question for the librarian, answered from the library by the server. */
+  librarian: async (question) => {
+    const missing = new Error(
+      'This copy of the Atlas has no librarian — it is a snapshot of the library, served as files.',
+    );
+    if (inlined) throw missing;
+    const response = await fetch('/api/librarian', {
+      method: 'POST',
+      headers: { accept: 'application/json', 'content-type': 'application/json' },
+      body: JSON.stringify({ question }),
+    }).catch(() => null);
+    if (!response) throw new Error('The librarian could not be reached. Check your connection and try again.');
+    const body = await response.json().catch(() => null);
+    if (response.ok && body) return body;
+    if (!body?.error && [404, 405, 501].includes(response.status)) throw missing;
+    throw new Error(body?.error ?? `The librarian could not answer (${response.status}).`);
+  },
 };
 
 /** Escape anything that came from a contributor before it touches innerHTML. */

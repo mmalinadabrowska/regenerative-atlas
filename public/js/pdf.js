@@ -136,8 +136,9 @@ class Pen {
     this.box = box;
   }
 
-  line(x1, y1, x2, y2, { grey = 0.55, width = 0.3 } = {}) {
-    this.marks.push({ kind: 'line', x1, y1, x2, y2, grey, width });
+  /** `dots` draws the line as round dots that far apart, in points. */
+  line(x1, y1, x2, y2, { grey = 0.55, width = 0.3, dots = 0 } = {}) {
+    this.marks.push({ kind: 'line', x1, y1, x2, y2, grey, width, dots });
     return this;
   }
 
@@ -275,11 +276,13 @@ function markOps(mark, flip) {
   if (mark.kind !== 'text') parts.push(`${mark.grey.toFixed(2)} G`, `${mark.width} w`);
 
   if (mark.kind === 'line') {
+    if (mark.dots) parts.push('1 J', `[0 ${mark.dots}] 0 d`);
     parts.push(
       `${mark.x1.toFixed(2)} ${y(mark.y1)} m`,
       `${mark.x2.toFixed(2)} ${y(mark.y2)} l`,
       'S',
     );
+    if (mark.dots) parts.push('[] 0 d', '0 J');
   } else if (mark.kind === 'shape') {
     const [first, ...rest] = mark.points;
     parts.push(`${first[0].toFixed(2)} ${y(first[1])} m`);
