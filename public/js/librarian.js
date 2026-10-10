@@ -97,7 +97,7 @@ window.addEventListener('resize', placePanel);
 placePanel();
 
 toggle.innerHTML = librarianGlyph();
-panelGlyph.innerHTML = librarianGlyph({ size: 'small' });
+panelGlyph.innerHTML = librarianGlyph();
 panel.dataset.kind = 'librarian';
 
 /* --- the answer, as a constellation ----------------------------------------
@@ -155,7 +155,7 @@ const EMPTY = { nodes: [], links: [], clusters: [] };
 
 /* --- the drawer ------------------------------------------------------------ */
 
-function setHead(title, glyph = librarianGlyph({ size: 'small' }), wash = null) {
+function setHead(title, glyph = librarianGlyph(), wash = null) {
   panel.style.setProperty('--head', wash || 'var(--ink)');
   panel.style.setProperty('--head-ink', needsPaper(wash) ? 'var(--paper)' : 'var(--ink)');
   if (!wash) panel.style.setProperty('--head-ink', 'var(--paper)');
