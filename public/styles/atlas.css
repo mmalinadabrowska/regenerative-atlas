@@ -2215,17 +2215,17 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   border-radius: 999px;
   font-size: 0.84rem;
   line-height: 1.4;
-  /* A page of a book: hinged at the edge beside the mark, it swings out from
-     behind it and opens flat. */
+  /* Flicked out sideways from behind the mark, like a page thumbed off the
+     edge of a book: squeezed and leaning as it leaves, a small overshoot, then
+     flat. Only ever pulled sideways — its height never changes. */
   transform-origin: left center;
-  transform: perspective(700px) translateX(calc(-0.6 * var(--librarian-size))) rotateY(-96deg);
-  backface-visibility: hidden;
+  transform: translateX(calc(-0.7 * var(--librarian-size))) scaleX(0.12) skewX(-18deg);
   opacity: 0;
   visibility: hidden;
   /* Closing waits a moment, so a pointer crossing to the arrow does not shut
-     the page in its face. */
-  transition: transform 380ms cubic-bezier(0.55, 0, 0.75, 0.3) 140ms, opacity 160ms ease 360ms,
-    visibility 0s linear 520ms;
+     the page in its face; then it is flicked back as quickly. */
+  transition: transform 200ms cubic-bezier(0.5, 0, 0.9, 0.4) 140ms, opacity 90ms ease 250ms,
+    visibility 0s linear 340ms;
 }
 
 /* The gap between the mark and the page, bridged for the pointer. */
@@ -2240,18 +2240,18 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 
 .librarian-call.is-open .librarian-pill,
 .librarian-call:focus-within .librarian-pill {
-  transform: perspective(700px) translateX(0) rotateY(0deg);
+  transform: none;
   opacity: 1;
   visibility: visible;
-  transition: transform 560ms cubic-bezier(0.2, 0.75, 0.25, 1), opacity 120ms ease, visibility 0s;
+  transition: transform 340ms cubic-bezier(0.22, 1.4, 0.4, 1), opacity 60ms ease, visibility 0s;
 }
 
 @media (hover: hover) {
   .librarian-call:hover .librarian-pill {
-    transform: perspective(700px) translateX(0) rotateY(0deg);
+    transform: none;
     opacity: 1;
     visibility: visible;
-    transition: transform 560ms cubic-bezier(0.2, 0.75, 0.25, 1), opacity 120ms ease, visibility 0s;
+    transition: transform 340ms cubic-bezier(0.22, 1.4, 0.4, 1), opacity 60ms ease, visibility 0s;
   }
 }
 
