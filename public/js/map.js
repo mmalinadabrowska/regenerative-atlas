@@ -1078,7 +1078,7 @@ zoomOutButton.addEventListener('click', () => map.zoomBy(1 / 1.4));
 
 document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape') {
-    if (!librarianPill.hidden) return showPill(false);
+    if (pillOpen()) return showPill(false);
     if (drawerOpen()) return closeDrawers();
     closePanel();
     map.reset();
@@ -1090,27 +1090,35 @@ document.addEventListener('keydown', (event) => {
 });
 
 /* --- the librarian ---------------------------------------------------------
-   A mark on the map that offers to help. Pressed, it says what it can do, in
-   a speech pill beside it; Ask goes to the librarian's own map. */
+   A mark in the corner over the legend. Pointed at — or tapped, where nothing
+   can point — it opens into a pill with its offer and the way to its map. */
 
+const librarianCall = document.getElementById('librarian-call');
 const librarianButton = document.getElementById('librarian-open');
-const librarianPill = document.getElementById('librarian-pill');
 
 librarianButton.innerHTML = librarianGlyph();
 
 function showPill(open) {
-  librarianPill.hidden = !open;
+  librarianCall.classList.toggle('is-open', open);
   librarianButton.setAttribute('aria-expanded', String(open));
 }
 
-librarianButton.addEventListener('click', () => showPill(librarianPill.hidden));
-document.getElementById('librarian-dismiss').addEventListener('click', () => {
-  showPill(false);
-  librarianButton.focus();
+const pillOpen = () => librarianCall.classList.contains('is-open');
+
+librarianButton.addEventListener('click', () => showPill(!pillOpen()));
+librarianCall.addEventListener('mouseenter', () => librarianButton.setAttribute('aria-expanded', 'true'));
+librarianCall.addEventListener('mouseleave', () => {
+  if (!pillOpen()) librarianButton.setAttribute('aria-expanded', 'false');
 });
 document.addEventListener('pointerdown', (event) => {
-  if (!librarianPill.hidden && !event.target.closest('.librarian-call')) showPill(false);
+  if (pillOpen() && !event.target.closest('.librarian-call')) showPill(false);
 });
+
+// It stands on the legend, whose height changes with what the map is showing.
+const legendHeight = () =>
+  canvas.parentElement.style.setProperty('--legend-height', `${Math.ceil(legend.offsetHeight)}px`);
+if (window.ResizeObserver) new ResizeObserver(legendHeight).observe(legend);
+legendHeight();
 
 readUrl();
 fillCount();

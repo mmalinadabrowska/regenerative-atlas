@@ -135,18 +135,17 @@
 
   <div class="map-legend" id="map-legend"></div>
 
-  <!-- The librarian: a mark on the map that offers to help, and, if you take
-       it up, the way to a map of your own question. -->
-  <div class="librarian-call">
-    <div class="librarian-pill" id="librarian-pill" role="dialog" aria-label="The librarian" hidden>
-      <p class="librarian-pill__text">Would you like to search the map for a specific question or idea you're exploring? I can help you navigate the map.</p>
-      <p class="librarian-pill__actions">
-        <a class="chip chip--filled" href="/librarian/">Ask</a>
-        <button class="chip" type="button" id="librarian-dismiss">Not now</button>
-      </p>
-    </div>
+  <!-- The librarian: a mark in the corner over the legend. Pointed at, it opens
+       into a black pill that says what it can do, with the way to its map. -->
+  <div class="librarian-call" id="librarian-call">
     <button class="librarian-button" id="librarian-open" type="button"
             aria-label="The librarian" aria-expanded="false" aria-controls="librarian-pill"></button>
+    <div class="librarian-pill" id="librarian-pill">
+      <p class="librarian-pill__text">Would you like to search the map for a specific question or idea you're exploring? I can help you navigate the map.</p>
+      <a class="librarian-pill__go" href="/librarian/" aria-label="Ask the librarian">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12H18M12.5 6.5 18 12l-5.5 5.5"/></svg>
+      </a>
+    </div>
   </div>
 
   <aside class="panel" id="panel" aria-live="polite">
