@@ -2163,6 +2163,8 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 .librarian-glyph { display: block; width: 100%; height: 100%; user-select: none; }
 
 .librarian-call {
+  --librarian-size: 3.6rem;
+  --librarian-gap: 0.5rem;
   position: absolute;
   left: var(--gutter);
   /* Standing on the legend, whatever it is saying: its height is measured in
@@ -2177,8 +2179,8 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   position: relative;
   z-index: 1;
   flex: 0 0 auto;
-  width: 3.6rem;
-  height: 3.6rem;
+  width: var(--librarian-size, 3.6rem);
+  height: var(--librarian-size, 3.6rem);
   padding: 0;
   border: 0;
   border-radius: 999px;
@@ -2196,46 +2198,60 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
    written in it and the way to the librarian's map at its end. Pointing at the
    mark opens it; on glass, a tap does. */
 .librarian-pill {
-  --mark: 1.8rem;
   position: absolute;
-  left: var(--mark);
-  top: 50%;
-  translate: 0 -50%;
+  top: 0;
+  left: calc(var(--librarian-size) + var(--librarian-gap));
   display: flex;
   align-items: center;
   gap: 0.85rem;
-  /* As long as what it says, and no longer than the screen allows. */
+  /* The mark's own height, and as long as what it says — no longer than the
+     screen allows. */
+  height: var(--librarian-size);
   width: max-content;
-  max-width: calc(100vw - 2 * var(--gutter) - var(--mark));
-  padding: 0.6rem 0.6rem 0.6rem calc(var(--mark) + 0.95rem);
+  max-width: calc(100vw - 2 * var(--gutter) - var(--librarian-size) - var(--librarian-gap));
+  padding: 0 calc((var(--librarian-size) - 2.5rem) / 2) 0 1.35rem;
   background: var(--ink);
   color: var(--paper);
   border-radius: 999px;
   font-size: 0.84rem;
   line-height: 1.4;
-  clip-path: inset(0 100% 0 0 round 999px);
+  /* A page of a book: hinged at the edge beside the mark, it swings out from
+     behind it and opens flat. */
+  transform-origin: left center;
+  transform: perspective(700px) translateX(calc(-0.6 * var(--librarian-size))) rotateY(-96deg);
+  backface-visibility: hidden;
   opacity: 0;
   visibility: hidden;
-  /* Closing waits a moment, so a pointer that slips off the edge on its way to
-     the arrow does not shut the pill in its face. */
-  transition: clip-path 300ms cubic-bezier(0.22, 0.61, 0.36, 1) 140ms, opacity 200ms ease 140ms,
-    visibility 0s linear 440ms;
+  /* Closing waits a moment, so a pointer crossing to the arrow does not shut
+     the page in its face. */
+  transition: transform 380ms cubic-bezier(0.55, 0, 0.75, 0.3) 140ms, opacity 160ms ease 360ms,
+    visibility 0s linear 520ms;
+}
+
+/* The gap between the mark and the page, bridged for the pointer. */
+.librarian-pill::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 100%;
+  width: var(--librarian-gap);
 }
 
 .librarian-call.is-open .librarian-pill,
 .librarian-call:focus-within .librarian-pill {
-  clip-path: inset(0 0 0 0 round 999px);
+  transform: perspective(700px) translateX(0) rotateY(0deg);
   opacity: 1;
   visibility: visible;
-  transition: clip-path 340ms cubic-bezier(0.22, 0.61, 0.36, 1), opacity 160ms ease, visibility 0s;
+  transition: transform 560ms cubic-bezier(0.2, 0.75, 0.25, 1), opacity 120ms ease, visibility 0s;
 }
 
 @media (hover: hover) {
   .librarian-call:hover .librarian-pill {
-    clip-path: inset(0 0 0 0 round 999px);
+    transform: perspective(700px) translateX(0) rotateY(0deg);
     opacity: 1;
     visibility: visible;
-    transition: clip-path 340ms cubic-bezier(0.22, 0.61, 0.36, 1), opacity 160ms ease, visibility 0s;
+    transition: transform 560ms cubic-bezier(0.2, 0.75, 0.25, 1), opacity 120ms ease, visibility 0s;
   }
 }
 
@@ -2272,7 +2288,8 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 @media (prefers-reduced-motion: reduce) {
   .librarian-pill,
   .librarian-call.is-open .librarian-pill,
-  .librarian-call:focus-within .librarian-pill { transition: none; }
+  .librarian-call:focus-within .librarian-pill,
+  .librarian-call:hover .librarian-pill { transition: none; }
 }
 
 /* --- the librarian's own map ----------------------------------------------- */
@@ -2401,8 +2418,8 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
     opacity: 0;
     pointer-events: none;
   }
-  .librarian-button { width: 3.2rem; height: 3.2rem; }
-  .librarian-pill { --mark: 1.6rem; font-size: 0.8rem; }
+  .librarian-call { --librarian-size: 3.2rem; }
+  .librarian-pill { font-size: 0.8rem; }
 
   .page--librarian .map-chrome { top: 0.75rem; left: var(--gutter); }
   .page--librarian .map-controls { padding: 0; background: none; border: 0; }
