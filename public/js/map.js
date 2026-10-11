@@ -1098,6 +1098,16 @@ const librarianButton = document.getElementById('librarian-open');
 
 librarianButton.innerHTML = librarianGlyph();
 
+// The offer is written out letter by letter once the pill has landed. The
+// sentence is kept whole for a screen reader; the letters are for the eye.
+const pillText = librarianCall.querySelector('.librarian-pill__text');
+const offer = pillText.textContent.trim();
+pillText.innerHTML = `<span class="visually-hidden">${escapeHtml(offer)}</span><span aria-hidden="true">${[
+  ...offer,
+]
+  .map((letter, i) => `<span style="--i:${i}">${letter === ' ' ? '&nbsp;' : escapeHtml(letter)}</span>`)
+  .join('')}</span>`;
+
 function showPill(open) {
   librarianCall.classList.toggle('is-open', open);
   librarianButton.setAttribute('aria-expanded', String(open));

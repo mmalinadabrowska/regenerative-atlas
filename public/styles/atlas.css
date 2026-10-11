@@ -2257,6 +2257,30 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 
 .librarian-pill__text { margin: 0; flex: 1 1 auto; font-size: 0.92rem; white-space: nowrap; }
 
+/* The letters, written once the page has landed: each one a beat after the
+   last. Put away, they go at once, before the page is flicked back. */
+.librarian-pill__text [aria-hidden] > span {
+  opacity: 0;
+  transition: opacity 60ms ease 60ms;
+}
+
+.librarian-call.is-open .librarian-pill__text [aria-hidden] > span,
+.librarian-call:focus-within .librarian-pill__text [aria-hidden] > span {
+  opacity: 1;
+  transition: opacity 90ms ease calc(340ms + var(--i) * 26ms);
+}
+
+@media (hover: hover) {
+  .librarian-call:hover .librarian-pill__text [aria-hidden] > span {
+    opacity: 1;
+    transition: opacity 90ms ease calc(340ms + var(--i) * 26ms);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .librarian-call .librarian-pill__text [aria-hidden] > span { transition-delay: 0s !important; }
+}
+
 .librarian-pill__go {
   flex: 0 0 auto;
   display: flex;
