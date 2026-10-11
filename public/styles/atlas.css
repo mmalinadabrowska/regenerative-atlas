@@ -2204,7 +2204,9 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   display: flex;
   align-items: center;
   gap: 0.85rem;
-  width: min(27rem, calc(100vw - 2 * var(--gutter) - var(--mark)));
+  /* As long as what it says, and no longer than the screen allows. */
+  width: max-content;
+  max-width: calc(100vw - 2 * var(--gutter) - var(--mark));
   padding: 0.6rem 0.6rem 0.6rem calc(var(--mark) + 0.95rem);
   background: var(--ink);
   color: var(--paper);
@@ -2237,7 +2239,7 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   }
 }
 
-.librarian-pill__text { margin: 0; flex: 1 1 auto; }
+.librarian-pill__text { margin: 0; flex: 1 1 auto; font-size: 0.92rem; white-space: nowrap; }
 
 .librarian-pill__go {
   flex: 0 0 auto;
