@@ -33,7 +33,7 @@ import {
 const TRANSITION_MS = 3000;
 
 const THEME = {
-  paper: '#f2ecdf',
+  paper: '#f0ede9',
   ink: INK,
   // Brick red, ink blue, gold. The yellow used to sit at hue 38, which at that
   // saturation is an orange; it is walked round to 45 and darkened, where it

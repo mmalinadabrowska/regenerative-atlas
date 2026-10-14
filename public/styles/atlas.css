@@ -79,8 +79,8 @@
 }
 
 :root {
-  --paper: #f2ecdf;
-  --paper-warm: #ece5d5;
+  --paper: #f0ede9;
+  --paper-warm: #e8e5df;
   --ink: #100f0d;
   --ink-80: rgba(16, 15, 13, 0.8);
   --ink-55: rgba(16, 15, 13, 0.55);

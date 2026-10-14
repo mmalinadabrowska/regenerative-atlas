@@ -27,7 +27,7 @@
  * inside it.
  */
 export const INK = '#100f0d';
-export const PAPER = '#f2ecdf';
+export const PAPER = '#f0ede9';
 
 const WASHES = [
   [205, 26, 70], // slate blue

@@ -15,7 +15,7 @@
 import { resolveTag } from './vocabulary.js';
 import * as mail from './mail.js';
 
-const PAPER = '#f2ecdf';
+const PAPER = '#f0ede9';
 const INK = '#100f0d';
 const FAINT = 'rgba(16, 15, 13, 0.55)';
 const SERIF = "'EB Garamond', 'Hoefler Text', Garamond, Georgia, 'Times New Roman', serif";
