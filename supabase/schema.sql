@@ -110,3 +110,30 @@ create index if not exists idx_submissions_url_key on submissions(url_key);
 -- lives on the server, can. An unreviewed submission is somebody's half-formed
 -- suggestion; it is not published, and it is not public.
 alter table submissions enable row level security;
+
+-- ---------------------------------------------------------------------------
+-- Grants: who may reach each table through the API at all.
+--
+-- Row-level security above decides which rows a role sees; these decide
+-- whether the role can touch the table in the first place. Supabase used to
+-- grant every table in `public` to every API role by default, and from
+-- 30 October 2026 it stops: a table created after that date answers
+-- "permission denied" until it is granted explicitly. So they are written out
+-- here, next to the tables, for any project this file is run against — a new
+-- one, a copy, a rebuild.
+--
+-- And written as tight as the Atlas works, rather than as wide as the old
+-- defaults were. The anon key (the browser, the hourly publish) and any
+-- signed-in user only ever read the library; the server, holding the service
+-- role, does all the writing. The queue of submissions is not granted to
+-- anon or authenticated at all. Safe to run more than once, and safe to run
+-- on the existing project, where it only takes away rights nothing uses.
+
+revoke all on sources, tags, source_tags, submissions from anon, authenticated;
+
+grant select on sources, tags, source_tags to anon, authenticated;
+
+grant select, insert, update, delete on sources, tags, source_tags, submissions to service_role;
+
+-- The ids are generated from sequences; the server reads and advances them.
+grant usage, select on sequence sources_id_seq, tags_id_seq, submissions_id_seq to service_role;
