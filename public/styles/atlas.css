@@ -489,8 +489,26 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   color: var(--ink);
 }
 
-/* Centring is done with `translate` rather than `transform`, so the hover below
-   has `scale` to itself and does not have to know how the button is placed. */
+/* The two ways in, placed as one: a single column as wide as the wider of
+   them, with rows as tall as the taller, so the buttons come out the same size
+   whatever their words. Centring is done with `translate` rather than
+   `transform`, so the hover below has `scale` to itself. */
+.hero__ways {
+  position: absolute;
+  left: 50%;
+  top: 56.5%;
+  translate: -50% 0;
+  display: grid;
+  grid-template-columns: max-content;
+  grid-auto-rows: 1fr;
+  gap: 1.1cqw;
+}
+
+.hero__ways > .label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 /* The way in is set in the display face, like the name above it: it is the
    Atlas speaking, not the interface. Every other button on the site is the
    interface, and stays in the sans. */
@@ -500,10 +518,6 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
      same on every platform (its two sets of metrics agree), so the constant
      that brings them down is a true one. */
   --type-drop: 0.08em;
-  position: absolute;
-  left: 50%;
-  top: 56.5%;
-  translate: -50% 0;
   font-size: 2cqw;
   padding: calc(0.53em + var(--type-drop)) 1.5em calc(0.53em - var(--type-drop));
 }
@@ -529,19 +543,13 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   scale: 1.05;
 }
 
-/* The second way in, under the first: adding to the Atlas. It is the
-   interface rather than the Atlas speaking, so it is outlined, smaller and in
-   the sans, and it carries a cross in a circle — the mark of a piece of
-   research on the map — so it says what it does before its words are read. */
+/* The second way in, under the first: adding to the Atlas. The same size as
+   the first, but the interface rather than the Atlas speaking — outlined and
+   in the sans — and it carries a cross in a circle, the mark of a piece of
+   research on the map, so it says what it does before its words are read. */
 .hero__add {
-  position: absolute;
-  left: 50%;
-  top: 67%;
-  translate: -50% 0;
-  display: inline-flex;
-  align-items: center;
   gap: 0.5em;
-  font-size: 1.3cqw;
+  font-size: 1.6cqw;
   padding: calc(0.45em + var(--type-drop)) 1.15em calc(0.45em - var(--type-drop)) 0.8em;
   white-space: nowrap;
 }
@@ -562,7 +570,7 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   position: absolute;
   left: 50%;
   translate: -50% 0;
-  top: 75%;
+  top: 78%;
   width: 40%;
   margin: 0;
   text-align: center;
@@ -691,24 +699,22 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
     margin-top: clamp(0.7rem, 2svh, 1.4rem);
   }
 
-  /* Still in the middle of the field, which is now a band rather than a frame,
-     with the way to add standing just under it — the pair centred together. */
-  .hero__atlas {
-    top: calc(50% - 1.55rem);
-    left: 50%;
+  /* Still in the middle of the field, which is now a band rather than a frame:
+     the pair centred together in it. */
+  .hero__ways {
+    top: 50%;
     translate: -50% -50%;
     z-index: 1;
+    gap: 0.7rem;
+  }
+
+  .hero__atlas {
     margin: 0;
     font-size: 1.25rem;
     padding: calc(0.43em + var(--type-drop)) 1.2em calc(0.43em - var(--type-drop));
   }
 
-  .hero__add {
-    top: calc(50% + 1.75rem);
-    translate: -50% -50%;
-    z-index: 1;
-    font-size: 0.95rem;
-  }
+  .hero__add { font-size: 1.05rem; }
 
   /* The break is set for a line that has room for it. On a phone the first
      half does not fit on one line anyway, so letting it wrap where it will
