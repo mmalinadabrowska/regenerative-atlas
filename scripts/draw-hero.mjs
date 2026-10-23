@@ -53,7 +53,8 @@ const HERE = { x: 960, y: 654 }; // where the button's middle falls in our frame
 const reserved = [
   { x: 461, y: 108, w: 998, h: 293 },  // wordmark, standfirst, blurb
   { x: 764, y: 608, w: 392, h: 91 },   // the way in — 'Open the Atlas'
-  { x: 576, y: 740, w: 768, h: 68 },   // the curator's line
+  { x: 770, y: 718, w: 380, h: 66 },   // the way to add — 'Add to the Atlas'
+  { x: 576, y: 806, w: 768, h: 74 },   // the curator's line
 ];
 
 const MARGIN = 16;
