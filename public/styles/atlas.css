@@ -21,7 +21,8 @@
    faces are preloaded from the head of each page, so they are nearly always
    there in time to be used from the first frame; on a connection too slow for
    that, the page is set in the fallback and stays set in it, which is a page
-   that holds still rather than one that rewrites itself in front of you. */
+   that holds still rather than one that rewrites itself in front of you.
+   That is Tremplin's rule. Enby Gertrude's is stricter; see its own face. */
 @font-face {
   font-family: 'Tremplin';
   src: url('../fonts/tremplin/webfont/Tremplin-Light.woff2') format('woff2'),
@@ -75,7 +76,13 @@
        url('../fonts/enby-gertrude/otf/Enby_Gertrude_roman.otf') format('opentype');
   font-weight: 400;
   font-style: normal;
-  font-display: optional;
+  /* `block`, not `optional`: the Atlas speaks in this face — its name, its
+     headings, the way in — and it is never to be read in another. The words
+     wait, unpainted, for the moment it takes to arrive (it is preloaded on
+     every page, and cached for a year after the first visit) rather than
+     appear in a stand-in serif. Only a face that has not come after three
+     seconds lets the stand-in show, and it is replaced the moment it lands. */
+  font-display: block;
 }
 
 :root {
