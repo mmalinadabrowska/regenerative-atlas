@@ -509,6 +509,19 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   align-items: center;
   justify-content: center;
 }
+
+/* The words sit on the pill's middle by their capitals, whatever face they
+   are set in. Trimmed to the cap height and the baseline, the words' own box
+   is exactly the capitals, so centring the box centres them — where the drop
+   above was a constant measured for one face, and a phone that showed the
+   page before its fonts had arrived set the words low on the pill. Browsers
+   without the trim keep the measured drop. */
+@supports (text-box: trim-both cap alphabetic) {
+  .hero__words { text-box: trim-both cap alphabetic; }
+  .hero__ways > .label { --type-drop: 0em; }
+  .hero__ways > .hero__atlas { padding-block: 0.83em; }
+  .hero__ways > .hero__add { padding-block: 0.8em; }
+}
 /* The way in is set in the display face, like the name above it: it is the
    Atlas speaking, not the interface. Every other button on the site is the
    interface, and stays in the sans. */
