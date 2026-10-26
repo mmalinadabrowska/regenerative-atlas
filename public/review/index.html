@@ -14,6 +14,23 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin
       href="/fonts/enby-gertrude/webfonts/woff2/Enby_Gertrude_roman.woff2">
 <link rel="stylesheet" href="/styles/atlas.css">
+<!-- Shown only once its typefaces are here, so the Atlas is never set in a
+     stand-in: both faces are preloaded above, so this is normally a moment,
+     and after the first visit nothing at all. Eight seconds is the most it will
+     ever wait, so a font that cannot arrive never keeps the page from showing. -->
+<script>
+  (function () {
+    var root = document.documentElement;
+    if (!document.fonts || !document.fonts.load) return;
+    root.classList.add('fonts-pending');
+    var show = function () { root.classList.remove('fonts-pending'); };
+    Promise.all([
+      document.fonts.load('400 1em "Enby Gertrude"'),
+      document.fonts.load('400 1em "Tremplin"'),
+    ]).then(show, show);
+    setTimeout(show, 8000);
+  })();
+</script>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 </head>
 <body class="page">

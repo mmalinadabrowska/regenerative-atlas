@@ -14,22 +14,21 @@
 /* Tremplin — Benjamin Dott, published by Bye Bye Binary. Drawn for long text
    and titling, which is why it carries the interface. Same terms as below;
    bundled complete in public/fonts/tremplin/. */
-/* `optional`, not `swap`. Swapping is what made the menu flicker between
-   pages: the row was laid out in a stand-in face, painted, and then relaid
-   the moment the real one arrived — the capsules changing width and the whole
-   row sliding sideways, on every page you opened. Optional never swaps. The
-   faces are preloaded from the head of each page, so they are nearly always
-   there in time to be used from the first frame; on a connection too slow for
-   that, the page is set in the fallback and stays set in it, which is a page
-   that holds still rather than one that rewrites itself in front of you.
-   That is Tremplin's rule. Enby Gertrude's is stricter; see its own face. */
+/* The Atlas is only ever set in its own two faces, never in a stand-in.
+   `block`: text in a face that has not arrived waits, unpainted, rather than
+   being drawn in another face first — and every page also holds itself back
+   until both faces are in (see the script at the head of each page), so the
+   drawing, the map's labels and the menu all appear at once and already in
+   the right type. Nothing is ever laid out twice, which is what made the menu
+   flicker under `swap`. Both faces are preloaded on every page and cached for
+   a year, so after the first visit there is nothing to wait for. */
 @font-face {
   font-family: 'Tremplin';
   src: url('../fonts/tremplin/webfont/Tremplin-Light.woff2') format('woff2'),
        url('../fonts/tremplin/webfont/Tremplin-Light.woff') format('woff');
   font-weight: 300;
   font-style: normal;
-  font-display: optional;
+  font-display: block;
   /* The file declares two sets of vertical metrics that disagree — an ascent of
      1000 in one table and 700 in the other — and platforms choose between them
      differently: macOS takes the first, Linux and Windows the second. So the
@@ -51,7 +50,7 @@
        url('../fonts/tremplin/webfont/Tremplin-Regular.woff') format('woff');
   font-weight: 400;
   font-style: normal;
-  font-display: optional;
+  font-display: block;
   ascent-override: 90%;
   descent-override: 20%;
   line-gap-override: 10%;
@@ -63,7 +62,7 @@
        url('../fonts/tremplin/webfont/Tremplin-Bold.woff') format('woff');
   font-weight: 700;
   font-style: normal;
-  font-display: optional;
+  font-display: block;
   ascent-override: 90%;
   descent-override: 20%;
   line-gap-override: 10%;
@@ -76,14 +75,13 @@
        url('../fonts/enby-gertrude/otf/Enby_Gertrude_roman.otf') format('opentype');
   font-weight: 400;
   font-style: normal;
-  /* `block`, not `optional`: the Atlas speaks in this face — its name, its
-     headings, the way in — and it is never to be read in another. The words
-     wait, unpainted, for the moment it takes to arrive (it is preloaded on
-     every page, and cached for a year after the first visit) rather than
-     appear in a stand-in serif. Only a face that has not come after three
-     seconds lets the stand-in show, and it is replaced the moment it lands. */
   font-display: block;
 }
+
+/* Held back, by the script at the head of each page, until both faces are
+   in. Hidden rather than blank: the layout is already made, in the right type,
+   when it is shown. */
+.fonts-pending body { visibility: hidden; }
 
 :root {
   --paper: #f2ecdf;
