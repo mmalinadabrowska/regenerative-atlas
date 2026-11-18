@@ -2,6 +2,8 @@
 
 import { api, citationLine, escapeHtml, fillCount, hostOf, usingSnapshot } from './api.js';
 import { createConstellation } from './constellation.js';
+import { ditheredPicture } from './dither.js';
+import { createGallery } from './gallery.js';
 import { blobPath, needsPaper, seedOf } from './ink.js';
 import { A4, MM, Sheet, toBlob, widthOf as textWidth } from './pdf.js';
 
@@ -44,7 +46,10 @@ const state = {
 
 const map = createConstellation(canvas, {
   onSelect: showRecord,
+  // A pointer resting on a blot brings up the pictures of its research.
+  onHover: (node) => gallery?.hover(node),
   onFocus: (node) => {
+    gallery?.hide();
     if (node?.type === 'tag') showTag(node);
     renderLegend(state.graph, node);
     // The address follows what is open, so the link in the bar is always the
@@ -1048,7 +1053,10 @@ function showRecord(node) {
   };
   panelBody.innerHTML = `
     <p class="panel__meta">${escapeHtml(citationLine(node)) || escapeHtml(hostOf(node.url))}</p>
-    ${node.summary ? `<p class="panel__summary">${escapeHtml(node.summary)}</p>` : ''}
+    <div class="record__lead">
+      <figure class="record__figure" data-picture hidden></figure>
+      ${node.summary ? `<p class="panel__summary">${escapeHtml(node.summary)}</p>` : ''}
+    </div>
     ${node.note ? `<p class="record__note">${escapeHtml(node.note)}</p>` : ''}
     <p class="panel__actions">
       <a class="label label--small" href="${escapeHtml(node.url)}" target="_blank" rel="noopener noreferrer">Read the source ↗</a>
@@ -1078,7 +1086,24 @@ function showRecord(node) {
     }
     ${node.contributor ? `<h4>Added by</h4><p class="panel__meta">${escapeHtml(node.contributor)}</p>` : ''}`;
   openPanel();
+  showPicture(node);
 }
+
+/**
+ * The record's picture, at its head beside the summary: the same dithered
+ * picture the gallery shows. It arrives after the record does — the first time,
+ * it is fetched — so the room for it is only made once there is something to
+ * put in it, and never for research that has none.
+ */
+async function showPicture(node) {
+  const picture = await ditheredPicture(node.url, PICTURE.width, PICTURE.height);
+  const figure = panelBody.querySelector('[data-picture]');
+  if (!picture || !figure || shown?.node !== node) return;
+  figure.append(picture);
+  figure.hidden = false;
+}
+
+const PICTURE = { width: 168, height: 126 };
 
 const labelOf = (slug) =>
   vocabulary.find((t) => t.slug === slug)?.label ??
@@ -1496,6 +1521,26 @@ document.addEventListener('keydown', (event) => {
     event.preventDefault();
     showSearch();
   }
+});
+
+/* --- the gallery ------------------------------------------------------------ */
+
+/** Everything filed under a theme, newest first, as the theme's drawer lists it. */
+function researchUnder(node) {
+  return (state.graph?.links ?? [])
+    .filter((l) => l.kind === 'tagged' && (l.source === node.id || l.target === node.id))
+    .map((l) => state.graph.nodes.find((n) => n.id === (l.source === node.id ? l.target : l.source)))
+    .filter((n) => n?.type === 'source')
+    .sort((a, b) => (b.year ?? 0) - (a.year ?? 0) || a.label.localeCompare(b.label));
+}
+
+// Declared with `var` so the map, made above, can call it before this line runs.
+var gallery = createGallery({
+  host: canvas.parentElement,
+  canvas,
+  map,
+  sourcesOf: researchUnder,
+  open: (source) => map.open(source.id),
 });
 
 readUrl();

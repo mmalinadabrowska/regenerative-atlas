@@ -16,6 +16,7 @@ import { loadEnv } from './env.js';
 import { openDatabase } from './db.js';
 import { ApiError, exportBibtex, exportJson, handlers } from './api.js';
 import * as supabase from './supabase.js';
+import { IMAGE_HEADERS, NONE_HEADERS, imageFor } from './images.js';
 
 // Before anything reads process.env — the Supabase credentials live in .env
 // when they live anywhere on this machine at all.
@@ -53,7 +54,7 @@ function send(res, status, body, headers = {}) {
     'x-content-type-options': 'nosniff',
     ...headers,
   });
-  res.end(typeof body === 'string' ? body : JSON.stringify(body));
+  res.end(typeof body === 'string' || Buffer.isBuffer(body) ? body : JSON.stringify(body));
 }
 
 const sendJson = (res, status, value) => send(res, status, value);
@@ -275,6 +276,11 @@ export function createAtlasServer(atlas) {
             // the deployment the email happened to come from.
             case '/api/review':
               return sendJson(res, ...(await reviewRead(searchParams.get('token'), { queue: searchParams.has('queue') })));
+            case '/api/image': {
+              const image = await imageFor(searchParams.get('for'), (url) => Boolean(atlas.findByUrl(url)));
+              if (!image) return send(res, 404, 'No picture.', { 'content-type': 'text/plain; charset=utf-8', ...NONE_HEADERS });
+              return send(res, 200, image.body, { 'content-type': image.type, ...IMAGE_HEADERS });
+            }
             case '/api/export.json':
               return send(res, 200, JSON.stringify(exportJson(atlas), null, 2), {
                 'content-disposition': 'attachment; filename="regenerative-atlas.json"',

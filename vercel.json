@@ -6,7 +6,8 @@
     "api/sources.js": { "maxDuration": 20 },
     "api/describe.js": { "maxDuration": 20 },
     "api/review.js": { "maxDuration": 20 },
-    "api/health.js": { "maxDuration": 10 }
+    "api/health.js": { "maxDuration": 10 },
+    "api/image.js": { "maxDuration": 20, "includeFiles": "public/data/snapshot.json" }
   },
   "headers": [
     {

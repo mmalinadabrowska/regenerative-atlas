@@ -134,6 +134,9 @@ export function createConstellation(canvas, options = {}) {
   const {
     onSelect = () => {},
     onFocus = () => {},
+    // Told whenever the mark under the pointer changes, and with null when
+    // there is none — for anything the page shows on a pointer resting on one.
+    onHover = () => {},
     // Rectangles, in canvas coordinates, that the page's own chrome sits over.
     // Labels are not placed under them.
     avoid = () => [],
@@ -742,6 +745,7 @@ export function createConstellation(canvas, options = {}) {
     drifting = false;
     userAdjusted = false;
     hovered = null;
+    onHover(null);
     highlighted = null;
 
     if (animate && !reducedMotion) {
@@ -1895,6 +1899,7 @@ export function createConstellation(canvas, options = {}) {
       canvas.classList.toggle('is-over', Boolean(found));
       canvas.title = found ? found.label : '';
       draw();
+      onHover(found);
     }
   });
 
@@ -1979,6 +1984,7 @@ export function createConstellation(canvas, options = {}) {
     if (hovered) {
       hovered = null;
       draw();
+      onHover(null);
     }
   });
 
@@ -2070,6 +2076,15 @@ export function createConstellation(canvas, options = {}) {
       if (selected) onSelect(selected);
       setFocus(node);
       return true;
+    },
+    /**
+     * Where a mark is on the canvas right now, in CSS pixels from its top
+     * left, and how big it is drawn — for anything the page places beside it.
+     */
+    screenOf(id) {
+      const node = byId.get(id);
+      if (!node) return null;
+      return { ...toScreen(node), r: node.radius * view.k };
     },
     /** What is currently open, or null for the islands. */
     opened: () => focused,

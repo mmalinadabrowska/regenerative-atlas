@@ -345,3 +345,68 @@ export function suggestTags(described, limit = 6) {
     .slice(0, limit)
     .map(([slug]) => slug);
 }
+
+/* --- the picture a page offers of itself ----------------------------------
+   Most pages name one image to stand for them when they are shared — Open
+   Graph's og:image, Twitter's card image, the older image_src link. That is the
+   picture the Atlas shows for a piece of research: the one its own authors
+   chose, rather than one the Atlas went looking for. */
+
+/** The picture a page names for itself, as an absolute http(s) URL, or null. */
+export function readImage(html, url) {
+  const base = url instanceof URL ? url : new URL(url);
+  const meta = parseMeta(html);
+  const named =
+    pick(meta, 'og:image:secure_url', 'og:image:url', 'og:image', 'twitter:image', 'twitter:image:src') ||
+    html.match(/<link\b[^>]*\brel\s*=\s*["']image_src["'][^>]*>/i)?.[0]?.match(/\bhref\s*=\s*["']([^"']+)["']/i)?.[1] ||
+    '';
+  if (!named) return null;
+  try {
+    const resolved = new URL(decodeEntities(named), base);
+    return /^https?:$/.test(resolved.protocol) ? resolved.href : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Fetch a page and read the picture it names for itself. */
+export async function findImage(pageUrl) {
+  const url = await assertPublicUrl(pageUrl);
+  const response = await fetchWithGuard(url.href);
+  if (!response.ok) return null;
+  const html = await readCapped(response);
+  return html ? readImage(html, response.url || url.href) : null;
+}
+
+/**
+ * Only pictures a canvas can read and nothing that can carry script: no SVG,
+ * which is a document as much as an image, and would be served from the
+ * Atlas' own address.
+ */
+export const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'];
+const MAX_IMAGE_BYTES = 6 * 1024 * 1024;
+
+/** Fetch a picture, held to the types above and to a size a page can carry. */
+export async function fetchImage(imageUrl) {
+  const response = await fetchWithGuard(imageUrl, { accept: IMAGE_TYPES.join(',') });
+  if (!response.ok) return null;
+  const type = (response.headers.get('content-type') ?? '').split(';')[0].trim().toLowerCase();
+  if (!IMAGE_TYPES.includes(type)) return null;
+  const declared = Number(response.headers.get('content-length') ?? 0);
+  if (declared > MAX_IMAGE_BYTES) return null;
+  const reader = response.body?.getReader();
+  if (!reader) return null;
+  const chunks = [];
+  let size = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.length;
+    if (size > MAX_IMAGE_BYTES) {
+      await reader.cancel().catch(() => {});
+      return null;
+    }
+    chunks.push(Buffer.from(value));
+  }
+  return { type, body: Buffer.concat(chunks) };
+}
