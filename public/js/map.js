@@ -4,6 +4,7 @@ import { api, citationLine, escapeHtml, fillCount, hostOf, usingSnapshot } from 
 import { createConstellation } from './constellation.js';
 import { ditheredPicture } from './dither.js';
 import { createGallery } from './gallery.js';
+import { createStrip } from './strip.js';
 import { blobPath, needsPaper, seedOf } from './ink.js';
 import { A4, MM, Sheet, toBlob, widthOf as textWidth } from './pdf.js';
 
@@ -53,6 +54,7 @@ const map = createConstellation(canvas, {
   onPress: (node) => gallery?.press(node) ?? false,
   onFocus: (node) => {
     gallery?.hide();
+    refreshStrip();
     if (node?.type === 'tag') showTag(node);
     renderLegend(state.graph, node);
     // The address follows what is open, so the link in the bar is always the
@@ -72,6 +74,9 @@ const map = createConstellation(canvas, {
     // search field.
     const controls = controlsRow.getBoundingClientRect();
     const gap = { top: Math.max(controls.bottom - canvasBox.top, 0) };
+    // On a phone, the column of pictures down the right is not map either.
+    const stripBox = strip?.el.getBoundingClientRect();
+    if (stripBox?.width > 0) gap.right = Math.max(canvasBox.right - stripBox.left + 6, 0);
 
     if (!panel.classList.contains('is-open')) return gap;
     const panelBox = panel.getBoundingClientRect();
@@ -90,6 +95,17 @@ const map = createConstellation(canvas, {
   avoid() {
     const canvasBox = canvas.getBoundingClientRect();
     const keepClear = [];
+
+    // The phone's column of pictures down the right of the map.
+    const stripBox = strip?.el.getBoundingClientRect();
+    if (stripBox?.height > 0) {
+      keepClear.push({
+        x: stripBox.left - canvasBox.left - 8,
+        y: stripBox.top - canvasBox.top,
+        w: stripBox.width + 8,
+        h: stripBox.height,
+      });
+    }
 
     const controls = chrome.getBoundingClientRect();
     if (controls.bottom > canvasBox.top) {
@@ -140,6 +156,8 @@ function placePanel() {
   const shell = canvas.parentElement;
   const top = controlsRow.getBoundingClientRect().bottom - shell.getBoundingClientRect().top;
   panel.style.setProperty('--panel-top', `${Math.max(Math.round(top + 12), 12)}px`);
+  // Where the controls end, for anything else that stands on the map below them.
+  shell.style.setProperty('--controls-bottom', `${Math.max(Math.round(top), 0)}px`);
 }
 
 if (window.ResizeObserver) {
@@ -215,6 +233,7 @@ async function load() {
     state.graph = graph;
     map.setGraph(graph);
     renderLegend(graph, map.opened?.());
+    refreshStrip();
     // Awaited, because what arrives on a shared link is opened just below, and
     // its drawer names places by the labels this loads — opened before them, a
     // record read "uk, europe" where it means "UK".
@@ -1545,6 +1564,47 @@ var gallery = createGallery({
   sourcesOf: researchUnder,
   open: (source) => map.open(source.id),
 });
+
+/* --- the strip ------------------------------------------------------------- */
+
+// Declared with `var` for the same reason as the gallery above.
+var strip = createStrip({ host: canvas.parentElement, open: (id) => map.open(id) });
+
+/**
+ * The research the map is showing, newest first: everything on the islands,
+ * what is filed under an open theme, or an open piece of research and the
+ * research it sits beside.
+ */
+function researchOnMap() {
+  const opened = map.opened?.();
+  const nodes = state.graph?.nodes ?? [];
+  if (!opened) {
+    return nodes
+      .filter((n) => n.type === 'source')
+      .sort((a, b) => (b.year ?? 0) - (a.year ?? 0) || a.label.localeCompare(b.label));
+  }
+  if (opened.type === 'tag') return researchUnder(opened);
+  const beside = (state.graph?.links ?? [])
+    .filter((l) => l.kind === 'kin' && (l.source === opened.id || l.target === opened.id))
+    .map((l) => nodes.find((n) => n.id === (l.source === opened.id ? l.target : l.source)))
+    .filter(Boolean);
+  return [nodes.find((n) => n.id === opened.id) ?? opened, ...beside];
+}
+
+let stripWidth = 0;
+
+function refreshStrip() {
+  if (!strip || !state.graph) return;
+  const opened = map.opened?.();
+  strip.update(researchOnMap(), opened?.type === 'source' ? opened.id : null);
+  // The map is framed clear of the column, so it is framed again when the
+  // column comes or goes.
+  const width = strip.el.getBoundingClientRect().width;
+  if (width !== stripWidth) {
+    stripWidth = width;
+    requestAnimationFrame(() => map.fit());
+  }
+}
 
 readUrl();
 fillCount();

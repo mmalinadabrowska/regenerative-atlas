@@ -2315,3 +2315,75 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   overflow: hidden;
   border: var(--stroke) solid var(--ink);
 }
+
+/* The strip: on a phone, a column of small pictures down the right of the map,
+   one for each piece of research it is showing, between the controls and the
+   zoom buttons. Not on a wide screen, where the gallery does this. */
+.strip { display: none; }
+
+.strip canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+}
+
+@media (max-width: 46rem) {
+  .strip {
+    --strip-w: 3.9rem;
+    position: absolute;
+    z-index: 2;
+    /* Centred on the zoom buttons' column, so the right edge is one line. */
+    right: calc(var(--gutter) - (var(--strip-w) - 2.85rem) / 2);
+    top: calc(var(--controls-bottom, 4.25rem) + 0.75rem);
+    /* Ends above the zoom buttons: three of them and their gaps. */
+    bottom: calc(0.9rem + 3 * 2.85rem + 2 * 0.45rem + 0.75rem + env(safe-area-inset-bottom, 0px));
+    width: var(--strip-w);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding-block: 0.3rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scroll-snap-type: y proximity;
+    scrollbar-width: none;
+    /* Pictures fade in and out at the ends, so the column reads as going on. */
+    mask-image: linear-gradient(to bottom, transparent, #000 0.9rem, #000 calc(100% - 0.9rem), transparent);
+    transition: bottom 280ms cubic-bezier(0.22, 0.61, 0.36, 1), opacity 160ms ease;
+  }
+  .strip::-webkit-scrollbar { display: none; }
+  .strip[hidden] { display: none; }
+
+  /* It rides above the drawer the way the zoom buttons do, and steps aside
+     with them when the drawer is all the way up. */
+  .map-shell:has(.panel.is-open) .strip {
+    bottom: calc(var(--sheet-peek) + 0.9rem + 3 * 2.85rem + 2 * 0.45rem + 0.75rem + env(safe-area-inset-bottom, 0px));
+  }
+  .map-shell:has(.panel.is-open[data-sheet='open']) .strip {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .strip__item {
+    flex: 0 0 auto;
+    width: 3.3rem;
+    height: 3.3rem;
+    padding: 0;
+    border: var(--stroke) solid var(--ink);
+    border-radius: 0.6rem;
+    background: var(--paper-warm);
+    overflow: hidden;
+    cursor: pointer;
+    scroll-snap-align: start;
+  }
+
+  .strip__picture { display: block; width: 100%; height: 100%; }
+
+  /* The one open in the drawer is ringed, so the column says where you are. */
+  .strip__item.is-current {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+  }
+  .strip__item:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+}
