@@ -4,7 +4,10 @@
  * A moment's rest, not a pass: the map is crossed constantly on the way to
  * somewhere else, and a gallery that sprang up under every blot the pointer
  * touched would be noise. After a couple of seconds on one, its research
- * comes out of the blot as a ring of dithered pictures, each named, and the
+ * comes up above it as a stack of dithered pictures, each named — the front
+ * one whole, the rest fanned out behind it. A couple of seconds later the
+ * pictures slide out from under one another, one after the next, and close
+ * round the blot in a tight ring, overlapping like a hand of cards; and the
  * ring begins — slowly — to turn, the blot at its centre like a sun with its
  * planets, each picture drifting a little on its own as it goes.
  *
@@ -33,6 +36,13 @@ const TURN_MS = 48000;
 /** How long the ring takes to come out of the blot, and to get up to speed. */
 const OPEN_MS = 700;
 const SPIN_UP_MS = 2200;
+/** How long the stack stands before the pictures slide out of it into the ring. */
+const STACK_MS = 2000;
+/** Each picture's slide from the stack to the ring, and the beat between them. */
+const SLIDE_MS = 950;
+const STAGGER_MS = 110;
+/** How far each card behind the front one stands out of the stack, as a share of a card. */
+const FAN = [0, 0.52, 0.72, 0.92];
 
 export function createGallery({ host, canvas, map, sourcesOf, open, nameOf = (node) => node.label }) {
   const canHover = window.matchMedia?.('(hover: hover) and (pointer: fine)').matches ?? false;
@@ -53,6 +63,7 @@ export function createGallery({ host, canvas, map, sourcesOf, open, nameOf = (no
   let openedAt = 0;
   let last = 0;
   let pointedAt = null; // the card under the pointer, or focused: held still
+  let gathered = 0; // how long the gallery has run, not counting while held or stopped
   let stopped = false; // the blot was tapped: the ring has stopped turning
   let spin = 0; // how fast it is turning now, from 0 to 1 of full speed
   let frame = null;
@@ -93,6 +104,7 @@ export function createGallery({ host, canvas, map, sourcesOf, open, nameOf = (no
     pointedAt = null;
     stopped = false;
     spin = 0;
+    gathered = 0;
     el.hidden = true;
     el.replaceChildren();
   }
@@ -145,7 +157,11 @@ export function createGallery({ host, canvas, map, sourcesOf, open, nameOf = (no
     card.addEventListener('focus', hold);
     card.addEventListener('blur', release);
 
-    const entry = { source, el: card, order, slot: null, out: 0, phase: Math.random() * Math.PI * 2, bob: 0, tilt: 0 };
+    // A picture that arrives once the stack has begun to come apart goes
+    // straight into the ring, out of the blot, rather than into a stack that
+    // is no longer there.
+    const late = gathered > STACK_MS;
+    const entry = { source, el: card, order, late, slot: null, out: 0, phase: Math.random() * Math.PI * 2, bob: 0, tilt: 0 };
     cards.push(entry);
     cards.sort((a, b) => a.order - b.order);
     el.append(card);
@@ -160,15 +176,25 @@ export function createGallery({ host, canvas, map, sourcesOf, open, nameOf = (no
   }
 
   /**
-   * The ring's size: clear of the blot, and wide enough for the cards not to
-   * touch wherever they are on it — measured by a card's diagonal, which is
-   * how much room it takes on the slant.
+   * The ring's size: tight. The cards overlap round it the way they did in the
+   * stack, each tucked a little under the next, so a dozen pictures make a
+   * ring hardly wider than the stack was — but never so tight that the blot
+   * they circle is covered.
    */
   function radius() {
-    const footprint = Math.hypot(CARD.width, CARD_HEIGHT) * 1.04;
-    const around = (cards.length * footprint) / (2 * Math.PI);
-    return Math.max(centre.r + footprint * 0.62, around, 130);
+    const around = (cards.length * CARD.width * 0.6) / (2 * Math.PI);
+    return Math.max(centre.r + CARD.width * 0.62, around);
   }
+
+  /** Where the stack stands: over the blot, or under it when there is no room above. */
+  function stackOrigin() {
+    const height = CARD_HEIGHT;
+    let top = centre.y - centre.r - height - 14;
+    if (top < 12) top = centre.y + centre.r + 14;
+    return { left: centre.x - CARD.width / 2, top };
+  }
+
+  const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 
   const easeOut = (t) => 1 - (1 - t) ** 3;
   const easeIn = (t) => t * t;
@@ -177,42 +203,71 @@ export function createGallery({ host, canvas, map, sourcesOf, open, nameOf = (no
     if (!shown) return;
     const dt = Math.min(now - last, 64);
     last = now;
-    const age = now - openedAt;
+
+    // The gallery's own clock: it stands still while a picture is being looked
+    // at or the gallery has been stopped, so nothing moves on without you.
+    if (!pointedAt && !stopped) gathered += dt;
 
     // The ring follows its blot as the map breathes, so the two stay one thing.
     const at = map.screenOf(current.id);
     if (at) centre = at;
 
-    // Gathering speed slowly, so the ring settles into place before it moves;
-    // coming to rest, rather than halting, when it is asked to stop — and
-    // picking up again when a picture it was held for is let go.
-    const wanted = still || stopped || pointedAt ? 0 : easeIn(Math.min(age / SPIN_UP_MS, 1));
+    const n = cards.length;
+    const stacked = cards.filter((card) => !card.late).length;
+    // The ring turns once every picture has slid into it, gathering speed
+    // slowly; coming to rest, rather than halting, when it is asked to stop —
+    // and picking up again when a picture it was held for is let go.
+    const settled = STACK_MS + Math.max(stacked - 1, 0) * STAGGER_MS + SLIDE_MS;
+    const ringing = still ? false : gathered > settled;
+    const wanted = !ringing || stopped || pointedAt ? 0 : easeIn(Math.min((gathered - settled) / SPIN_UP_MS, 1));
     spin += (wanted - spin) * Math.min(dt / 260, 1);
     angle += ((2 * Math.PI) / TURN_MS) * spin * dt;
 
     const r = radius();
-    const n = cards.length;
+    const origin = stackOrigin();
     cards.forEach((card, i) => {
-      // Where this picture belongs on the ring. A picture that has just
-      // arrived comes out of the blot; the others make room for it by sliding
-      // round rather than jumping.
+      card.out = Math.min(card.out + dt / (card.late ? OPEN_MS : 240), 1);
+
+      // How far this picture is from the stack to the ring, 0 to 1: one after
+      // another, from the front, each sliding out from under the one before.
+      const slide = still
+        ? 0
+        : card.late
+          ? 1
+          : easeInOut(Math.min(Math.max((gathered - STACK_MS - i * STAGGER_MS) / SLIDE_MS, 0), 1));
+
+      // In the stack: the front one whole, the next three fanned out behind,
+      // the rest hidden under them until the stack comes apart.
+      const fan = FAN[Math.min(i, FAN.length - 1)];
+      const sx = origin.left + fan * CARD.width;
+      const sy = origin.top + (1 - card.out) * 8;
+      const stackShown = i < FAN.length ? 1 : 0;
+
+      // In the ring: its place round the blot, the first at the top — where
+      // the stack was — so the front picture barely moves and the rest come
+      // round to meet it. A picture that has just arrived makes its way out of
+      // the blot; the others make room for it by sliding round, not jumping.
       const target = (2 * Math.PI * i) / n;
       card.slot = card.slot === null ? target : card.slot + shortest(card.slot, target) * 0.12;
-      card.out = still ? 1 : Math.min(card.out + dt / OPEN_MS, 1);
-      // Each picture drifts a little on its own — in and out from the blot,
-      // and a degree or two either way — so the ring is never quite a
-      // diagram. The one being looked at holds still.
       if (!still && card !== pointedAt) {
-        card.bob = Math.sin(now * 0.0011 + card.phase) * 7;
+        card.bob = Math.sin(now * 0.0011 + card.phase) * 5;
         card.tilt = Math.sin(now * 0.0007 + card.phase * 1.7) * 1.8;
       }
-      const reach = r * easeOut(card.out) + card.bob * card.out;
+      const reach = card.late ? r * easeOut(card.out) : r;
       const theta = angle + card.slot;
-      const x = centre.x + Math.cos(theta) * reach - CARD.width / 2;
-      const y = centre.y + Math.sin(theta) * reach - CARD_HEIGHT / 2;
-      const grow = card === pointedAt ? 1.06 : 0.4 + 0.6 * easeOut(card.out);
-      card.el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) rotate(${card.tilt.toFixed(2)}deg) scale(${grow.toFixed(3)})`;
-      card.el.style.opacity = String(Math.min(card.out * 1.6, 1));
+      const rx = centre.x + Math.cos(theta) * (reach + card.bob) - CARD.width / 2;
+      const ry = centre.y + Math.sin(theta) * (reach + card.bob) - CARD_HEIGHT / 2;
+
+      const x = sx + (rx - sx) * slide;
+      const y = sy + (ry - sy) * slide;
+      const grow = card === pointedAt ? 1.06 : card.late ? 0.4 + 0.6 * easeOut(card.out) : 1;
+      card.el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) rotate(${(card.tilt * slide).toFixed(2)}deg) scale(${grow.toFixed(3)})`;
+      card.el.style.opacity = String(Math.min(card.out * 1.6, 1) * Math.max(stackShown, slide));
+      // Stacked, the front card is on top; in the ring, the cards lower down
+      // overlap the ones above them, as a ring of cards laid on a table does.
+      // The one being looked at comes to the top of either.
+      card.el.style.zIndex =
+        card === pointedAt ? '300' : slide < 0.5 ? String(100 - i) : String(150 + Math.round(Math.sin(theta) * 40));
     });
     frame = requestAnimationFrame(turn);
   }
