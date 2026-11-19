@@ -6,9 +6,15 @@
  * touched would be noise. After a couple of seconds on one, its research
  * comes out of the blot as a ring of dithered pictures, each named, and the
  * ring begins — slowly — to turn, the blot at its centre like a sun with its
- * planets. Pointing at a picture stops the ring so it can be read and pressed;
- * pressing it opens that piece of research, which is the next view of the map.
- * The wheel turns the ring by hand.
+ * planets, each picture drifting a little on its own as it goes.
+ *
+ * Once out, it carries on by itself: moving the pointer away does not put it
+ * back. It stops turning when you ask it to — a tap on the blot at its centre
+ * (the next tap opens the island, as it always has), or pointing at one of
+ * the pictures, which holds it still to be read. Pressing a picture opens that
+ * piece of research, which is the next view of the map. Tapping anywhere else
+ * on the map, moving the map, or Escape puts the gallery away; resting on
+ * another blot brings up that one's instead.
  *
  * Only for a pointer that can rest. A touch screen has no hover, and its
  * islands open on a tap as they always have.
@@ -18,7 +24,6 @@ import { escapeHtml } from './api.js';
 import { ditheredPicture } from './dither.js';
 
 const DELAY_MS = 1600;
-const LINGER_MS = 380;
 const CARD = { width: 132, height: 92 };
 /** A card's full height, its name above the picture included. */
 const CARD_HEIGHT = CARD.height + 26;
@@ -39,44 +44,55 @@ export function createGallery({ host, canvas, map, sourcesOf, open, nameOf = (no
   host.append(el);
 
   let waiting = null;
-  let leaving = null;
   let current = null; // the island the gallery is showing, or about to
   let shown = false;
   let ticket = 0;
-  let cards = []; // { source, el, order, slot, out }
+  let cards = []; // { source, el, order, slot, out, phase }
   let centre = { x: 0, y: 0, r: 0 };
   let angle = -Math.PI / 2; // the first picture starts at the top
   let openedAt = 0;
   let last = 0;
-  let held = false; // a picture is pointed at or focused: the ring waits
+  let pointedAt = null; // the card under the pointer, or focused: held still
+  let stopped = false; // the blot was tapped: the ring has stopped turning
+  let spin = 0; // how fast it is turning now, from 0 to 1 of full speed
   let frame = null;
 
   function hover(node) {
     if (!canHover) return;
     clearTimeout(waiting);
-    if (node?.type === 'tag') {
-      if (shown && current?.id === node.id) {
-        clearTimeout(leaving);
-        return;
-      }
+    // Resting on a blot brings up its pictures; resting on the one already
+    // circled changes nothing.
+    if (node?.type === 'tag' && !(shown && current?.id === node.id)) {
       waiting = setTimeout(() => show(node), DELAY_MS);
     }
   }
 
-  function linger() {
-    clearTimeout(leaving);
-    leaving = setTimeout(hide, LINGER_MS);
+  /**
+   * A tap on the map, asked about before the map acts on it. On the blot the
+   * pictures are circling, the first tap stops them and is kept; anywhere
+   * else, the gallery is put away and the map does what it would have done.
+   */
+  function press(node) {
+    clearTimeout(waiting);
+    if (!shown) return false;
+    if (node && node.id === current?.id && !stopped) {
+      stopped = true;
+      return true;
+    }
+    hide();
+    return false;
   }
 
   function hide() {
     clearTimeout(waiting);
-    clearTimeout(leaving);
     cancelAnimationFrame(frame);
     ticket += 1;
     shown = false;
     current = null;
     cards = [];
-    held = false;
+    pointedAt = null;
+    stopped = false;
+    spin = 0;
     el.hidden = true;
     el.replaceChildren();
   }
@@ -119,18 +135,17 @@ export function createGallery({ host, canvas, map, sourcesOf, open, nameOf = (no
       open(source);
     });
     const hold = () => {
-      held = true;
-      clearTimeout(leaving);
+      pointedAt = entry;
     };
     const release = () => {
-      held = false;
+      if (pointedAt === entry) pointedAt = null;
     };
     card.addEventListener('pointerenter', hold);
     card.addEventListener('pointerleave', release);
     card.addEventListener('focus', hold);
     card.addEventListener('blur', release);
 
-    const entry = { source, el: card, order, slot: null, out: 0 };
+    const entry = { source, el: card, order, slot: null, out: 0, phase: Math.random() * Math.PI * 2, bob: 0, tilt: 0 };
     cards.push(entry);
     cards.sort((a, b) => a.order - b.order);
     el.append(card);
@@ -164,12 +179,16 @@ export function createGallery({ host, canvas, map, sourcesOf, open, nameOf = (no
     last = now;
     const age = now - openedAt;
 
-    // Gathering speed slowly, so the ring settles into place before it moves,
-    // and stopping while a picture is being looked at.
-    if (!still && !held) {
-      const speed = easeIn(Math.min(age / SPIN_UP_MS, 1));
-      angle += ((2 * Math.PI) / TURN_MS) * speed * dt;
-    }
+    // The ring follows its blot as the map breathes, so the two stay one thing.
+    const at = map.screenOf(current.id);
+    if (at) centre = at;
+
+    // Gathering speed slowly, so the ring settles into place before it moves;
+    // coming to rest, rather than halting, when it is asked to stop — and
+    // picking up again when a picture it was held for is let go.
+    const wanted = still || stopped || pointedAt ? 0 : easeIn(Math.min(age / SPIN_UP_MS, 1));
+    spin += (wanted - spin) * Math.min(dt / 260, 1);
+    angle += ((2 * Math.PI) / TURN_MS) * spin * dt;
 
     const r = radius();
     const n = cards.length;
@@ -180,11 +199,19 @@ export function createGallery({ host, canvas, map, sourcesOf, open, nameOf = (no
       const target = (2 * Math.PI * i) / n;
       card.slot = card.slot === null ? target : card.slot + shortest(card.slot, target) * 0.12;
       card.out = still ? 1 : Math.min(card.out + dt / OPEN_MS, 1);
-      const reach = r * easeOut(card.out);
+      // Each picture drifts a little on its own — in and out from the blot,
+      // and a degree or two either way — so the ring is never quite a
+      // diagram. The one being looked at holds still.
+      if (!still && card !== pointedAt) {
+        card.bob = Math.sin(now * 0.0011 + card.phase) * 7;
+        card.tilt = Math.sin(now * 0.0007 + card.phase * 1.7) * 1.8;
+      }
+      const reach = r * easeOut(card.out) + card.bob * card.out;
       const theta = angle + card.slot;
       const x = centre.x + Math.cos(theta) * reach - CARD.width / 2;
       const y = centre.y + Math.sin(theta) * reach - CARD_HEIGHT / 2;
-      card.el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) scale(${(0.4 + 0.6 * easeOut(card.out)).toFixed(3)})`;
+      const grow = card === pointedAt ? 1.06 : 0.4 + 0.6 * easeOut(card.out);
+      card.el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) rotate(${card.tilt.toFixed(2)}deg) scale(${grow.toFixed(3)})`;
       card.el.style.opacity = String(Math.min(card.out * 1.6, 1));
     });
     frame = requestAnimationFrame(turn);
@@ -197,19 +224,6 @@ export function createGallery({ host, canvas, map, sourcesOf, open, nameOf = (no
     if (d < -Math.PI) d += 2 * Math.PI;
     return d;
   };
-
-  // The gallery stays for as long as the pointer is within the ring, however
-  // it crosses the open ground between the blot and the pictures, and goes a
-  // moment after it leaves.
-  window.addEventListener('pointermove', (event) => {
-    if (!shown) return;
-    const box = host.getBoundingClientRect();
-    const dx = event.clientX - box.left - centre.x;
-    const dy = event.clientY - box.top - centre.y;
-    const reach = radius() + Math.hypot(CARD.width, CARD_HEIGHT) / 2 + 16;
-    if (Math.hypot(dx, dy) <= reach) clearTimeout(leaving);
-    else if (!held) linger();
-  });
 
   // The wheel turns the ring by hand, a picture's width at a time.
   el.addEventListener(
@@ -235,10 +249,27 @@ export function createGallery({ host, canvas, map, sourcesOf, open, nameOf = (no
     event.preventDefault();
   });
 
-  // Anything else that moves the map takes the gallery with it.
-  canvas.addEventListener('pointerdown', hide);
-  canvas.addEventListener('wheel', hide, { passive: true });
-  window.addEventListener('resize', hide);
+  // Moving the map takes the gallery with it: a drag (a tap is answered in
+  // press, above), a zoom, a change of window.
+  let pressedAt = null;
+  canvas.addEventListener('pointerdown', (event) => {
+    pressedAt = { x: event.clientX, y: event.clientY };
+  });
+  window.addEventListener('pointermove', (event) => {
+    if (!pressedAt || !event.buttons) return;
+    if (Math.hypot(event.clientX - pressedAt.x, event.clientY - pressedAt.y) > 6) {
+      pressedAt = null;
+      if (shown) hide();
+    }
+  });
+  window.addEventListener('pointerup', () => {
+    pressedAt = null;
+  });
+  canvas.addEventListener('wheel', () => shown && hide(), { passive: true });
+  window.addEventListener('resize', () => shown && hide());
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && shown) hide();
+  });
 
-  return { hover, hide };
+  return { hover, press, hide };
 }

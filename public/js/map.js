@@ -48,6 +48,9 @@ const map = createConstellation(canvas, {
   onSelect: showRecord,
   // A pointer resting on a blot brings up the pictures of its research.
   onHover: (node) => gallery?.hover(node),
+  // A tap on a blot whose pictures are circling it stops them, rather than
+  // opening the island; the next tap opens it as usual.
+  onPress: (node) => gallery?.press(node) ?? false,
   onFocus: (node) => {
     gallery?.hide();
     if (node?.type === 'tag') showTag(node);

@@ -137,6 +137,9 @@ export function createConstellation(canvas, options = {}) {
     // Told whenever the mark under the pointer changes, and with null when
     // there is none — for anything the page shows on a pointer resting on one.
     onHover = () => {},
+    // Asked first when a mark, or the empty ground (null), is tapped: answering
+    // true keeps the tap for the page, and the map does nothing with it.
+    onPress = () => false,
     // Rectangles, in canvas coordinates, that the page's own chrome sits over.
     // Labels are not placed under them.
     avoid = () => [],
@@ -1963,10 +1966,10 @@ export function createConstellation(canvas, options = {}) {
     if (wasDragging) {
       if (moved) return reheat(0.25);
       const found = nodeAt(event.clientX, event.clientY);
-      if (found === wasDragging) choose(found);
+      if (found === wasDragging && !onPress(found)) choose(found);
       return;
     }
-    if (wasPanning && !moved) choose(null);
+    if (wasPanning && !moved && !onPress(null)) choose(null);
   });
 
   // A gesture the system takes away — a scroll it decided was a page gesture, a
