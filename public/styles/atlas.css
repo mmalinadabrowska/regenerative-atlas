@@ -1939,13 +1939,13 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
     left: var(--gutter);
     right: auto;
     max-width: none;
-    bottom: calc(0.9rem + env(safe-area-inset-bottom, 0px));
+    bottom: calc(0.9rem + var(--strip-h, 0px) + env(safe-area-inset-bottom, 0px));
     z-index: 3;
     transition: bottom 280ms cubic-bezier(0.22, 0.61, 0.36, 1), opacity 160ms ease;
   }
 
   .map-shell:has(.panel.is-open) .map-legend {
-    bottom: calc(var(--sheet-peek) + 0.9rem + env(safe-area-inset-bottom, 0px));
+    bottom: calc(var(--sheet-peek) + 0.9rem + var(--strip-h, 0px) + env(safe-area-inset-bottom, 0px));
   }
 
   .map-shell:has(.panel.is-open[data-sheet='open']) .map-legend {
@@ -1966,7 +1966,7 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
     gap: 0.45rem;
     position: fixed;
     right: var(--gutter);
-    bottom: calc(0.9rem + env(safe-area-inset-bottom, 0px));
+    bottom: calc(0.9rem + var(--strip-h, 0px) + env(safe-area-inset-bottom, 0px));
     z-index: 3;
     transition: bottom 280ms cubic-bezier(0.22, 0.61, 0.36, 1), opacity 160ms ease;
   }
@@ -1974,7 +1974,7 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   /* They ride above the drawer rather than under it, and step aside entirely
      when it is all the way up and there is no map left to steer. */
   .map-shell:has(.panel.is-open) .map-zoom {
-    bottom: calc(var(--sheet-peek) + 0.9rem + env(safe-area-inset-bottom, 0px));
+    bottom: calc(var(--sheet-peek) + 0.9rem + var(--strip-h, 0px) + env(safe-area-inset-bottom, 0px));
   }
   .map-shell:has(.panel.is-open[data-sheet='open']) .map-zoom {
     opacity: 0;
@@ -2316,9 +2316,10 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   border: var(--stroke) solid var(--ink);
 }
 
-/* The strip: on a phone, a column of small pictures down the right of the map,
-   one for each piece of research it is showing, between the controls and the
-   zoom buttons. Not on a wide screen, where the gallery does this. */
+/* The strip: on a phone, a row of small pictures along the bottom of the map,
+   one for each piece of research it is showing. The zoom buttons and the
+   export link stand on it rather than under it. Not on a wide screen, where
+   the gallery does this. */
 .strip { display: none; }
 
 .strip canvas {
@@ -2329,36 +2330,39 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 }
 
 @media (max-width: 46rem) {
+  /* How much of the bottom of the map the row takes, for the things that
+     stand on it. Set only while there is a row to stand on. */
+  .map-shell:has(.strip:not([hidden])) { --strip-h: 4.35rem; }
+
   .strip {
-    --strip-w: 3.9rem;
     position: absolute;
     z-index: 2;
-    /* Centred on the zoom buttons' column, so the right edge is one line. */
-    right: calc(var(--gutter) - (var(--strip-w) - 2.85rem) / 2);
-    top: calc(var(--controls-bottom, 4.25rem) + 0.75rem);
-    /* Ends above the zoom buttons: three of them and their gaps. */
-    bottom: calc(0.9rem + 3 * 2.85rem + 2 * 0.45rem + 0.75rem + env(safe-area-inset-bottom, 0px));
-    width: var(--strip-w);
+    left: 0;
+    right: 0;
+    bottom: calc(0.6rem + env(safe-area-inset-bottom, 0px));
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
     gap: 0.5rem;
-    padding-block: 0.3rem;
-    overflow-y: auto;
+    height: 3.9rem;
+    padding-inline: var(--gutter);
+    overflow-x: auto;
+    overflow-y: hidden;
     overscroll-behavior: contain;
-    scroll-snap-type: y proximity;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: var(--gutter);
     scrollbar-width: none;
-    /* Pictures fade in and out at the ends, so the column reads as going on. */
-    mask-image: linear-gradient(to bottom, transparent, #000 0.9rem, #000 calc(100% - 0.9rem), transparent);
+    /* Pictures fade in and out at the ends, so the row reads as going on. */
+    mask-image: linear-gradient(to right, transparent, #000 0.9rem, #000 calc(100% - 0.9rem), transparent);
     transition: bottom 280ms cubic-bezier(0.22, 0.61, 0.36, 1), opacity 160ms ease;
   }
   .strip::-webkit-scrollbar { display: none; }
   .strip[hidden] { display: none; }
 
-  /* It rides above the drawer the way the zoom buttons do, and steps aside
-     with them when the drawer is all the way up. */
+  /* It rides above the drawer, and steps aside when the drawer is all the
+     way up. */
   .map-shell:has(.panel.is-open) .strip {
-    bottom: calc(var(--sheet-peek) + 0.9rem + 3 * 2.85rem + 2 * 0.45rem + 0.75rem + env(safe-area-inset-bottom, 0px));
+    bottom: calc(var(--sheet-peek) + 0.6rem + env(safe-area-inset-bottom, 0px));
   }
   .map-shell:has(.panel.is-open[data-sheet='open']) .strip {
     opacity: 0;
@@ -2380,7 +2384,7 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 
   .strip__picture { display: block; width: 100%; height: 100%; }
 
-  /* The one open in the drawer is ringed, so the column says where you are. */
+  /* The one open in the drawer is ringed, so the row says where you are. */
   .strip__item.is-current {
     outline: 2px solid var(--ink);
     outline-offset: 2px;

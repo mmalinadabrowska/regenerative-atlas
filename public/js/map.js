@@ -74,9 +74,9 @@ const map = createConstellation(canvas, {
     // search field.
     const controls = controlsRow.getBoundingClientRect();
     const gap = { top: Math.max(controls.bottom - canvasBox.top, 0) };
-    // On a phone, the column of pictures down the right is not map either.
+    // On a phone, the row of pictures along the bottom is not map either.
     const stripBox = strip?.el.getBoundingClientRect();
-    if (stripBox?.width > 0) gap.right = Math.max(canvasBox.right - stripBox.left + 6, 0);
+    if (stripBox?.height > 0) gap.bottom = Math.max(canvasBox.bottom - stripBox.top + 6, 0);
 
     if (!panel.classList.contains('is-open')) return gap;
     const panelBox = panel.getBoundingClientRect();
@@ -90,13 +90,13 @@ const map = createConstellation(canvas, {
     // Whatever the sheet covers is not map either. Framed against a
     // preview-sized sheet, an open drawer would sit over the very thing you
     // opened.
-    return { ...gap, bottom: Math.max(canvasBox.bottom - panelBox.top, 0) };
+    return { ...gap, bottom: Math.max(canvasBox.bottom - panelBox.top, gap.bottom ?? 0) };
   },
   avoid() {
     const canvasBox = canvas.getBoundingClientRect();
     const keepClear = [];
 
-    // The phone's column of pictures down the right of the map.
+    // The phone's row of pictures along the bottom of the map.
     const stripBox = strip?.el.getBoundingClientRect();
     if (stripBox?.height > 0) {
       keepClear.push({
@@ -1568,7 +1568,7 @@ var gallery = createGallery({
 /* --- the strip ------------------------------------------------------------- */
 
 // Declared with `var` for the same reason as the gallery above.
-var strip = createStrip({ host: canvas.parentElement, open: (id) => map.open(id) });
+var strip = createStrip({ host: canvas.parentElement, open: (id) => map.open(id), onResize: () => refitForStrip() });
 
 /**
  * The research the map is showing, newest first: everything on the islands,
@@ -1591,17 +1591,20 @@ function researchOnMap() {
   return [nodes.find((n) => n.id === opened.id) ?? opened, ...beside];
 }
 
-let stripWidth = 0;
+let stripHeight = 0;
 
 function refreshStrip() {
   if (!strip || !state.graph) return;
   const opened = map.opened?.();
   strip.update(researchOnMap(), opened?.type === 'source' ? opened.id : null);
-  // The map is framed clear of the column, so it is framed again when the
-  // column comes or goes.
-  const width = strip.el.getBoundingClientRect().width;
-  if (width !== stripWidth) {
-    stripWidth = width;
+  refitForStrip();
+}
+
+/** The map is framed clear of the row, so it is framed again when the row comes or goes. */
+function refitForStrip() {
+  const height = strip.el.getBoundingClientRect().height;
+  if (height !== stripHeight) {
+    stripHeight = height;
     requestAnimationFrame(() => map.fit());
   }
 }

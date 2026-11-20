@@ -1,10 +1,10 @@
 /**
- * The strip: on a phone, a column of small pictures down the right of the map,
+ * The strip: on a phone, a row of small pictures along the bottom of the map,
  * one for each piece of research the map is showing.
  *
  * A phone has no pointer to rest on a blot, so the gallery never comes up
  * there; this is the same pictures, offered the way a phone is used — a
- * column you run your thumb along, and a tap on one opens it. It follows the
+ * row you run your thumb along, and a tap on one opens it. It follows the
  * map: all of the research on the islands, what is filed under a theme once
  * the theme is open, and a piece of research among the ones it sits beside.
  *
@@ -17,7 +17,7 @@ import { ditheredPicture } from './dither.js';
 
 const SIZE = 56;
 
-export function createStrip({ host, open }) {
+export function createStrip({ host, open, onResize = () => {} }) {
   const el = document.createElement('nav');
   el.className = 'strip';
   el.setAttribute('aria-label', 'Pictures of the research on the map');
@@ -36,17 +36,20 @@ export function createStrip({ host, open }) {
               fill(entry.target);
             }
           },
-          { root: el, rootMargin: '120px 0px' },
+          { root: el, rootMargin: '0px 120px' },
         )
       : null;
 
-  /** Fetch one picture; a piece of research without one leaves the column. */
+  /** Fetch one picture; a piece of research without one leaves the row. */
   async function fill(button) {
     const picture = await ditheredPicture(button.dataset.url, SIZE, SIZE);
     if (!button.isConnected) return;
     if (!picture) {
       button.remove();
-      if (!el.querySelector('.strip__item')) el.hidden = true;
+      if (!el.querySelector('.strip__item')) {
+        el.hidden = true;
+        onResize();
+      }
       return;
     }
     button.querySelector('.strip__picture').append(picture);
@@ -67,7 +70,7 @@ export function createStrip({ host, open }) {
             </button>`,
         )
         .join('');
-      el.scrollTop = 0;
+      el.scrollLeft = 0;
       el.hidden = sources.length === 0;
       for (const button of el.querySelectorAll('.strip__item')) {
         if (watcher) watcher.observe(button);
