@@ -2391,3 +2391,80 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   }
   .strip__item:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 }
+
+/* The dot a gallery grows from: a small drop of ink on the blot the pointer
+   rests on, pulsing slowly while the island's pictures are fetched. When they
+   are in, it lets go of its ink and opens out — an outline only, never a
+   filled shape — to the size of the stack's front card, and the pictures come
+   up inside it. Placed from js/gallery.js. */
+.gallery__seed {
+  position: absolute;
+  /* Over the blot it sits on, under the gallery, so the pictures come up over it. */
+  z-index: 0;
+  box-sizing: border-box;
+  width: 10px;
+  height: 10px;
+  translate: -50% -50%;
+  /* A share rather than a length, so that opening into a card the corners
+     ease from round to a card's own, rather than staying round and snapping. */
+  border-radius: 50%;
+  background: var(--ink);
+  border: var(--stroke) solid var(--ink);
+  pointer-events: none;
+  opacity: 0;
+  scale: 0.3;
+  transition: opacity 240ms ease, scale 260ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    background-color 140ms ease,
+    width 420ms cubic-bezier(0.22, 0.61, 0.36, 1), height 420ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    left 420ms cubic-bezier(0.22, 0.61, 0.36, 1), top 420ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    border-radius 420ms ease;
+}
+
+/* A ring of ink widening and fading off it, in time with the pulse. */
+.gallery__seed::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  border: 1.5px solid var(--ink);
+  opacity: 0;
+}
+
+.gallery__seed.is-on {
+  opacity: 1;
+  scale: 1;
+  animation: seed-pulse 1.7s ease-in-out 0.25s infinite;
+}
+.gallery__seed.is-on::after { animation: seed-ripple 1.7s ease-out 0.25s infinite; }
+
+@keyframes seed-pulse {
+  0%, 100% { scale: 1; }
+  50% { scale: 1.4; }
+}
+
+@keyframes seed-ripple {
+  0% { opacity: 0.55; scale: 1; }
+  100% { opacity: 0; scale: 3; }
+}
+
+/* Opening into the front card: its ink let go at once, so what grows is only
+   ever a line — the size and corners of a card, where the stack's front card
+   is about to stand. */
+.gallery__seed.is-blooming {
+  animation: none;
+  scale: 1;
+  background-color: transparent;
+  width: 132px;
+  height: 118px;
+  border-radius: 0.75rem;
+}
+.gallery__seed.is-blooming::after { animation: none; opacity: 0; }
+
+.gallery__seed.is-gone {
+  opacity: 0;
+  transition: opacity 280ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gallery__seed, .gallery__seed.is-on, .gallery__seed::after { animation: none; transition: opacity 200ms ease; }
+}

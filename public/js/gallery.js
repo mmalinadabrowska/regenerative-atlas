@@ -3,21 +3,25 @@
  *
  * A moment's rest, not a pass: the map is crossed constantly on the way to
  * somewhere else, and a gallery that sprang up under every blot the pointer
- * touched would be noise. After a couple of seconds on one, its research
- * comes up above it as a stack of dithered pictures, each named — the front
- * one whole, the rest fanned out behind it. A couple of seconds later the
+ * touched would be noise. Resting on one, a small black dot appears on it
+ * and pulses, slowly — the island has something to show, and is fetching it.
+ * After a couple of seconds the dot lets go of its ink and opens out, as an
+ * outline, into the front card of a stack of dithered pictures, each named —
+ * the front one whole, the rest fanned out behind it. (If the pictures are slow, the dot goes on pulsing until the
+ * first is in; if the island has none, it fades away.) A couple of seconds later the
  * pictures slide out from under one another, one after the next, and close
  * round the blot in a tight ring, overlapping like a hand of cards; and the
  * ring begins — slowly — to turn, the blot at its centre like a sun with its
  * planets, each picture drifting a little on its own as it goes.
  *
- * Once out, it carries on by itself: moving the pointer away does not put it
- * back. It stops turning when you ask it to — a tap on the blot at its centre
- * (the next tap opens the island, as it always has), or pointing at one of
- * the pictures, which holds it still to be read. Pressing a picture opens that
- * piece of research, which is the next view of the map. Tapping anywhere else
- * on the map, moving the map, or Escape puts the gallery away; resting on
- * another blot brings up that one's instead.
+ * Once out, it carries on by itself while the pointer is anywhere near it.
+ * It stops turning when you ask it to — a tap on the blot at its centre (the
+ * next tap opens the island, as it always has), or pointing at one of the
+ * pictures, which holds it still to be read. Pressing a picture opens that
+ * piece of research, which is the next view of the map. Taking the pointer
+ * away — a little way past the outermost picture — puts the gallery away by
+ * itself, as do tapping elsewhere on the map, moving the map, or Escape;
+ * resting on another blot brings up that one's instead.
  *
  * Only for a pointer that can rest. A touch screen has no hover, and its
  * islands open on a tap as they always have.
@@ -27,6 +31,9 @@ import { escapeHtml } from './api.js';
 import { ditheredPicture } from './dither.js';
 
 const DELAY_MS = 1600;
+/** How far past the pictures the pointer can stray before the gallery goes, and how soon after. */
+const REACH_PX = 60;
+const LINGER_MS = 260;
 const CARD = { width: 132, height: 92 };
 /** A card's full height, its name above the picture included. */
 const CARD_HEIGHT = CARD.height + 26;
@@ -67,15 +74,84 @@ export function createGallery({ host, canvas, map, sourcesOf, open, nameOf = (no
   let stopped = false; // the blot was tapped: the ring has stopped turning
   let spin = 0; // how fast it is turning now, from 0 to 1 of full speed
   let frame = null;
+  let seed = null; // the pulsing dot: { el, node, mine }
+  let sowing = 0;
 
   function hover(node) {
     if (!canHover) return;
-    clearTimeout(waiting);
-    // Resting on a blot brings up its pictures; resting on the one already
-    // circled changes nothing.
-    if (node?.type === 'tag' && !(shown && current?.id === node.id)) {
-      waiting = setTimeout(() => show(node), DELAY_MS);
+    // Resting on a blot sows the dot that becomes its gallery; resting on the
+    // one already showing changes nothing. Leaving a blot before the dot has
+    // grown takes the dot away again.
+    if (node?.type === 'tag') {
+      if (shown && current?.id === node.id) return;
+      if (seed?.node.id === node.id) return;
+      sow(node);
+      return;
     }
+    if (seed && !seed.blooming) unsow();
+  }
+
+  /** The dot: on the blot, pulsing while the island's pictures are fetched. */
+  function sow(node) {
+    unsow();
+    const at = map.screenOf(node.id);
+    if (!at) return;
+    const mine = ++sowing;
+    const dot = document.createElement('span');
+    dot.className = 'gallery__seed';
+    dot.setAttribute('aria-hidden', 'true');
+    dot.style.left = `${at.x}px`;
+    dot.style.top = `${at.y}px`;
+    host.append(dot);
+    requestAnimationFrame(() => dot.classList.add('is-on'));
+    seed = { el: dot, node, mine, blooming: false };
+
+    // Fetched now, so that by the time the dot is ready to grow they are in.
+    const sources = sourcesOf(node).slice(0, MOST);
+    const anyPicture = new Promise((resolve) => {
+      let left = sources.length;
+      if (!left) resolve(false);
+      for (const source of sources) {
+        ditheredPicture(source.url, CARD.width, CARD.height).then((picture) => {
+          if (picture) resolve(true);
+          else if (--left === 0) resolve(false);
+        });
+      }
+    });
+    clearTimeout(waiting);
+    waiting = setTimeout(async () => {
+      const any = await anyPicture;
+      if (mine !== sowing) return;
+      if (any) bloom(node);
+      else unsow();
+    }, DELAY_MS);
+  }
+
+  /** The dot opens out, as an outline, into the front card of the stack, and the stack comes up inside it. */
+  function bloom(node) {
+    const mine = seed.mine;
+    const dot = seed.el;
+    seed.blooming = true;
+    centre = map.screenOf(node.id) ?? centre;
+    const origin = stackOrigin();
+    dot.classList.add('is-blooming');
+    dot.style.left = `${origin.left + CARD.width / 2}px`;
+    dot.style.top = `${origin.top + CARD_HEIGHT / 2}px`;
+    setTimeout(() => {
+      if (mine !== sowing) return;
+      show(node);
+    }, still ? 0 : 360);
+  }
+
+  /** Take the dot away: faded out, or at once. */
+  function unsow() {
+    clearTimeout(waiting);
+    sowing += 1;
+    if (!seed) return;
+    const dot = seed.el;
+    seed = null;
+    dot.classList.add('is-gone');
+    setTimeout(() => dot.remove(), 320);
   }
 
   /**
@@ -84,9 +160,11 @@ export function createGallery({ host, canvas, map, sourcesOf, open, nameOf = (no
    * else, the gallery is put away and the map does what it would have done.
    */
   function press(node) {
-    clearTimeout(waiting);
-    if (!shown) return false;
-    if (node && node.id === current?.id && !stopped) {
+    if (!shown) {
+      unsow();
+      return false;
+    }
+    if ((node ? node.id === current?.id : inTheMiddle()) && !stopped) {
       stopped = true;
       return true;
     }
@@ -94,8 +172,12 @@ export function createGallery({ host, canvas, map, sourcesOf, open, nameOf = (no
     return false;
   }
 
-  function hide() {
-    clearTimeout(waiting);
+  let leaving = null;
+
+  function hide({ keepSeed = false } = {}) {
+    if (!keepSeed) unsow();
+    clearTimeout(leaving);
+    leaving = null;
     cancelAnimationFrame(frame);
     ticket += 1;
     shown = false;
@@ -112,7 +194,7 @@ export function createGallery({ host, canvas, map, sourcesOf, open, nameOf = (no
   function show(node) {
     const at = map.screenOf(node.id);
     if (!at) return;
-    hide();
+    hide({ keepSeed: true });
     const mine = ticket;
     current = node;
     centre = at;
@@ -172,6 +254,8 @@ export function createGallery({ host, canvas, map, sourcesOf, open, nameOf = (no
       openedAt = performance.now();
       last = openedAt;
       frame = requestAnimationFrame(turn);
+      // The cards come up over the swollen dot, and it goes from under them.
+      if (seed) unsow();
     }
   }
 
@@ -183,7 +267,29 @@ export function createGallery({ host, canvas, map, sourcesOf, open, nameOf = (no
    */
   function radius() {
     const around = (cards.length * CARD.width * 0.6) / (2 * Math.PI);
-    return Math.max(centre.r + CARD.width * 0.62, around);
+    return Math.max(clearOf(centre.r + 8), around);
+  }
+
+  /**
+   * The smallest ring whose cards never come over the blot, wherever the turn
+   * has taken them: a card's nearest corner is closest to the middle on the
+   * slant, so every slant is tried. The blot is what you tap to stop the ring,
+   * and a card over its edge would take the tap instead.
+   */
+  function clearOf(hole) {
+    const hw = CARD.width / 2;
+    const hh = CARD_HEIGHT / 2;
+    for (let r = hole; r < hole + Math.hypot(hw, hh) * 2; r += 2) {
+      let nearest = Infinity;
+      for (let step = 0; step <= 24; step++) {
+        const theta = (step / 24) * (Math.PI / 2);
+        const dx = Math.max(r * Math.cos(theta) - hw, 0);
+        const dy = Math.max(r * Math.sin(theta) - hh, 0);
+        nearest = Math.min(nearest, Math.hypot(dx, dy));
+      }
+      if (nearest >= hole) return r;
+    }
+    return hole + Math.hypot(hw, hh);
   }
 
   /** Where the stack stands: over the blot, or under it when there is no room above. */
@@ -307,10 +413,55 @@ export function createGallery({ host, canvas, map, sourcesOf, open, nameOf = (no
   // Moving the map takes the gallery with it: a drag (a tap is answered in
   // press, above), a zoom, a change of window.
   let pressedAt = null;
+
+  /**
+   * Whether the tap being answered fell in the ring's open middle. The blot
+   * drifts as the map breathes, and a tap just beside it, inside the ring,
+   * means the blot as surely as a tap on it does.
+   */
+  function inTheMiddle() {
+    if (!pressedAt) return false;
+    const box = host.getBoundingClientRect();
+    const dx = pressedAt.x - box.left - centre.x;
+    const dy = pressedAt.y - box.top - centre.y;
+    return Math.hypot(dx, dy) <= centre.r + 22;
+  }
   canvas.addEventListener('pointerdown', (event) => {
     pressedAt = { x: event.clientX, y: event.clientY };
   });
+  // Away from the gallery, it goes: a moment after the pointer is more than a
+  // little way past every picture — and past the blot, so that crossing from
+  // the blot to the pictures never counts as leaving. Measured from where the
+  // pictures are now, whether stacked or in the ring.
+  function near(x, y) {
+    const box = host.getBoundingClientRect();
+    let left = box.left + centre.x - centre.r;
+    let right = box.left + centre.x + centre.r;
+    let top = box.top + centre.y - centre.r;
+    let bottom = box.top + centre.y + centre.r;
+    for (const card of cards) {
+      if (Number(card.el.style.opacity || 1) < 0.2) continue;
+      const r = card.el.getBoundingClientRect();
+      left = Math.min(left, r.left);
+      right = Math.max(right, r.right);
+      top = Math.min(top, r.top);
+      bottom = Math.max(bottom, r.bottom);
+    }
+    return x >= left - REACH_PX && x <= right + REACH_PX && y >= top - REACH_PX && y <= bottom + REACH_PX;
+  }
+
+  function away(x, y) {
+    if (!shown || pointedAt) return;
+    if (near(x, y)) {
+      clearTimeout(leaving);
+      leaving = null;
+    } else if (!leaving) {
+      leaving = setTimeout(hide, LINGER_MS);
+    }
+  }
+
   window.addEventListener('pointermove', (event) => {
+    if (event.pointerType === 'mouse' || event.pointerType === 'pen') away(event.clientX, event.clientY);
     if (!pressedAt || !event.buttons) return;
     if (Math.hypot(event.clientX - pressedAt.x, event.clientY - pressedAt.y) > 6) {
       pressedAt = null;
@@ -321,6 +472,8 @@ export function createGallery({ host, canvas, map, sourcesOf, open, nameOf = (no
     pressedAt = null;
   });
   canvas.addEventListener('wheel', () => shown && hide(), { passive: true });
+  // Out of the window altogether is away too.
+  document.documentElement.addEventListener('pointerleave', () => shown && !pointedAt && hide());
   window.addEventListener('resize', () => shown && hide());
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && shown) hide();
