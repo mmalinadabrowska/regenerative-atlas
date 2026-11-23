@@ -44,10 +44,10 @@ const TURN_MS = 48000;
 const OPEN_MS = 700;
 const SPIN_UP_MS = 2200;
 /** How long the stack stands before the pictures slide out of it into the ring. */
-const STACK_MS = 2000;
+const STACK_MS = 700;
 /** Each picture's slide from the stack to the ring, and the beat between them. */
-const SLIDE_MS = 950;
-const STAGGER_MS = 110;
+const SLIDE_MS = 750;
+const STAGGER_MS = 70;
 /** How far each card behind the front one stands out of the stack, as a share of a card. */
 const FAN = [0, 0.52, 0.72, 0.92];
 
