@@ -962,7 +962,10 @@ function showTag(node) {
   setHead('tag', node.label, blotMark(node.id), washOfTag(node.slug));
   shown = { kind: 'tag', node, sources, themes: connected };
   panelBody.innerHTML = `
-    ${node.note ? `<p class="panel__summary">${escapeHtml(node.note)}</p>` : ''}
+    <div class="record__lead">
+      <figure class="record__figure" data-picture hidden></figure>
+      ${node.note ? `<p class="panel__summary">${escapeHtml(node.note)}</p>` : ''}
+    </div>
     <p class="panel__actions">
       <button class="label label--small" type="button" data-tag="${escapeHtml(node.slug)}">Filter the library to this</button>
       ${sources.length ? DOWNLOAD : ''}
@@ -976,6 +979,9 @@ function showTag(node) {
       .join('')}</ul>
     ${connected.length ? `<h4>Connected tags</h4>${tagChips(connected)}` : ''}`;
   openPanel();
+  // A theme wears the picture its gallery opens on: the newest research
+  // filed under it that has one.
+  showPicture(node, sources);
 }
 
 /**
@@ -1112,17 +1118,25 @@ function showRecord(node) {
 }
 
 /**
- * The record's picture, at its head beside the summary: the same dithered
- * picture the gallery shows. It arrives after the record does — the first time,
- * it is fetched — so the room for it is only made once there is something to
- * put in it, and never for research that has none.
+ * The drawer's picture, at its head in a column of its own beside the opening
+ * text: the same dithered picture the gallery shows — a piece of research's
+ * own, or for a theme the first of its research to have one. It arrives after
+ * the drawer does — the first time, it is fetched — so the column for it is
+ * only made once there is something to put in it, and never when there is
+ * nothing.
  */
-async function showPicture(node) {
-  const picture = await ditheredPicture(node.url, PICTURE.width, PICTURE.height);
-  const figure = panelBody.querySelector('[data-picture]');
-  if (!picture || !figure || shown?.node !== node) return;
-  figure.append(picture);
-  figure.hidden = false;
+async function showPicture(node, candidates = [node]) {
+  for (const source of candidates) {
+    const picture = await ditheredPicture(source.url, PICTURE.width, PICTURE.height);
+    if (shown?.node !== node) return;
+    if (!picture) continue;
+    const figure = panelBody.querySelector('[data-picture]');
+    if (!figure) return;
+    figure.append(picture);
+    figure.hidden = false;
+    figure.closest('.record__lead')?.classList.add('has-picture');
+    return;
+  }
 }
 
 const PICTURE = { width: 168, height: 126 };

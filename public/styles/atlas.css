@@ -2304,13 +2304,20 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
   .gallery__note { transition: none; }
 }
 
-/* The record's picture: at its head, the summary running beside it. */
-.record__lead { display: flow-root; }
+/* The drawer's picture: at its head, in a column of its own, with the opening
+   text in the column beside it. Until there is a picture the text has the
+   whole width. */
+.record__lead.has-picture {
+  display: grid;
+  grid-template-columns: minmax(0, 46%) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.record__lead.has-picture > .panel__summary { margin-top: 0; }
 
 .record__figure {
-  float: left;
-  width: 46%;
-  margin: 0.15rem 1rem 0.6rem 0;
+  margin: 0.15rem 0 0.6rem;
   border-radius: 0.7rem;
   overflow: hidden;
   border: var(--stroke) solid var(--ink);
