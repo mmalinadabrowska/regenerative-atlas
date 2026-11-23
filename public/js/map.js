@@ -2,7 +2,7 @@
 
 import { api, citationLine, escapeHtml, fillCount, hostOf, usingSnapshot } from './api.js';
 import { createConstellation } from './constellation.js';
-import { ditheredPicture } from './dither.js';
+import { creditOf, ditheredPicture } from './dither.js';
 import { createGallery } from './gallery.js';
 import { createStrip } from './strip.js';
 import { blobPath, needsPaper, seedOf } from './ink.js';
@@ -1128,15 +1128,38 @@ function showRecord(node) {
 async function showPicture(node, candidates = [node]) {
   for (const source of candidates) {
     const picture = await ditheredPicture(source.url, PICTURE.width, PICTURE.height);
+    const credit = picture && (await creditOf(source.url));
     if (shown?.node !== node) return;
     if (!picture) continue;
     const figure = panelBody.querySelector('[data-picture]');
     if (!figure) return;
-    figure.append(picture);
+    const frame = document.createElement('div');
+    frame.className = 'record__frame';
+    frame.append(picture);
+    figure.append(frame);
+    figure.insertAdjacentHTML('beforeend', creditLine(source, credit, source !== node));
     figure.hidden = false;
     figure.closest('.record__lead')?.classList.add('has-picture');
     return;
   }
+}
+
+/**
+ * Whose picture it is, under it: the caption its page gives it, who made it
+ * when the page says, and the site it is from, linked. A theme's picture also
+ * says which of its research it is from.
+ */
+function creditLine(source, said, borrowed) {
+  const clip = (text, most) => (text.length > most ? `${text.slice(0, most - 1).trimEnd()}…` : text);
+  const caption = clip(said?.caption ?? '', 140);
+  const credit = clip(said?.credit ?? '', 90);
+  const site = said?.site || hostOf(source.url);
+  const from = `<a href="${escapeHtml(source.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(site)}</a>`;
+  return `<figcaption class="record__credit">
+    ${borrowed ? `<span>From <a href="#" data-open="${escapeHtml(source.id)}">${escapeHtml(clip(source.label, 70))}</a></span>` : ''}
+    ${caption ? `<span>${escapeHtml(caption)}</span>` : ''}
+    <span>${credit ? `${escapeHtml(credit)}, via ${from}` : `Picture: ${from}`}</span>
+  </figcaption>`;
 }
 
 const PICTURE = { width: 168, height: 126 };

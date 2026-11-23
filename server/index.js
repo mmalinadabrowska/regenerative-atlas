@@ -16,7 +16,7 @@ import { loadEnv } from './env.js';
 import { openDatabase } from './db.js';
 import { ApiError, exportBibtex, exportJson, handlers } from './api.js';
 import * as supabase from './supabase.js';
-import { IMAGE_HEADERS, NONE_HEADERS, imageFor } from './images.js';
+import { IMAGE_HEADERS, NONE_HEADERS, imageFor, pictureHeaders } from './images.js';
 
 // Before anything reads process.env — the Supabase credentials live in .env
 // when they live anywhere on this machine at all.
@@ -277,9 +277,17 @@ export function createAtlasServer(atlas) {
             case '/api/review':
               return sendJson(res, ...(await reviewRead(searchParams.get('token'), { queue: searchParams.has('queue') })));
             case '/api/image': {
-              const image = await imageFor(searchParams.get('for'), (url) => Boolean(atlas.findByUrl(url)));
-              if (!image) return send(res, 404, 'No picture.', { 'content-type': 'text/plain; charset=utf-8', ...NONE_HEADERS });
-              return send(res, 200, image.body, { 'content-type': image.type, ...IMAGE_HEADERS });
+              const image = await imageFor(searchParams.get('for'), (url) => Boolean(atlas.findByUrl(url)), {
+                pick: searchParams.get('pick'),
+              });
+              if (!image?.body) {
+                return send(res, 404, 'No picture.', {
+                  'content-type': 'text/plain; charset=utf-8',
+                  ...NONE_HEADERS,
+                  'x-picture-more': image?.more ? '1' : '0',
+                });
+              }
+              return send(res, 200, image.body, { 'content-type': image.type, ...IMAGE_HEADERS, ...pictureHeaders(image) });
             }
             case '/api/export.json':
               return send(res, 200, JSON.stringify(exportJson(atlas), null, 2), {

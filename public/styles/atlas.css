@@ -2318,9 +2318,29 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 
 .record__figure {
   margin: 0.15rem 0 0.6rem;
+}
+
+.record__frame {
   border-radius: 0.7rem;
   overflow: hidden;
   border: var(--stroke) solid var(--ink);
+}
+
+/* Whose picture it is: small, under it, in the column it stands in. */
+.record__credit {
+  display: grid;
+  gap: 0.15rem;
+  margin-top: 0.4rem;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: var(--ink-55);
+  overflow-wrap: anywhere;
+}
+
+.record__credit a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
 }
 
 /* The strip: on a phone, a row of small pictures along the bottom of the map,

@@ -8,7 +8,7 @@
 
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { IMAGE_HEADERS, NONE_HEADERS, imageFor } from '../server/images.js';
+import { IMAGE_HEADERS, NONE_HEADERS, imageFor, pictureHeaders } from '../server/images.js';
 import { wrongMethod } from './_shared.js';
 
 // Beside this file in the repository; under the working directory once the
@@ -33,12 +33,14 @@ async function library() {
 
 export default async function handler(req, res) {
   if (wrongMethod(req, res, ['GET', 'HEAD'])) return;
-  const url = new URL(req.url, 'http://localhost').searchParams.get('for');
-  const image = await imageFor(url, async (candidate) => (await library()).has(candidate));
-  if (!image) {
-    res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8', ...NONE_HEADERS });
+  const params = new URL(req.url, 'http://localhost').searchParams;
+  const image = await imageFor(params.get('for'), async (candidate) => (await library()).has(candidate), {
+    pick: params.get('pick'),
+  });
+  if (!image?.body) {
+    res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8', ...NONE_HEADERS, 'x-picture-more': image?.more ? '1' : '0' });
     return res.end('No picture.');
   }
-  res.writeHead(200, { 'content-type': image.type, 'content-length': image.body.length, ...IMAGE_HEADERS });
+  res.writeHead(200, { 'content-type': image.type, 'content-length': image.body.length, ...IMAGE_HEADERS, ...pictureHeaders(image) });
   res.end(req.method === 'HEAD' ? undefined : image.body);
 }

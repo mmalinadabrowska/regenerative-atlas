@@ -349,33 +349,255 @@ export function suggestTags(described, limit = 6) {
 /* --- the picture a page offers of itself ----------------------------------
    Most pages name one image to stand for them when they are shared — Open
    Graph's og:image, Twitter's card image, the older image_src link. That is the
-   picture the Atlas shows for a piece of research: the one its own authors
-   chose, rather than one the Atlas went looking for. */
+   first picture the Atlas tries for a piece of research: the one its own
+   authors chose, rather than one the Atlas went looking for. */
 
-/** The picture a page names for itself, as an absolute http(s) URL, or null. */
-export function readImage(html, url) {
-  const base = url instanceof URL ? url : new URL(url);
-  const meta = parseMeta(html);
-  const named =
-    pick(meta, 'og:image:secure_url', 'og:image:url', 'og:image', 'twitter:image', 'twitter:image:src') ||
-    html.match(/<link\b[^>]*\brel\s*=\s*["']image_src["'][^>]*>/i)?.[0]?.match(/\bhref\s*=\s*["']([^"']+)["']/i)?.[1] ||
-    '';
-  if (!named) return null;
+/* Pictures, not marks.
+   The picture a page names for itself is often not a picture at all: a logo,
+   the site's name set in type, the same banner every page on the site shares.
+   So every picture a page offers is a candidate — the one it names for itself,
+   then the figures in its text, then the larger pictures in its body — and the
+   ones that say what they are by name (logo, icon, avatar…), that are too small
+   or too long and thin to be anything but a mark, or that sit in the page's
+   header, navigation or footer, are left out. What is left is tried in order;
+   the browser has the last word, looking at the pixels themselves (see
+   looksLikeAPicture in public/js/dither.js).
+
+   Each candidate carries what the page says about it — a caption, and who
+   made it when that is said — so the picture can be credited where it is shown. */
+
+const MAX_CANDIDATES = 6;
+const MARKS =
+  /(?:^|[^a-z])(?:logos?|logotype|icons?|favicon|sprites?|avatars?|badges?|wordmark|brand(?:ing|mark)?|emblem|placeholder|default|fallback|share[-_ ]?(?:image|card)|social[-_ ]?(?:image|card|share)|og[-_]?default|apple-touch|gravatar|spacer|blank|pixel|qr[-_ ]?code|signature|seal|flag)(?:[^a-z]|$)/i;
+
+/** The attributes of one tag, by lower-cased name. */
+function attributesOf(tag) {
+  const found = new Map();
+  for (const [, name, , quoted, bare] of tag.matchAll(/([a-z_:][-a-z0-9_:.]*)\s*=\s*(["'])?((?:(?!\2)[\s\S])*?)\2(?=[\s/>])|([a-z_:][-a-z0-9_:.]*)(?=[\s/>])/gi)) {
+    if (name) found.set(name.toLowerCase(), decodeEntities(quoted ?? ''));
+    else if (bare) found.set(bare.toLowerCase(), '');
+  }
+  return found;
+}
+
+/** Text with its tags taken out. */
+const textOf = (html) => clean(String(html ?? '').replace(/<(script|style)\b[\s\S]*?<\/\1>/gi, ' ').replace(/<[^>]+>/g, ' '));
+
+/** The largest picture a srcset offers. */
+function largestOf(srcset) {
+  let best = null;
+  let bestSize = -1;
+  for (const part of String(srcset ?? '').split(/,\s+(?=\S)/)) {
+    const [href, size = '1x'] = part.trim().split(/\s+/);
+    const n = parseFloat(size) * (/x$/i.test(size) ? 1000 : 1);
+    if (href && n > bestSize) {
+      best = href;
+      bestSize = n;
+    }
+  }
+  return best;
+}
+
+function absolute(href, base) {
+  if (!href || /^data:/i.test(href.trim())) return null;
   try {
-    const resolved = new URL(decodeEntities(named), base);
+    const resolved = new URL(href.trim(), base);
     return /^https?:$/.test(resolved.protocol) ? resolved.href : null;
   } catch {
     return null;
   }
 }
 
-/** Fetch a page and read the picture it names for itself. */
-export async function findImage(pageUrl) {
-  const url = await assertPublicUrl(pageUrl);
-  const response = await fetchWithGuard(url.href);
+/** A picture's own name, without the size a CMS adds to its copies. */
+const stemOf = (href) => {
+  try {
+    return decodeURIComponent(new URL(href).pathname.split('/').pop() ?? '')
+      .toLowerCase()
+      .replace(/\.[a-z0-9]+$/, '')
+      .replace(/[-_@](?:\d+x\d+|\d{2,4}w?|scaled|large|medium|full|\dx)$/g, '');
+  } catch {
+    return '';
+  }
+};
+
+/**
+ * A caption split into what it says and who it credits: "The hall in use.
+ * Photo: Jane Doe" → { caption: 'The hall in use.', credit: 'Photo: Jane Doe' }.
+ */
+export function splitCredit(text) {
+  const said = clean(text, 400);
+  const match = said.match(CREDIT);
+  if (!match) return { caption: said, credit: '' };
+  const credit = match[1].trim().replace(/[\s,.;:–—-]+$/, '');
+  const caption = said.slice(0, match.index + (match[0].length - match[0].trimStart().length)).replace(/[\s(,;:|–—-]+$/, '').trim();
+  return { caption, credit: credit.length > 2 ? credit : '' };
+}
+
+// A credit names someone: "Photo: Jane Doe", "Image courtesy of Studio X",
+// "Photograph by Ann Lee", "© 2020 Arup" — a word for a picture followed by a
+// name, not just any sentence with "photos" or "diagram" in it. Case matters
+// for the name, so the words are spelled to match in either case by hand.
+const either = (word) => word.replace(/[a-z]/g, (c) => `[${c}${c.toUpperCase()}]`);
+const PICTURE_WORD = ['photo', 'photos', 'photograph', 'photographs', 'photography', 'image', 'images', 'picture',
+  'pictures', 'illustration', 'illustrations', 'diagram', 'drawing', 'render', 'rendering', 'visualisation',
+  'visualization', 'credit', 'credits', 'courtesy', 'source'].map(either).join('|');
+const LINK_WORD = ['by', 'courtesy of', 'courtesy', 'credit', 'of'].map(either).join('|');
+const NAME = String.raw`[\p{Lu}\p{N}©@][^.;|()]*`;
+const CREDIT = new RegExp(
+  String.raw`(?:^|[\s.;,(|–—-])((?:${PICTURE_WORD})(?:\s+(?:${LINK_WORD}))*\s*:?\s*${NAME}|(?:©|\([cC]\)|${either('copyright')})\s*\S[^.;|()]*)\)?\s*\.?\s*$`,
+  'u',
+);
+
+const looksLikeAMark = (...said) => said.some((text) => MARKS.test(String(text ?? '')));
+
+function sizeRules(attrs) {
+  const width = parseFloat(attrs.get('width'));
+  const height = parseFloat(attrs.get('height'));
+  if ((width && width < 200) || (height && height < 140)) return false;
+  if (width && height && (width / height > 3.2 || height / width > 3.2)) return false;
+  return true;
+}
+
+/**
+ * Every picture a page offers that might show the research, best first, each
+ * { src, caption, credit, named } — named for the one the page names for itself.
+ */
+export function readImages(html, url) {
+  const base = url instanceof URL ? url : new URL(url);
+  const meta = parseMeta(html);
+  const found = [];
+  const seen = new Set();
+  const add = (candidate) => {
+    if (!candidate.src || seen.has(candidate.src)) return;
+    if (/\.(?:svg|ico|gif)(?:[?#]|$)/i.test(new URL(candidate.src).pathname)) return;
+    seen.add(candidate.src);
+    found.push(candidate);
+  };
+
+  // 1. The picture the page names for itself.
+  const named = absolute(
+    pick(meta, 'og:image:secure_url', 'og:image:url', 'og:image', 'twitter:image', 'twitter:image:src') ||
+      html.match(/<link\b[^>]*\brel\s*=\s*["']image_src["'][^>]*>/i)?.[0]?.match(/\bhref\s*=\s*["']([^"']+)["']/i)?.[1],
+    base,
+  );
+  const namedWidth = Number(pick(meta, 'og:image:width')) || 0;
+  const namedHeight = Number(pick(meta, 'og:image:height')) || 0;
+  const namedAlt = pick(meta, 'og:image:alt', 'twitter:image:alt');
+  if (named && !looksLikeAMark(new URL(named).pathname, namedAlt) &&
+      sizeRules(new Map([['width', namedWidth || ''], ['height', namedHeight || '']]))) {
+    add({ src: named, ...splitCredit(namedAlt), named: true });
+  }
+
+  // The page's own text: without its head, header, navigation, footer and
+  // asides, where logos and badges live; the main part of it if it says which.
+  let body = html.replace(/<head\b[\s\S]*?<\/head>/i, ' ');
+  body = body.match(/<main\b[\s\S]*?<\/main>/i)?.[0] ?? body.match(/<article\b[\s\S]*?<\/article>/i)?.[0] ?? body;
+  body = body
+    .replace(/<(script|style|noscript|template)\b[\s\S]*?<\/\1>/gi, ' ')
+    .replace(/<(header|nav|footer|aside|form)\b[\s\S]*?<\/\1>/gi, ' ');
+
+  const fromImg = (tag, extra = {}) => {
+    const attrs = attributesOf(tag);
+    const said = [attrs.get('class'), attrs.get('id'), attrs.get('alt'), attrs.get('src'), attrs.get('data-src')].join(' ');
+    if (looksLikeAMark(said) || attrs.get('role') === 'presentation' || attrs.get('aria-hidden') === 'true') return null;
+    if (!sizeRules(attrs)) return null;
+    const src = absolute(
+      largestOf(attrs.get('srcset') || attrs.get('data-srcset')) ||
+        attrs.get('data-src') || attrs.get('data-lazy-src') || attrs.get('data-original') || attrs.get('src'),
+      base,
+    );
+    if (!src) return null;
+    const alt = clean(attrs.get('alt') ?? '', 400);
+    return { src, alt, width: parseFloat(attrs.get('width')) || 0, ...extra };
+  };
+
+  // 2. Figures: a picture the text puts forward, usually with a caption.
+  const figures = [];
+  for (const [figure] of body.matchAll(/<figure\b[\s\S]*?<\/figure>/gi)) {
+    const img = figure.match(/<img\b[^>]*>/i)?.[0];
+    if (!img) continue;
+    const credited = figure.match(/<([a-z]+)\b[^>]*\bclass\s*=\s*["'][^"']*\b(?:credit|copyright|attribution|byline)[^"']*["'][^>]*>([\s\S]*?)<\/\1>/i);
+    const captionHtml = figure.match(/<figcaption\b[^>]*>([\s\S]*?)<\/figcaption>/i)?.[1] ?? '';
+    let { caption, credit } = splitCredit(textOf(credited ? captionHtml.replace(credited[0], ' ') : captionHtml));
+    if (credited) credit = textOf(credited[2]) || credit;
+    const candidate = fromImg(img);
+    if (!candidate) continue;
+    figures.push({ src: candidate.src, caption: (caption || candidate.alt).slice(0, 200), credit: credit.slice(0, 120), named: false });
+  }
+
+  // 3. The larger pictures in the text, the larger first.
+  const others = [];
+  for (const [img] of body.replace(/<figure\b[\s\S]*?<\/figure>/gi, ' ').matchAll(/<img\b[^>]*>/gi)) {
+    const candidate = fromImg(img);
+    if (!candidate) continue;
+    others.push({ src: candidate.src, ...splitCredit(candidate.alt), named: false, width: candidate.width });
+  }
+  others.sort((a, b) => (b.width || 0) - (a.width || 0));
+
+  for (const figure of figures) add(figure);
+  for (const other of others) add({ src: other.src, caption: other.caption.slice(0, 200), credit: other.credit.slice(0, 120), named: false });
+
+  // The picture the page names for itself is often one of its figures too,
+  // where it has a caption and a credit; it borrows them.
+  const first = found[0];
+  if (first?.named) {
+    const twin = found.find((c) => !c.named && stemOf(c.src) && stemOf(c.src) === stemOf(first.src));
+    if (twin) {
+      first.caption = twin.caption || first.caption;
+      first.credit = twin.credit || first.credit;
+    }
+  }
+  return found.slice(0, MAX_CANDIDATES);
+}
+
+/** The name the site goes by, for the credit: its own name for itself, or its address. */
+export function siteOf(html, url) {
+  const name = pick(parseMeta(html), 'og:site_name', 'application-name');
+  if (name && name.length <= 60) return name;
+  return new URL(url).hostname.replace(/^www\./, '');
+}
+
+/** The picture a page names for itself, as an absolute http(s) URL, or null. */
+export function readImage(html, url) {
+  return readImages(html, url).find((c) => c.named)?.src ?? null;
+}
+
+async function readPage(href) {
+  const response = await fetchWithGuard(href);
   if (!response.ok) return null;
   const html = await readCapped(response);
-  return html ? readImage(html, response.url || url.href) : null;
+  return html ? { html, url: response.url || href } : null;
+}
+
+const within = (promise, ms) =>
+  Promise.race([promise, new Promise((resolve) => setTimeout(() => resolve(null), ms).unref?.())]);
+
+/**
+ * Fetch a page and list the pictures it offers (see readImages), with the
+ * site's name. The picture it names for itself is dropped when the site's
+ * front page names the same one: that is the site's banner, not this
+ * research's picture.
+ */
+export async function findImages(pageUrl, { read = readPage } = {}) {
+  const url = await assertPublicUrl(pageUrl);
+  const page = await read(url.href);
+  if (!page) return { site: url.hostname.replace(/^www\./, ''), candidates: [] };
+  let candidates = readImages(page.html, page.url);
+  const named = candidates.find((c) => c.named);
+  const home = new URL('/', page.url).href;
+  if (named && home !== page.url) {
+    const front = await within(read(home).catch(() => null), 4000);
+    if (front && readImages(front.html, front.url).some((c) => c.named && c.src === named.src)) {
+      candidates = candidates.filter((c) => c !== named);
+    }
+  }
+  return { site: siteOf(page.html, page.url), candidates };
+}
+
+/** Fetch a page and read the picture it names for itself. */
+export async function findImage(pageUrl) {
+  const { candidates } = await findImages(pageUrl);
+  return candidates[0]?.src ?? null;
 }
 
 /**
