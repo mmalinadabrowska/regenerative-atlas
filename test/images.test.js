@@ -151,3 +151,15 @@ test('the pictures are handed over one at a time, saying whether there is anothe
   assert.match(headers['x-picture-site'], /^[\x20-\x7e]*$/, 'header values stay ASCII');
   assert.equal(headers['x-picture-more'], '1');
 });
+
+test('a file name is no caption, but the credit in it is kept', async () => {
+  const { describedBy } = await import('../server/metadata.js');
+  assert.deepEqual(
+    describedBy('Tipping_Point_East_For_The_Architectural_Review_©_Henry_Woide_Low Res_001.jpg'),
+    { caption: '', credit: '© Henry Woide' },
+  );
+  assert.deepEqual(describedBy('IMG_4021.JPG'), { caption: '', credit: '' });
+  assert.deepEqual(describedBy('The meeting hall. Photo: Jane Doe'), { caption: 'The meeting hall.', credit: 'Photo: Jane Doe' });
+  const found = readImages(page('<meta property="og:image" content="https://x.org/u/Studio_shot_%C2%A9_Ann_Lee_final.jpg">'), 'https://x.org/p');
+  assert.equal(found[0].credit, '© Ann Lee');
+});

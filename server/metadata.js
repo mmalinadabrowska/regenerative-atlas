@@ -448,6 +448,39 @@ const CREDIT = new RegExp(
   'u',
 );
 
+/**
+ * What a picture's description says, when that description is its file name —
+ * "Tipping_Point_East_For_The_Architectural_Review_©_Henry_Woide_Low Res_001.jpg"
+ * — which is no caption, but often carries the credit: "© Henry Woide".
+ */
+// A file name: ends in a picture's extension, or is one long word joined with
+// underscores.
+const FILE_NAME = /\.(?:jpe?g|png|webp|gif|avif|tiff?|heic)$|^\S*_\S*_\S*$/i;
+export function describedBy(text) {
+  const said = clean(text, 400);
+  if (!FILE_NAME.test(said)) return splitCredit(said);
+  const words = said
+    .replace(/\.[a-z0-9]{2,5}$/i, '')
+    .replace(/%20|[_+]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  let { credit } = splitCredit(words);
+  // The working names a file picks up after its credit: sizes, versions, copies.
+  const tail = /\s+(?:(?:low|hi|high)\s*-?\s*res|lowres|hires|web|final|edit(?:ed)?|crop(?:ped)?|copy|small|large|medium|v\d+|\d+(?:x\d+)?|[a-z]?\d+)$/i;
+  while (tail.test(credit)) credit = credit.replace(tail, '');
+  return { caption: '', credit: credit.length > 3 ? credit : '' };
+}
+
+/** A credit in a picture's own address, when nothing else gives one. */
+const creditInAddress = (src) => {
+  try {
+    const name = decodeURIComponent(new URL(src).pathname.split('/').pop() ?? '');
+    return /©|\(c\)|copyright/i.test(name) ? describedBy(name).credit : '';
+  } catch {
+    return '';
+  }
+};
+
 const looksLikeAMark = (...said) => said.some((text) => MARKS.test(String(text ?? '')));
 
 function sizeRules(attrs) {
@@ -485,7 +518,7 @@ export function readImages(html, url) {
   const namedAlt = pick(meta, 'og:image:alt', 'twitter:image:alt');
   if (named && !looksLikeAMark(new URL(named).pathname, namedAlt) &&
       sizeRules(new Map([['width', namedWidth || ''], ['height', namedHeight || '']]))) {
-    add({ src: named, ...splitCredit(namedAlt), named: true });
+    add({ src: named, ...describedBy(namedAlt), named: true });
   }
 
   // The page's own text: without its head, header, navigation, footer and
@@ -507,7 +540,7 @@ export function readImages(html, url) {
       base,
     );
     if (!src) return null;
-    const alt = clean(attrs.get('alt') ?? '', 400);
+    const alt = describedBy(attrs.get('alt') ?? '');
     return { src, alt, width: parseFloat(attrs.get('width')) || 0, ...extra };
   };
 
@@ -518,11 +551,11 @@ export function readImages(html, url) {
     if (!img) continue;
     const credited = figure.match(/<([a-z]+)\b[^>]*\bclass\s*=\s*["'][^"']*\b(?:credit|copyright|attribution|byline)[^"']*["'][^>]*>([\s\S]*?)<\/\1>/i);
     const captionHtml = figure.match(/<figcaption\b[^>]*>([\s\S]*?)<\/figcaption>/i)?.[1] ?? '';
-    let { caption, credit } = splitCredit(textOf(credited ? captionHtml.replace(credited[0], ' ') : captionHtml));
+    let { caption, credit } = describedBy(textOf(credited ? captionHtml.replace(credited[0], ' ') : captionHtml));
     if (credited) credit = textOf(credited[2]) || credit;
     const candidate = fromImg(img);
     if (!candidate) continue;
-    figures.push({ src: candidate.src, caption: (caption || candidate.alt).slice(0, 200), credit: credit.slice(0, 120), named: false });
+    figures.push({ src: candidate.src, caption: (caption || candidate.alt.caption).slice(0, 200), credit: (credit || candidate.alt.credit).slice(0, 120), named: false });
   }
 
   // 3. The larger pictures in the text, the larger first.
@@ -530,7 +563,7 @@ export function readImages(html, url) {
   for (const [img] of body.replace(/<figure\b[\s\S]*?<\/figure>/gi, ' ').matchAll(/<img\b[^>]*>/gi)) {
     const candidate = fromImg(img);
     if (!candidate) continue;
-    others.push({ src: candidate.src, ...splitCredit(candidate.alt), named: false, width: candidate.width });
+    others.push({ src: candidate.src, ...candidate.alt, named: false, width: candidate.width });
   }
   others.sort((a, b) => (b.width || 0) - (a.width || 0));
 
@@ -547,6 +580,7 @@ export function readImages(html, url) {
       first.credit = twin.credit || first.credit;
     }
   }
+  for (const candidate of found) candidate.credit ||= creditInAddress(candidate.src);
   return found.slice(0, MAX_CANDIDATES);
 }
 
