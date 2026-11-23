@@ -30,7 +30,7 @@
 import { escapeHtml } from './api.js';
 import { ditheredPicture } from './dither.js';
 
-const DELAY_MS = 1600;
+const DELAY_MS = 700;
 /** How far past the pictures the pointer can stray before the gallery goes, and how soon after. */
 const REACH_PX = 60;
 const LINGER_MS = 260;

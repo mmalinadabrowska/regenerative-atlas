@@ -2460,9 +2460,9 @@ button.label[disabled] { opacity: 0.4; cursor: progress; }
 .gallery__seed.is-on {
   opacity: 1;
   scale: 1;
-  animation: seed-pulse 1.7s ease-in-out 0.25s infinite;
+  animation: seed-pulse 0.7s ease-in-out infinite;
 }
-.gallery__seed.is-on::after { animation: seed-ripple 1.7s ease-out 0.25s infinite; }
+.gallery__seed.is-on::after { animation: seed-ripple 0.7s ease-out infinite; }
 
 @keyframes seed-pulse {
   0%, 100% { scale: 1; }
