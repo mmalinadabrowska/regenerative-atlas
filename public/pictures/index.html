@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Pictures — Regenerative Atlas</title>
+<link rel="stylesheet" href="/styles/atlas.css">
+<style>
+  /* A working page, not part of the Atlas: which research has a picture. */
+  body { padding: 2rem var(--gutter); max-width: 60rem; margin: 0 auto; }
+  h1 { font-family: var(--display); font-weight: 400; font-size: 2rem; margin: 0 0 0.5rem; }
+  .tally { color: var(--ink-55); margin: 0 0 1.5rem; }
+  textarea { width: 100%; min-height: 10rem; font: 0.85rem/1.5 var(--sans); padding: 0.75rem; border: var(--stroke) solid var(--ink); border-radius: 0.6rem; background: transparent; color: var(--ink); }
+  ol { list-style: none; padding: 0; margin: 2rem 0 0; display: grid; gap: 0.6rem; }
+  li { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 1rem; align-items: center; padding-bottom: 0.6rem; border-bottom: var(--rule); }
+  .thumb { width: 84px; height: 63px; border: var(--stroke) solid var(--ink); border-radius: 0.4rem; overflow: hidden; display: grid; place-items: center; font-size: 0.7rem; color: var(--ink-55); }
+  .thumb canvas { display: block; width: 100%; image-rendering: pixelated; }
+  .is-missing .thumb { border-style: dashed; }
+  li a { color: inherit; }
+  .meta { font-size: 0.8rem; color: var(--ink-55); overflow-wrap: anywhere; }
+</style>
+</head>
+<body>
+<h1>Pictures</h1>
+<p class="tally" id="tally">Looking for each piece of research's picture…</p>
+<label for="missing" class="meta">Without a picture, to copy:</label>
+<textarea id="missing" readonly></textarea>
+<ol id="list"></ol>
+<script type="module">
+  import { ditheredPicture, creditOf } from '/js/dither.js';
+
+  const snapshot = await fetch('/data/snapshot.json').then((r) => r.json());
+  const sources = (snapshot.sources?.sources ?? []).slice().sort((a, b) => a.title.localeCompare(b.title));
+  const list = document.getElementById('list');
+  const rows = sources.map((source) => {
+    const li = document.createElement('li');
+    li.innerHTML = `<div class="thumb">…</div><div><a href="${source.url}" target="_blank" rel="noopener"></a><div class="meta"></div></div>`;
+    li.querySelector('a').textContent = source.title;
+    li.querySelector('.meta').textContent = source.url;
+    list.append(li);
+    return { source, li };
+  });
+
+  const missing = [];
+  let done = 0;
+  const tally = () => {
+    document.getElementById('tally').textContent =
+      `${done} of ${rows.length} looked at · ${done - missing.length} with a picture · ${missing.length} without`;
+    document.getElementById('missing').value = missing
+      .sort((a, b) => a.title.localeCompare(b.title))
+      .map((s) => `${s.title} — ${s.url}`)
+      .join('\n');
+  };
+  tally();
+
+  // Four at a time, as the map would.
+  const queue = rows.slice();
+  await Promise.all(Array.from({ length: 4 }, async () => {
+    for (let row = queue.shift(); row; row = queue.shift()) {
+      const picture = await ditheredPicture(row.source.url, 84, 63).catch(() => null);
+      const thumb = row.li.querySelector('.thumb');
+      thumb.textContent = '';
+      if (picture) {
+        thumb.append(picture);
+        const said = await creditOf(row.source.url);
+        row.li.querySelector('.meta').textContent =
+          [said?.caption, said?.credit, said?.site].filter(Boolean).join(' · ') || row.source.url;
+      } else {
+        thumb.textContent = 'none';
+        row.li.classList.add('is-missing');
+        missing.push(row.source);
+      }
+      done += 1;
+      tally();
+    }
+  }));
+  document.getElementById('tally').textContent += ' — done';
+</script>
+</body>
+</html>
